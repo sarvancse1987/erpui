@@ -1,0 +1,85 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.p-toolbar.p-component {
+  padding: 0.25rem 0.9rem 0.25rem 0.95rem !important;
+  height: 57px !important;
+}
+
+.smaller-input {
+  font-size: 12px;
+  padding: 5px 8px;
+}
+
+.smaller-icon {
+  font-size: 14px;
+}
+
+.custom-name-header {
+  background-color: #f0f4ff;
+  color: #191670;
+  font-weight: bold;
+}
+
+.custom-small-button {
+  font-size: 12px; /* Smaller text */
+  padding: 6px 12px; /* Smaller padding */
+  height: 90%; /* Adjust height */
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.font-bold {
+  font-weight: bold;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.block {
+  display: block;
+}
+
+.edit {
+  padding: 0.2rem 1.2rem;
+}
+

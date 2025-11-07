@@ -1,0 +1,37 @@
+
+.blue-header-dialog .p-dialog-header {
+    background-color:#ba86dd;
+    color: white;
+}
+.p-fieldset-content{
+    padding-top: 0px;
+    padding-bottom: 0px;
+    margin-top: -23px;
+}.p-fieldset-legend{
+    padding: 5px;
+}
+
+.p-dialog .p-dialog-header {
+  height: 50px !important;
+  display: flex;
+  align-items: center; 
+  padding: 0 1rem;      
+}
+
+
+.p-dialog .p-dialog-header-icon {
+  align-self: center;
+ 
+  margin-bottom: 0 !important;
+}
+.CounterBox {
+    background-color: #ffffff;
+}.layout-main-container{
+    background-color: #F9FBFD;
+}.card-category1{
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    color: gray !important;
+    margin-bottom: 0px !important;
+    word-break: normal !important;
+}

@@ -1,0 +1,17 @@
+
+.custom-datatable .p-paginator {
+  justify-content: flex-end !important;
+}
+
+@media (min-width: 769px) {
+  .custom-datatable .p-paginator {
+    justify-content: flex-end !important;
+  }
+}
+
+/* Mobile: center align */
+@media (max-width: 768px) {
+  .custom-datatable .p-paginator {
+    justify-content: center !important;
+  }
+}

@@ -1,0 +1,96 @@
+.card {
+    padding: 0% !important;
+    border-radius: 13px;
+}
+
+.loginTitle {
+    position: absolute;
+    top: 33px;
+    left: -65px;
+    background: #ffffff;
+    padding: 1rem 1rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* Make sure the parent is positioned relative */
+.rightSideContent {
+    flex: 1;
+    padding: 3rem;
+    background: #fff;
+    position: relative;
+}
+
+/* Power by logo styling */
+.tetroLogo {
+    margin-top: 0.5rem;
+    width: 170px;
+}
+
+/* Left panel gradient */
+.leftSideContent {
+    flex: 1;
+    background: -webkit-linear-gradient(45deg, #a787c9 1%, #554dc94a 100%) !important;
+    color: #fff;
+    padding: 3rem;
+    text-align: center;
+}
+
+.leftSideContent span {
+    font-family: 'Alegreya', serif;
+    font-style: italic;
+    font-weight: 600;
+    color: white;
+}
+
+/* Keep MainLoginCard centered */
+.MainLoginCard {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5fc;
+}
+
+/* Card flex container */
+.loginCard {
+    width: 75%;
+    display: flex;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.08);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+}
+
+.forgotLabel {
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border-bottom: 2px solid var(--light-gray);
+}
+
+.forgotLabel:hover {
+    border-bottom: 2px solid #0e0e0e;
+}
+
+:root {
+    --darkblue: gray;
+    --light-gray: #ccc;
+    /* Add this */
+}
+
+.loginButton {
+    background-image: linear-gradient(to bottom, #488fed 0%, #2a1fbc 100%);
+}
+
+.LogoApp {
+    width: 162px;
+    margin-top: -55px;
+}
+
+.WelcomeContent {
+    color: white;
+}

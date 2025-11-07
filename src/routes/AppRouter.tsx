@@ -1,0 +1,70 @@
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import Layout from "../layout/layout";
+import { ProtectedRoute } from "./ProtectedRoute";
+import MinimalLayout from "../layout/MinimalLayout";
+
+const Dashboard = React.lazy(() => import("../modules/dashboard/Dashboard"));
+const ProductList = React.lazy(() => import("../modules/products/pages/ProductList"));
+const ProductAdd = React.lazy(() => import("../modules/products/pages/ProductAdd"));
+const ProductEdit = React.lazy(() => import("../modules/products/pages/ProductEdit"));
+const SalesList = React.lazy(() => import("../modules/sales/pages/SalesList"));
+const SalesDetail = React.lazy(() => import("../modules/sales/pages/SalesDetail"));
+const InventoryList = React.lazy(() => import("../modules/inventory/pages/InventoryList"));
+const InventoryAdjust = React.lazy(() => import("../modules/inventory/pages/InventoryAdjust"));
+const UserList = React.lazy(() => import("../modules/settings/pages/UserList"));
+const RoleList = React.lazy(() => import("../modules/settings/pages/RoleList"));
+const Login = React.lazy(() => import("../modules/auth/Login"));
+
+export default function AppRouter() {
+    return (
+        <Routes>
+
+            {/* Login Route */}
+            <Route element={<MinimalLayout />}>
+                <Route path="/login" element={<Login />} />
+            </Route>
+
+            {/* Protected ERP Layout */}
+            <Route
+                path="/"
+                element={
+                    <ProtectedRoute>
+                        <Layout />
+                    </ProtectedRoute>
+                }
+            >
+                {/* Dashboard */}
+                <Route index element={<Dashboard />} />
+
+                {/* Product Module */}
+                <Route path="products">
+                    <Route index element={<ProductList />} />
+                    <Route path="create" element={<ProductAdd />} />
+                    <Route path="edit/:id" element={<ProductEdit />} />
+                </Route>
+
+                {/* Sales Module */}
+                <Route path="sales">
+                    <Route index element={<SalesList />} />
+                    <Route path=":id" element={<SalesDetail />} />
+                </Route>
+
+                {/* Inventory Module */}
+                <Route path="inventory">
+                    <Route index element={<InventoryList />} />
+                    <Route path="adjust" element={<InventoryAdjust />} />
+                </Route>
+
+                {/* Settings Module */}
+                <Route path="settings">
+                    <Route path="users" element={<UserList />} />
+                    <Route path="roles" element={<RoleList />} />
+                </Route>
+            </Route>
+
+            {/* Unknown paths redirect */}
+            <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+    );
+}

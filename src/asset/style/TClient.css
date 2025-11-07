@@ -1,0 +1,7 @@
+.CounterBox{
+    box-shadow: 1px 1px 15px 0px rgba(0, 0, 0, 0.09);
+   
+}.PlusBtnRow{
+    display: flex;
+    justify-content: end;
+}

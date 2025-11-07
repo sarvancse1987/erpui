@@ -1,0 +1,27 @@
+.picture{
+    height: 80px;
+    width: 150px !important;
+    aspect-ratio: 16 / 9;
+    display: flex
+;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    border: 2px dashed currentcolor;
+    cursor: pointer;
+    font-family: sans-serif;
+    transition: color 300ms ease-in-out, background 300ms ease-in-out;
+    outline: none;
+    overflow: hidden;
+    justify-content: center;
+    margin-bottom: 0px;
+}.imagePreview-manageuser {
+    width: 70px;
+    object-fit: cover;
+    border-radius: 50%;
+}.imagecamera {
+    margin-top: 5.5rem !important;
+}
+#imageUploadlabel-ManageUser{
+    display: none;
+}
