@@ -10,17 +10,20 @@ export default function Category() {
     const [activeCategories, setActiveCategories] = useState<CategoryModel[]>([]);
     const [inactiveCategories, setInActiveCategories] = useState<CategoryModel[]>([]);
 
-    // Columns template
     const baseColumns: ColumnMeta<CategoryModel>[] = [
-        { field: "categoryId", header: "CategoryId", editable: false, hidden: true },
+        { field: "categoryId", header: "ID", editable: false, hidden: true },
         { field: "categoryName", header: "Category Name", editable: true, required: true },
         { field: "categoryDescription", header: "Description", editable: true },
         { field: "isActive", header: "Active", editable: true, type: "checkbox" },
     ];
 
+    // Columns for active tab (hide isActive)
+    const activeColumns = baseColumns.filter(col => col.field !== "isActive");
+    const inactiveColumns = baseColumns;
+
     const fetchCategories = async () => {
         try {
-            const response = await apiService.get(`/ProductCategory/hierarchy?includeCategories=true`);
+            const response = await apiService.get("/ProductCategory/hierarchy?includeCategories=true");
             const categoriesArray: CategoryModel[] = response.categories ?? [];
 
             setActiveCategories(categoriesArray.filter(c => c.isActive));
@@ -37,27 +40,41 @@ export default function Category() {
         fetchCategories();
     }, []);
 
-    const handleActiveSave = (updated: CategoryModel[]) => {
-        setActiveCategories(updated);
-        setCategories(prev => {
-            const updatedIds = updated.map(u => u.categoryId);
-            return prev.map(c => updatedIds.includes(c.categoryId) ? updated.find(u => u.categoryId === c.categoryId)! : c);
-        });
+    const saveCategories = async (
+        updatedCategories: CategoryModel[],
+        isActiveTab: boolean
+    ): Promise<void> => {
+        try {
+            // Save categories via API
+            await apiService.post("/ProductCategory/bulk", updatedCategories);
+
+            // Fetch the latest categories
+            const response = await apiService.get("/ProductCategory/hierarchy?includeCategories=true");
+            const latestCategories: CategoryModel[] = response.categories ?? [];
+
+            // Update frontend state
+            setActiveCategories(latestCategories.filter(c => c.isActive));
+            setInActiveCategories(latestCategories.filter(c => !c.isActive));
+            setCategories(latestCategories);
+        } catch (error) {
+            console.error("Failed to save categories", error);
+        }
     };
 
-    const handleInactiveSave = (updated: CategoryModel[]) => {
-        setInActiveCategories(updated);
-        setCategories(prev => {
-            const updatedIds = updated.map(u => u.categoryId);
-            return prev.map(c => updatedIds.includes(c.categoryId) ? updated.find(u => u.categoryId === c.categoryId)! : c);
-        });
+    // ✅ Make handlers async and await save
+    const handleActiveSave = async (updated: CategoryModel[]) => {
+        const updatedWithActive = updated.map(c => ({ ...c, isActive: true }));
+        await saveCategories(updatedWithActive, true);
     };
 
-    // Active tab: hide isActive column
-    const activeColumns = baseColumns.filter(col => col.field !== "isActive");
+    const handleInactiveSave = async (updated: CategoryModel[]) => {
+        await saveCategories(updated, false);
+    };
 
-    // Inactive tab: show all columns
-    const inactiveColumns = baseColumns;
+    const onActiveDelete = async (toDelete: CategoryModel[]) => {
+         const updatedWithActive = toDelete.map(c => ({ ...c, isActive: false }));
+        await saveCategories(updatedWithActive, true);
+    }
 
     return (
         <div className="p-3">
@@ -70,6 +87,7 @@ export default function Category() {
                         data={activeCategories.map(c => ({ ...c, isActive: true }))}
                         primaryKey="categoryId"
                         onSave={handleActiveSave}
+                        onDelete={onActiveDelete}
                     />
                 </TabPanel>
 

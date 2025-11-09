@@ -19,10 +19,12 @@ export function TTypedDatatable<T extends Record<string, any>>({
   data,
   primaryKey,
   onSave,
+  onDelete,
 }: TTypedDatatableProps<T>) {
   const [tableData, setTableData] = useState<T[]>(data);
   const [editingRows, setEditingRows] = useState<{ [key: string]: boolean }>({});
   const [errors, setErrors] = useState<{ [rowId: string]: { [field: string]: string } }>({});
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
 
   useEffect(() => {
     setTableData(data);
@@ -260,11 +262,29 @@ export function TTypedDatatable<T extends Record<string, any>>({
     }
   };
 
+  const deleteSelected = () => {
+    if (!selectedRows.length) return;
+
+    // Filter out selected rows by primaryKey instead of reference
+    const selectedIds = selectedRows.map(r => r[primaryKey]);
+    const remaining = tableData.filter(r => !selectedIds.includes(r[primaryKey]));
+
+    setTableData(remaining);
+    setSelectedRows([]);
+
+    if (onDelete) onDelete(selectedRows); // pass deleted rows to parent
+  };
+
+  const isSaveEnabled = tableData.some(
+    row => row[primaryKey] === 0 || !!row._edited
+  );
+
   return (
     <div className="card">
       <div className="flex justify-end gap-2 mb-3">
         <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} />
-        <Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll} />
+        <Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll}  disabled={!isSaveEnabled} />
+        <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={deleteSelected} disabled={!selectedRows.length} />
       </div>
 
       <DataTable
@@ -280,7 +300,12 @@ export function TTypedDatatable<T extends Record<string, any>>({
         rowClassName={(rowData, rowIndex: any) =>
           rowIndex % 2 === 0 ? "bg-gray-50" : "bg-white"
         }
+        selection={selectedRows}
+        onSelectionChange={(e) => setSelectedRows(e.value)}
       >
+        {/* Checkbox column */}
+        <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
+
         <Column
           header="Sr. No."
           body={(rowData, options) => options.rowIndex + 1}

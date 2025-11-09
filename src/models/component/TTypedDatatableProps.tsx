@@ -5,6 +5,7 @@ export interface TTypedDatatableProps<T extends Record<string, any>> {
     data: T[];
     primaryKey: keyof T;
     onSave?: (updatedData: T[]) => void;
+    onDelete?: (updatedData: T[]) => void;
 }
 
 export interface TTypeDatatableProps<T extends Record<string, any>> {

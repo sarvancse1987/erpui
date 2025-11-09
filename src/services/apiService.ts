@@ -11,19 +11,6 @@ export async function post(url: string, data: any): Promise<any> {
   return client.post(url, data);
 }
 
-// export async function postImage(url: string, form: FormData): Promise<any> {
-//   const client = getHttpClientImage();
-//   const token = getCookie("authToken");
-
-//   const response = await client.post(url, form, {
-//     headers: {
-//       Authorization: `Bearer ${token}`,
-//     },
-//   });
-
-//   return response.data;
-// }
-
 export async function del(url: string, data?: any): Promise<any> {
   const client = getHttpClient();
   return client.delete(url, { data });
