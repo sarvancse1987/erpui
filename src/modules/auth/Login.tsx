@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { redirect, useLocation, useNavigate } from "react-router-dom";
 import { LoginModel } from "../../models/authentication/loginModel";
 import authService from "../../services/apiService";
-import { useToast } from "../../Components/ToastService";
-import { TInputField } from "../../Components/TInputField";
+import { useToast } from "../../components/ToastService";
+import { TInputField } from "../../components/TInputField";
 import { Button } from "primereact/button";
 import "../../asset/style/TLogin.css";
 import { useAuth } from "../../auth/AuthProvider";
@@ -59,7 +59,7 @@ const LoginPage: React.FC = () => {
 
   useEffect(() => {
     if (token) {
-      const redirectTo = location.state?.from || "/form";
+      const redirectTo = location.state?.from || "/dashboard";
       navigate(redirectTo, { replace: true });
     }
   }, [token, navigate, location.state]);

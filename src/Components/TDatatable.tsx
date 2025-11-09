@@ -4,7 +4,7 @@ import { Column } from "primereact/column";
 import { InputText } from "primereact/inputtext";
 import { Menu } from "primereact/menu";
 import { Button } from "primereact/button";
-import "../../asset/style/TDatatable.css";
+import "../asset/style/TDatatable.css";
 import { ConfirmDialog } from "primereact/confirmdialog";
 
 interface PaginatorTableProps {

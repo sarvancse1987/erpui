@@ -12,8 +12,6 @@ const AppMenu: React.FC = () => {
       label: "Home",
       items: [
         { label: "Dashboard", icon: "pi pi-fw pi-home", to: "/" },
-        { label: "Client", icon: "pi pi-fw pi-home", to: "/Client" },
-        { label: "Customer", icon: "pi pi-fw pi-home", to: "/customer" },
         { label: "Profile", icon: "pi pi-fw pi-user", to: "/Profile" },
         {
           label: "Testimonial",
@@ -23,18 +21,72 @@ const AppMenu: React.FC = () => {
       ],
     },
     {
-      label: "UI Components",
+      label: "Master",
       items: [
-        { label: "Form Layout", icon: "pi pi-fw pi-id-card", to: "/form" },
+        // { label: "Products", icon: "pi pi-fw pi-id-card", to: "/products" },
+        // {
+        //   label: "DataTable",
+        //   icon: "pi pi-fw pi-check-square",
+        //   to: "/datatable",
+        // },
         {
-          label: "DataTable",
-          icon: "pi pi-fw pi-check-square",
-          to: "/datatable",
+          label: "Products",
+          icon: "pi pi-fw pi-user",
+          items: [
+            {
+              label: "Category",
+              icon: "pi pi-fw pi-sign-in",
+              to: "/products/category",
+            },
+            {
+              label: "Group",
+              icon: "pi pi-fw pi-times-circle",
+              to: "/products/group",
+            },
+            {
+              label: "Brand",
+              icon: "pi pi-fw pi-times-circle",
+              to: "/products/brand",
+            },
+            {
+              label: "Product List",
+              icon: "pi pi-fw pi-times-circle",
+              to: "/products",
+            },
+          ],
         },
       ],
     },
     {
-      label: "Pages",
+      label: "User",
+      icon: "pi pi-fw pi-briefcase",
+      to: "/pages",
+      items: [
+        {
+          label: "Landing",
+          icon: "pi pi-fw pi-globe",
+          to: "/landing",
+        },
+        {
+          label: "Auth",
+          icon: "pi pi-fw pi-user",
+          items: [
+            {
+              label: "Login",
+              icon: "pi pi-fw pi-sign-in",
+              to: "/testimonial",
+            },
+            {
+              label: "Error",
+              icon: "pi pi-fw pi-times-circle",
+              to: "/Myprofile",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      label: "Company",
       icon: "pi pi-fw pi-briefcase",
       to: "/pages",
       items: [
@@ -64,25 +116,10 @@ const AppMenu: React.FC = () => {
           icon: "pi pi-fw pi-pencil",
           to: "/pages/crud",
         },
-        {
-          label: "Timeline",
-          icon: "pi pi-fw pi-calendar",
-          to: "/pages/timeline",
-        },
-        {
-          label: "Not Found",
-          icon: "pi pi-fw pi-exclamation-circle",
-          to: "/pages/notfound",
-        },
-        {
-          label: "Empty",
-          icon: "pi pi-fw pi-circle-off",
-          to: "/pages/empty",
-        },
       ],
     },
     {
-      label: "Hierarchy",
+      label: "Companys",
       items: [
         {
           label: "Submenu 1",
@@ -103,26 +140,7 @@ const AppMenu: React.FC = () => {
               items: [{ label: "Submenu 1.2.1", icon: "pi pi-fw pi-bookmark" }],
             },
           ],
-        },
-        {
-          label: "Submenu 2",
-          icon: "pi pi-fw pi-bookmark",
-          items: [
-            {
-              label: "Submenu 2.1",
-              icon: "pi pi-fw pi-bookmark",
-              items: [
-                { label: "Submenu 2.1.1", icon: "pi pi-fw pi-bookmark" },
-                { label: "Submenu 2.1.2", icon: "pi pi-fw pi-bookmark" },
-              ],
-            },
-            {
-              label: "Submenu 2.2",
-              icon: "pi pi-fw pi-bookmark",
-              items: [{ label: "Submenu 2.2.1", icon: "pi pi-fw pi-bookmark" }],
-            },
-          ],
-        },
+        }
       ],
     },
   ];

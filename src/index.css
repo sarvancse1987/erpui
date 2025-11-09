@@ -51,6 +51,47 @@ code {
   color: #333;
 }
 
-.p-datatable .p-datatable-thead>tr>th {
+.p-datatable .p-datatable-thead > tr > th {
   background: #9872d5 !important;
+}
+
+/* Compact DataTable Rows */
+.p-datatable .p-datatable-tbody > tr > td {
+  padding: 0.4rem 0.5rem !important; /* vertical horizontal */
+  line-height: 1.0 !important;
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+  padding: 0.45rem 0.5rem !important;
+}
+
+.p-datatable-wrapper::-webkit-scrollbar {
+  height: 4px;   /* horizontal scrollbar height */
+  width: 4px;    /* vertical scrollbar width */
+}
+
+.p-datatable-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 8px;
+}
+
+.p-datatable-wrapper::-webkit-scrollbar-thumb {
+  background-color: #c1c1c1;
+  border-radius: 8px;
+}
+
+.p-datatable-wrapper::-webkit-scrollbar-thumb:hover {
+  background-color: #999;
+}
+
+/* ✅ Firefox support */
+.p-datatable-wrapper {
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f1f1f1;
+}
+
+.required-asterisk {
+  color: red;
+  margin-left: 2px;
+  font-weight: bold;
 }

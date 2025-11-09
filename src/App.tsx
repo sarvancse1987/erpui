@@ -1,6 +1,6 @@
 import React, { useContext, useEffect } from "react";
 import { BrowserRouter as Router } from "react-router-dom";
-import { LoaderContext } from "./Components/LoaderContext";
+import { LoaderContext } from "./components/LoaderContext";
 import { setLoaderHandler } from "./services/http";
 import AppRouter from "./routes/AppRouter";
 

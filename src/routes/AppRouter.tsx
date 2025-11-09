@@ -3,6 +3,9 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "../layout/layout";
 import { ProtectedRoute } from "./ProtectedRoute";
 import MinimalLayout from "../layout/MinimalLayout";
+import Category from "../modules/products/pages/Category";
+import Group from "../modules/products/pages/Group";
+import Brand from "../modules/products/pages/BrandPage";
 
 const Dashboard = React.lazy(() => import("../modules/dashboard/Dashboard"));
 const ProductList = React.lazy(() => import("../modules/products/pages/ProductList"));
@@ -42,6 +45,9 @@ export default function AppRouter() {
                     <Route index element={<ProductList />} />
                     <Route path="create" element={<ProductAdd />} />
                     <Route path="edit/:id" element={<ProductEdit />} />
+                    <Route path="category" element={<Category />} />
+                    <Route path="group" element={<Group />} />
+                    <Route path="brand" element={<Brand />} />
                 </Route>
 
                 {/* Sales Module */}
