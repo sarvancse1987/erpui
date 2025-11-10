@@ -23,22 +23,25 @@ export default function GroupPage() {
         { field: "isActive", header: "Active", editable: true, type: "checkbox" },
     ];
 
-    const fetchCategories = async () => {
+    const fetchCategoriesAndGroups = async () => {
         try {
             const response = await apiService.get(
                 "/ProductCategory/hierarchy?includeCategories=true&includeGroups=true"
             );
-            const categoriesArray: CategoryModel[] = response.categories ?? [];
 
+            const categoriesArray: CategoryModel[] = response.categories ?? [];
             setCategories(categoriesArray);
+
+            setGroups(response.groups ?? []);
         } catch (error) {
-            console.error("Failed to fetch categories", error);
+            console.error("Failed to fetch categories/groups", error);
             setCategories([]);
+            setGroups([]);
         }
     };
 
     useEffect(() => {
-        fetchCategories();
+        fetchCategoriesAndGroups();
     }, []);
 
     // 🔹 Template for Category Row
@@ -56,21 +59,59 @@ export default function GroupPage() {
             (g) => g.categoryId === category.categoryId && g.isActive === activeState
         );
 
-        // Callback to handle save (new or edited group)
-        const handleSave = (updatedGroups: GroupModel[]) => {
-            // Set categoryId for new groups if not already set
+        const handleSave = async (updatedGroups: GroupModel[]) => {
             const groupsWithCategory = updatedGroups.map((g) => ({
                 ...g,
                 categoryId: category.categoryId,
+                isActive: activeState, // retain tab’s active/inactive context
             }));
 
-            // Merge with existing groups
-            setGroups((prev) => {
-                const others = prev.filter(
-                    (g) => g.categoryId !== category.categoryId || g.isActive !== activeState
+            try {
+                const response = await apiService.post("/ProductGroup/bulk", groupsWithCategory);
+                const savedGroups = response?.data ?? groupsWithCategory;
+
+                setGroups((prev) => {
+                    // remove replaced items
+                    const updatedIds = new Set(savedGroups.map((g: any) => g.groupId));
+                    const others = prev.filter((g: any) => !updatedIds.has(g.groupId));
+
+                    // merge new/updated ones
+                    return [...others, ...savedGroups];
+                });
+
+                console.log("✅ Saved groups:", savedGroups.map((g:any) => g.groupName).join(", "));
+            } catch (error) {
+                console.error("❌ Failed to save groups", error);
+            }
+        };
+
+        // 🔹 Mark selected groups inactive or active
+        const handleDelete = async (selectedGroups: GroupModel[]) => {
+            if (!selectedGroups || selectedGroups.length === 0) return;
+
+            try {
+                // Flip active flag
+                const updatedGroups = selectedGroups.map((g) => ({
+                    ...g,
+                    isActive: !g.isActive, // toggle the flag!
+                }));
+
+                const response = await apiService.post("/ProductGroup/bulk", updatedGroups);
+                const savedGroups = response?.data ?? updatedGroups;
+
+                setGroups((prev) => {
+                    const updatedIds = new Set(savedGroups.map((g: any) => g.groupId));
+                    const others = prev.filter((g: any) => !updatedIds.has(g.groupId));
+                    return [...others, ...savedGroups];
+                });
+
+                console.log(
+                    `♻️ ${savedGroups.length} group(s) moved to ${activeState ? "Inactive" : "Active"
+                    } tab`
                 );
-                return [...others, ...groupsWithCategory];
-            });
+            } catch (error) {
+                console.error("❌ Failed to toggle active status", error);
+            }
         };
 
         return (
@@ -80,46 +121,10 @@ export default function GroupPage() {
                     data={categoryGroups.length > 0 ? categoryGroups : []}
                     primaryKey="groupId"
                     onSave={handleSave}
+                    onDelete={handleDelete}
                 />
             </div>
         );
-    };
-
-    const saveGroupsToServer = async (groupsToSave: GroupModel[]) => {
-        try {
-            // Save new/edited groups
-            await apiService.post("/ProductGroup/save", groupsToSave);
-
-            // After saving, fetch updated categories + groups
-            await fetchCategoriesAndGroups();
-
-        } catch (error) {
-            console.error("Failed to save groups", error);
-        }
-    };
-
-    const fetchCategoriesAndGroups = async () => {
-        try {
-            const response = await apiService.get(
-                "/ProductCategory/hierarchy?includeCategories=true&includeGroups=true"
-            );
-
-            const categoriesArray: CategoryModel[] = response.categories ?? [];
-            setCategories(categoriesArray);
-
-            const allGroups: GroupModel[] = categoriesArray
-                .flatMap(c => (c.groups ?? []).map(g => ({
-                    ...g,
-                    categoryName: c.categoryName,
-                    categoryDescription: c.categoryDescription,
-                })));
-
-            setGroups(allGroups);
-        } catch (error) {
-            console.error("Failed to fetch categories/groups", error);
-            setCategories([]);
-            setGroups([]);
-        }
     };
 
     // 🔹 Reusable parent-child table (Active/Inactive)
@@ -129,16 +134,45 @@ export default function GroupPage() {
                 value={categories}
                 expandedRows={expandedRowKey ? { [expandedRowKey]: true } : {}}
                 onRowToggle={(e) => {
-                    // Only allow one row expanded at a time
                     const toggledKey = Object.keys(e.data)[0];
                     setExpandedRowKey(toggledKey === expandedRowKey ? null : toggledKey);
                 }}
                 rowExpansionTemplate={(cat) => rowExpansionTemplate(cat, activeState)}
-                dataKey="categoryId" // Make sure this matches CategoryModel
+                dataKey="categoryId"
                 className="p-datatable-sm"
             >
                 <Column expander style={{ width: "3rem" }} />
+
+                {/* 🧩 Category Name */}
                 <Column field="categoryName" header="Category" body={categoryTemplate} />
+
+                {/* 🧩 Group Summary Column */}
+                <Column
+                    header="Groups"
+                    body={(category: CategoryModel) => {
+                        const categoryGroups = groups.filter(
+                            (g) =>
+                                g.categoryId === category.categoryId &&
+                                g.isActive === activeState
+                        );
+                        if (categoryGroups.length === 0)
+                            return <span className="text-gray-400 italic">No groups</span>;
+                        return (
+                            <div className="flex flex-col">
+                                {categoryGroups.slice(0, 3).map((g) => (
+                                    <span key={g.groupId} className="text-sm text-gray-700">
+                                        • {g.groupName}
+                                    </span>
+                                ))}
+                                {categoryGroups.length > 3 && (
+                                    <span className="text-xs text-gray-500">
+                                        +{categoryGroups.length - 3} more...
+                                    </span>
+                                )}
+                            </div>
+                        );
+                    }}
+                />
             </DataTable>
         </div>
     );

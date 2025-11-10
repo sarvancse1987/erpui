@@ -21,32 +21,34 @@ export function TTypedDatatable<T extends Record<string, any>>({
   onSave,
   onDelete,
 }: TTypedDatatableProps<T>) {
-  const [tableData, setTableData] = useState<T[]>(data);
+  const [tableData, setTableData] = useState<T[]>([]);
   const [editingRows, setEditingRows] = useState<{ [key: string]: boolean }>({});
   const [errors, setErrors] = useState<{ [rowId: string]: { [field: string]: string } }>({});
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
 
   useEffect(() => {
-    setTableData(data);
+    setTableData(data.map((d) => ({ ...d }))); // clone initial data
   }, [data]);
 
+  // ✅ Properly clone structure when adding
   const addRow = () => {
     if (Object.keys(editingRows).length > 0) return;
 
-    const newRow = {} as T;
-    columns.forEach((col) => {
-      if (col.type === "checkbox") (newRow[col.field] as any) = false;
-      else (newRow[col.field] as any) = "";
-    });
+    const newRow = columns.reduce((acc, col) => {
+      if (col.type === "checkbox") acc[col.field as string] = false;
+      else acc[col.field as string] = "";
+      return acc;
+    }, {} as Record<string, any>) as T;
 
-    (newRow[primaryKey] as any) = 0; // new record primary key
-    const tempKey = `temp-${Date.now()}-${Math.random()}`;
-    (newRow as any)._tempKey = tempKey;
+    (newRow[primaryKey] as any) = 0;
+    (newRow as any)._tempKey = `temp-${Date.now()}-${Math.random()}`;
+    (newRow as any)._edited = true;
 
-    setTableData([...tableData, newRow]);
-    setEditingRows({ [tempKey]: true });
+    setTableData((prev) => [...prev, { ...newRow }]); // clone to prevent shared ref
+    setEditingRows((prev) => ({ ...prev, [newRow._tempKey]: true }));
   };
 
+  // ✅ Row validation
   const validateRow = (rowData: T) => {
     const rowErrors: { [key: string]: string } = {};
     columns.forEach((col) => {
@@ -57,6 +59,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
     return rowErrors;
   };
 
+  // ✅ Save all logic
   const saveAll = () => {
     let valid = true;
     const allErrors: typeof errors = {};
@@ -74,8 +77,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
       } else {
         const isNew = row[primaryKey] === 0;
         const isEdited = !!row._edited;
-
-        if (isNew || isEdited) changedRows.push(row);
+        if (isNew || isEdited) changedRows.push({ ...row });
       }
     });
 
@@ -90,15 +92,30 @@ export function TTypedDatatable<T extends Record<string, any>>({
     if (onSave && changedRows.length > 0) onSave(changedRows);
   };
 
-  const markRowEdited = (row: T) => {
-    (row as any)._edited = true;
-    setTableData([...tableData]);
+  // ✅ Properly mark row edited (without reference overwrite)
+  const markRowEdited = (updatedRow: T) => {
+    const key = (updatedRow as any)._tempKey || updatedRow[primaryKey];
+    setTableData((prev) =>
+      prev.map((r) =>
+        (r._tempKey || r[primaryKey]) === key ? { ...r, ...updatedRow, _edited: true } : r
+      )
+    );
   };
 
+  // ✅ Cell editor
   const cellEditor = (options: any, col: ColumnMeta<T>) => {
-    const rowId = options.rowData[primaryKey] as string;
-    const fieldError = errors[rowId]?.[col.field as string];
-    const commonProps = { className: classNames({ "p-invalid border-red-500": !!fieldError }), style: { width: "100%" } };
+    const key = options.rowData._tempKey || options.rowData[primaryKey];
+    const fieldError = errors[key]?.[col.field as string];
+    const commonProps = {
+      className: classNames({ "p-invalid border-red-500": !!fieldError }),
+      style: { width: "100%" },
+    };
+
+    const updateValue = (value: any) => {
+      const updatedRow = { ...options.rowData, [col.field]: value };
+      options.editorCallback(value);
+      markRowEdited(updatedRow);
+    };
 
     switch (col.type) {
       case "select":
@@ -109,10 +126,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
               options={col.options || []}
               optionLabel="label"
               optionValue="value"
-              onChange={(e) => {
-                options.editorCallback(e.value);
-                markRowEdited(options.rowData);
-              }}
+              onChange={(e) => updateValue(e.value)}
               {...commonProps}
             />
             {fieldError && <small className="p-error text-xs mt-1">{fieldError}</small>}
@@ -124,10 +138,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
           <div className="flex flex-col">
             <Calendar
               value={options.value ? new Date(options.value) : null}
-              onChange={(e) => {
-                options.editorCallback(e.value);
-                markRowEdited(options.rowData);
-              }}
+              onChange={(e) => updateValue(e.value)}
               dateFormat="yy-mm-dd"
               {...commonProps}
             />
@@ -138,13 +149,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
       case "checkbox":
         return (
           <div className="flex justify-center items-center h-full">
-            <Checkbox
-              checked={!!options.value}
-              onChange={(e) => {
-                options.editorCallback(e.checked);
-                markRowEdited(options.rowData);
-              }}
-            />
+            <Checkbox checked={!!options.value} onChange={(e) => updateValue(e.checked)} />
           </div>
         );
 
@@ -153,14 +158,11 @@ export function TTypedDatatable<T extends Record<string, any>>({
           <div className="flex flex-col">
             <InputNumber
               value={options.value}
-              onValueChange={(e) => {
-                options.editorCallback(e.value);
-                markRowEdited(options.rowData);
-              }}
+              onValueChange={(e) => updateValue(e.value)}
               mode="currency"
               currency="INR"
               locale="en-IN"
-              style={{ width: "40%" }}
+              style={{ width: "80%" }}
             />
             {fieldError && <small className="p-error">{fieldError}</small>}
           </div>
@@ -171,14 +173,11 @@ export function TTypedDatatable<T extends Record<string, any>>({
           <div className="flex flex-col">
             <InputNumber
               value={options.value}
-              onValueChange={(e) => {
-                options.editorCallback(e.value);
-                markRowEdited(options.rowData);
-              }}
+              onValueChange={(e) => updateValue(e.value)}
               mode="decimal"
               minFractionDigits={0}
               maxFractionDigits={2}
-              style={{ width: "40%" }}
+              style={{ width: "80%" }}
             />
             {fieldError && <small className="p-error">{fieldError}</small>}
           </div>
@@ -194,11 +193,9 @@ export function TTypedDatatable<T extends Record<string, any>>({
               locale="en-IN"
               style={{ width: "80%" }}
               onValueChange={(e) => {
-                options.editorCallback(e.value);
-                const row: any = options.rowData as T;
-                row[options.column.field] = e.value;
-                updateGSTPrice(row);
-                markRowEdited(row);
+                const updatedRow = { ...options.rowData, [col.field]: e.value };
+                updateGSTPrice(updatedRow);
+                updateValue(e.value);
               }}
             />
             {fieldError && <small className="p-error">{fieldError}</small>}
@@ -210,10 +207,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
           <div className="flex flex-col">
             <InputText
               value={options.value || ""}
-              onChange={(e) => {
-                options.editorCallback(e.target.value);
-                markRowEdited(options.rowData);
-              }}
+              onChange={(e) => updateValue(e.target.value)}
               {...commonProps}
             />
             {fieldError && <small className="p-error text-xs mt-1">{fieldError}</small>}
@@ -222,6 +216,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
     }
   };
 
+  // ✅ Row editor validation
   const rowEditorValidator = (rowData: T) => {
     const rowErrors = validateRow(rowData);
     const key = (rowData[primaryKey] as string) ?? "";
@@ -238,10 +233,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
       return copy;
     });
 
-    setTableData((prev) =>
-      prev.map((item) => ((item[primaryKey] as string) === key ? rowData : item))
-    );
-
+    markRowEdited(rowData);
     setEditingRows((prev) => {
       const copy = { ...prev };
       delete copy[key];
@@ -264,27 +256,33 @@ export function TTypedDatatable<T extends Record<string, any>>({
 
   const deleteSelected = () => {
     if (!selectedRows.length) return;
-
-    // Filter out selected rows by primaryKey instead of reference
-    const selectedIds = selectedRows.map(r => r[primaryKey]);
-    const remaining = tableData.filter(r => !selectedIds.includes(r[primaryKey]));
-
+    const selectedIds = selectedRows.map((r) => r[primaryKey]);
+    const remaining = tableData.filter((r) => !selectedIds.includes(r[primaryKey]));
     setTableData(remaining);
     setSelectedRows([]);
-
-    if (onDelete) onDelete(selectedRows); // pass deleted rows to parent
+    if (onDelete) onDelete(selectedRows);
   };
 
-  const isSaveEnabled = tableData.some(
-    row => row[primaryKey] === 0 || !!row._edited
-  );
+  const isSaveEnabled = tableData.some((r) => r[primaryKey] === 0 || !!r._edited);
 
   return (
-    <div className="card">
+    <div className="card p-3 h-[calc(100vh-100px)] overflow-auto">
       <div className="flex justify-end gap-2 mb-3">
         <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} />
-        <Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll}  disabled={!isSaveEnabled} />
-        <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={deleteSelected} disabled={!selectedRows.length} />
+        <Button
+          label="Save"
+          icon="pi pi-save"
+          severity="success"
+          onClick={saveAll}
+          disabled={!isSaveEnabled}
+        />
+        <Button
+          label="Delete"
+          icon="pi pi-trash"
+          severity="danger"
+          onClick={deleteSelected}
+          disabled={!selectedRows.length}
+        />
       </div>
 
       <DataTable
@@ -297,18 +295,15 @@ export function TTypedDatatable<T extends Record<string, any>>({
         size="small"
         scrollable
         style={{ width: "100%" }}
-        rowClassName={(rowData, rowIndex: any) =>
-          rowIndex % 2 === 0 ? "bg-gray-50" : "bg-white"
-        }
         selection={selectedRows}
         onSelectionChange={(e) => setSelectedRows(e.value)}
+        rowClassName={(options) => (options.index % 2 === 0 ? "bg-gray-50" : "bg-white")}
       >
-        {/* Checkbox column */}
         <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
 
         <Column
           header="Sr. No."
-          body={(rowData, options) => options.rowIndex + 1}
+          body={(_, options) => options.rowIndex + 1}
           style={{ width: "70px", minWidth: "70px" }}
         />
 
@@ -320,17 +315,13 @@ export function TTypedDatatable<T extends Record<string, any>>({
               field={col.field as string}
               header={
                 <>
-                  {col.header}{" "}
-                  {col.required && <span className="required-asterisk">*</span>}
+                  {col.header}
+                  {col.required && <span className="text-red-500">*</span>}
                 </>
               }
               editor={col.editable ? (options) => cellEditor(options, col) : undefined}
-              body={col.body ? (rowData: T) => col.body!(rowData) : undefined}
-              style={{
-                width: col.width || "auto",
-                minWidth: col.width || "120px",
-              }}
-              frozen={col.frozen}
+              body={col.body ? (r: T) => col.body!(r) : undefined}
+              style={{ width: col.width || "auto", minWidth: col.width || "120px" }}
             />
           ))}
 
