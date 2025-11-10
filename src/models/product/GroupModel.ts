@@ -1,12 +1,12 @@
 export interface GroupModel {
-  GroupId: number;
-  GroupName: string;
-  GroupDescription?: string;
-  CreatedAt: string;
-  IsActive: boolean;
+  groupId: number;
+  groupName: string;
+  groupDescription?: string;
+  createdAt: string;
+  isActive: boolean;
 
   // Parent Category info
-  CategoryId: number;
-  CategoryName: string;
-  CategoryDescription?: string;
+  categoryId: number;
+  categoryName?: string;
+  categoryDescription?: string;
 }

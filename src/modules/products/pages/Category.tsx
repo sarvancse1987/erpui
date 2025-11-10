@@ -62,12 +62,12 @@ export default function Category() {
     };
 
     // ✅ Make handlers async and await save
-    const handleActiveSave = async (updated: CategoryModel[]) => {
+    const onActiveSave = async (updated: CategoryModel[]) => {
         const updatedWithActive = updated.map(c => ({ ...c, isActive: true }));
         await saveCategories(updatedWithActive, true);
     };
 
-    const handleInactiveSave = async (updated: CategoryModel[]) => {
+    const onInactiveSave = async (updated: CategoryModel[]) => {
         await saveCategories(updated, false);
     };
 
@@ -86,7 +86,7 @@ export default function Category() {
                         columns={activeColumns}
                         data={activeCategories.map(c => ({ ...c, isActive: true }))}
                         primaryKey="categoryId"
-                        onSave={handleActiveSave}
+                        onSave={onActiveSave}
                         onDelete={onActiveDelete}
                     />
                 </TabPanel>
@@ -96,7 +96,7 @@ export default function Category() {
                         columns={inactiveColumns}
                         data={inactiveCategories}
                         primaryKey="categoryId"
-                        onSave={handleInactiveSave}
+                        onSave={onInactiveSave}
                     />
                 </TabPanel>
             </TabView>

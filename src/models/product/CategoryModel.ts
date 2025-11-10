@@ -1,7 +1,10 @@
+import { GroupModel } from "./GroupModel";
+
 export interface CategoryModel {
     categoryId: number;
     categoryName: string;
     categoryDescription?: string;
-    createdAt: Date; // ISO date string
+    createdAt: Date;
     isActive: boolean;
+    groups?: GroupModel[];
 }
