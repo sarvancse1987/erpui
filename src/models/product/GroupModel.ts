@@ -1,3 +1,5 @@
+import { BrandModel } from "./BrandModel";
+
 export interface GroupModel {
   groupId: number;
   groupName: string;
@@ -9,4 +11,6 @@ export interface GroupModel {
   categoryId: number;
   categoryName?: string;
   categoryDescription?: string;
+
+  brands?: BrandModel[];
 }
