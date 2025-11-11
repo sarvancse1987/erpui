@@ -79,7 +79,7 @@ export default function GroupPage() {
                     return [...others, ...savedGroups];
                 });
 
-                console.log("✅ Saved groups:", savedGroups.map((g:any) => g.groupName).join(", "));
+                console.log("✅ Saved groups:", savedGroups.map((g: any) => g.groupName).join(", "));
             } catch (error) {
                 console.error("❌ Failed to save groups", error);
             }
@@ -122,6 +122,9 @@ export default function GroupPage() {
                     primaryKey="groupId"
                     onSave={handleSave}
                     onDelete={handleDelete}
+                    paginator
+                    rows={5} // default rows per page
+                    rowsPerPageOptions={[5, 10, 25]}
                 />
             </div>
         );
@@ -140,6 +143,9 @@ export default function GroupPage() {
                 rowExpansionTemplate={(cat) => rowExpansionTemplate(cat, activeState)}
                 dataKey="categoryId"
                 className="p-datatable-sm"
+                paginator
+                rows={10}
+                rowsPerPageOptions={[5, 10, 25]}
             >
                 <Column expander style={{ width: "3rem" }} />
 

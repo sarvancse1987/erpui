@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   DataTable,
   DataTableRowEditCompleteEvent,
@@ -14,6 +14,7 @@ import { classNames } from "primereact/utils";
 import { InputNumber } from "primereact/inputnumber";
 import { TTypeDatatableProps } from "../models/component/TTypedDatatableProps";
 import { ColumnMeta } from "../models/component/ColumnMeta";
+import { FilterMatchMode } from "primereact/api";
 
 export function TTypeDatatable<T extends Record<string, any>>({
   columns,
@@ -23,6 +24,16 @@ export function TTypeDatatable<T extends Record<string, any>>({
   const [tableData, setTableData] = useState<T[]>(data);
   const [editingRows, setEditingRows] = useState<{ [key: string]: boolean }>({});
   const [errors, setErrors] = useState<{ [rowId: string]: { [field: string]: string } }>({});
+  const [globalFilter, setGlobalFilter] = useState<string>("");
+  const [filters, setFilters] = useState<any>({});
+
+  useEffect(() => {
+    const f: any = { global: { value: null, matchMode: FilterMatchMode.CONTAINS } };
+    columns.forEach((c) => {
+      f[c.field] = { value: null, matchMode: FilterMatchMode.CONTAINS };
+    });
+    setFilters(f);
+  }, [columns]);
 
   const getNextPrimaryKey = (): string => {
     const maxId = Math.max(
@@ -298,20 +309,32 @@ export function TTypeDatatable<T extends Record<string, any>>({
   };
 
   return (
-    <div className="card">
-      <div className="flex justify-end gap-2 mb-3">
-        <Button
-          label="Add"
-          icon="pi pi-plus"
-          outlined
-          onClick={addRow}
-        />
-        <Button
-          label="Save"
-          icon="pi pi-save"
-          severity="success"
-          onClick={saveAll}
-        />
+    <div className="card p-3 h-[calc(100vh-100px)] overflow-auto">
+      <div className="flex justify-between items-center mb-3">
+        <div className="flex gap-2">
+          <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} />
+          <Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll} />
+        </div>
+
+        {/* Global Search */}
+        <span className="p-input-icon-left relative w-64">
+          {/* Search Icon */}
+          <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+
+          {/* Input Text */}
+          <InputText
+            value={globalFilter}
+            onChange={(e) => {
+              setGlobalFilter(e.target.value);
+              setFilters((prev: any) => ({
+                ...prev,
+                global: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
+              }));
+            }}
+            placeholder="Search..."
+            className="pl-10 w-full" // padding-left to leave space for icon + some buffer
+          />
+        </span>
       </div>
 
       <DataTable
@@ -327,6 +350,11 @@ export function TTypeDatatable<T extends Record<string, any>>({
         rowClassName={(rowData, rowIndex: any) =>
           rowIndex % 2 === 0 ? "bg-gray-50" : "bg-white"
         }
+        filters={filters}
+        globalFilterFields={columns.map((c) => c.field as string)}
+        paginator
+        rows={10} // rows per page
+        rowsPerPageOptions={[5, 10, 25, 50]}
       >
         {columns.map((col) => (
           <Column

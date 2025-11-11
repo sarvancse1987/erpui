@@ -154,6 +154,9 @@ export default function BrandPage() {
                     dataKey="groupId"
                     className="p-datatable-sm"
                     emptyMessage="No groups available in this category"
+                    paginator
+                    rows={10}
+                    rowsPerPageOptions={[5, 10, 25]}
                 >
                     <Column expander style={{ width: "3rem" }} />
                     <Column field="groupName" header="Group" body={groupTemplate} />
@@ -185,6 +188,9 @@ export default function BrandPage() {
                     dataKey="categoryId"
                     className="p-datatable-sm"
                     emptyMessage="No categories found"
+                    paginator
+                    rows={10}
+                    rowsPerPageOptions={[5, 10, 25]}
                 >
                     <Column expander style={{ width: "3rem" }} />
                     <Column field="categoryName" header="Category" body={categoryTemplate} />

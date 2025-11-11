@@ -136,7 +136,7 @@ export default function ProductPage() {
     },
     {
       field: "purchasePrice",
-      header: "Purchase Price",
+      header: "Pur. Price",
       editable: true,
       type: "number",
       width: "130px",
@@ -156,7 +156,7 @@ export default function ProductPage() {
     },
     {
       field: "isGSTIncludedInPrice",
-      header: "GST Included",
+      header: "Incl. GST",
       editable: true,
       type: "checkbox",
       width: "100px",

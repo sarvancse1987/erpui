@@ -95,3 +95,25 @@ code {
   margin-left: 2px;
   font-weight: bold;
 }
+
+/* Layout main container */
+.layout-main-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* full viewport height */
+  overflow: hidden; /* prevent overflow for container */
+}
+
+.layout-main {
+  flex: 1; /* fill available space */
+  max-height: 100%; /* do not exceed container height */
+  overflow-y: auto; /* allow scrolling if content is taller */
+  padding: 1rem; /* optional padding */
+}
+
+@media (min-width: 768px) {
+  .layout-main {
+    max-height: calc(100vh - 60px); /* adjust based on topbar/footer height */
+    overflow-y: auto;
+  }
+}

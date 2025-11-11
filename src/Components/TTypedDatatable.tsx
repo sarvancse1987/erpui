@@ -13,6 +13,7 @@ import { classNames } from "primereact/utils";
 import { InputNumber } from "primereact/inputnumber";
 import { ColumnMeta } from "../models/component/ColumnMeta";
 import { TTypedDatatableProps } from "../models/component/TTypedDatatableProps";
+import { FilterMatchMode } from "primereact/api";
 
 export function TTypedDatatable<T extends Record<string, any>>({
   columns,
@@ -25,12 +26,25 @@ export function TTypedDatatable<T extends Record<string, any>>({
   const [editingRows, setEditingRows] = useState<{ [key: string]: boolean }>({});
   const [errors, setErrors] = useState<{ [rowId: string]: { [field: string]: string } }>({});
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const [globalFilter, setGlobalFilter] = useState<string>("");
+  const [filters, setFilters] = useState<any>({});
 
   useEffect(() => {
-    setTableData(data.map((d) => ({ ...d }))); // clone initial data
+    setTableData(data.map((d) => ({ ...d })));
   }, [data]);
 
-  // ✅ Properly clone structure when adding
+  useEffect(() => {
+    // initialize filters for all columns
+    const f: any = {
+      global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    };
+    columns.forEach((c) => {
+      f[c.field] = { value: null, matchMode: FilterMatchMode.CONTAINS };
+    });
+    setFilters(f);
+  }, [columns]);
+
+  // ✅ Add Row
   const addRow = () => {
     if (Object.keys(editingRows).length > 0) return;
 
@@ -44,11 +58,11 @@ export function TTypedDatatable<T extends Record<string, any>>({
     (newRow as any)._tempKey = `temp-${Date.now()}-${Math.random()}`;
     (newRow as any)._edited = true;
 
-    setTableData((prev) => [...prev, { ...newRow }]); // clone to prevent shared ref
+    setTableData((prev) => [{ ...newRow }, ...prev]);
     setEditingRows((prev) => ({ ...prev, [newRow._tempKey]: true }));
   };
 
-  // ✅ Row validation
+  // ✅ Validation
   const validateRow = (rowData: T) => {
     const rowErrors: { [key: string]: string } = {};
     columns.forEach((col) => {
@@ -59,7 +73,6 @@ export function TTypedDatatable<T extends Record<string, any>>({
     return rowErrors;
   };
 
-  // ✅ Save all logic
   const saveAll = () => {
     let valid = true;
     const allErrors: typeof errors = {};
@@ -92,7 +105,6 @@ export function TTypedDatatable<T extends Record<string, any>>({
     if (onSave && changedRows.length > 0) onSave(changedRows);
   };
 
-  // ✅ Properly mark row edited (without reference overwrite)
   const markRowEdited = (updatedRow: T) => {
     const key = (updatedRow as any)._tempKey || updatedRow[primaryKey];
     setTableData((prev) =>
@@ -102,7 +114,6 @@ export function TTypedDatatable<T extends Record<string, any>>({
     );
   };
 
-  // ✅ Cell editor
   const cellEditor = (options: any, col: ColumnMeta<T>) => {
     const key = options.rowData._tempKey || options.rowData[primaryKey];
     const fieldError = errors[key]?.[col.field as string];
@@ -154,51 +165,21 @@ export function TTypedDatatable<T extends Record<string, any>>({
         );
 
       case "number":
-        return (
-          <div className="flex flex-col">
-            <InputNumber
-              value={options.value}
-              onValueChange={(e) => updateValue(e.value)}
-              mode="currency"
-              currency="INR"
-              locale="en-IN"
-              style={{ width: "80%" }}
-            />
-            {fieldError && <small className="p-error">{fieldError}</small>}
-          </div>
-        );
-
       case "decimal":
-        return (
-          <div className="flex flex-col">
-            <InputNumber
-              value={options.value}
-              onValueChange={(e) => updateValue(e.value)}
-              mode="decimal"
-              minFractionDigits={0}
-              maxFractionDigits={2}
-              style={{ width: "80%" }}
-            />
-            {fieldError && <small className="p-error">{fieldError}</small>}
-          </div>
-        );
-
       case "gst":
         return (
           <div className="flex flex-col">
             <InputNumber
               value={options.value}
-              mode="currency"
-              currency="INR"
+              onValueChange={(e) => updateValue(e.value)}
+              mode={col.type === "decimal" ? "decimal" : "currency"}
+              currency={col.type === "gst" ? "INR" : undefined}
               locale="en-IN"
+              minFractionDigits={col.type === "decimal" ? 0 : undefined}
+              maxFractionDigits={col.type === "decimal" ? 2 : undefined}
               style={{ width: "80%" }}
-              onValueChange={(e) => {
-                const updatedRow = { ...options.rowData, [col.field]: e.value };
-                updateGSTPrice(updatedRow);
-                updateValue(e.value);
-              }}
             />
-            {fieldError && <small className="p-error">{fieldError}</small>}
+            {fieldError && <small className="p-error text-xs mt-1">{fieldError}</small>}
           </div>
         );
 
@@ -216,44 +197,6 @@ export function TTypedDatatable<T extends Record<string, any>>({
     }
   };
 
-  // ✅ Row editor validation
-  const rowEditorValidator = (rowData: T) => {
-    const rowErrors = validateRow(rowData);
-    const key = (rowData[primaryKey] as string) ?? "";
-
-    if (Object.keys(rowErrors).length > 0) {
-      setErrors((prev) => ({ ...prev, [key]: rowErrors }));
-      setEditingRows((prev) => ({ ...prev, [key]: true }));
-      return false;
-    }
-
-    setErrors((prev) => {
-      const copy = { ...prev };
-      delete copy[key];
-      return copy;
-    });
-
-    markRowEdited(rowData);
-    setEditingRows((prev) => {
-      const copy = { ...prev };
-      delete copy[key];
-      return copy;
-    });
-
-    return true;
-  };
-
-  const updateGSTPrice = (rowData: any) => {
-    if (rowData["isGSTIncludedInPrice"]) {
-      const purchase = Number(rowData["purchasePrice"] || 0);
-      const cgst = Number(rowData["cgstRate"] || 0);
-      const sgst = Number(rowData["sgstRate"] || 0);
-      rowData["gstPrice"] = purchase + (purchase * (cgst + sgst)) / 100;
-    } else {
-      rowData["gstPrice"] = Number(rowData["purchasePrice"] || 0);
-    }
-  };
-
   const deleteSelected = () => {
     if (!selectedRows.length) return;
     const selectedIds = selectedRows.map((r) => r[primaryKey]);
@@ -267,66 +210,89 @@ export function TTypedDatatable<T extends Record<string, any>>({
 
   return (
     <div className="card p-3 h-[calc(100vh-100px)] overflow-auto">
-      <div className="flex justify-end gap-2 mb-3">
-        <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} />
-        <Button
-          label="Save"
-          icon="pi pi-save"
-          severity="success"
-          onClick={saveAll}
-          disabled={!isSaveEnabled}
-        />
-        <Button
-          label="Delete"
-          icon="pi pi-trash"
-          severity="danger"
-          onClick={deleteSelected}
-          disabled={!selectedRows.length}
-        />
+      {/* Toolbar */}
+      <div className="flex justify-between items-center mb-3">
+        <div className="flex gap-2 mb-3 flex-none">
+          <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} />
+          <Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll} disabled={!isSaveEnabled} />
+          <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={deleteSelected} disabled={!selectedRows.length} />
+        </div>
+
+        {/* ✅ Global Search */}
+        <div className="ml-auto">
+          <span className="p-input-icon-left relative w-64">
+            {/* Search Icon */}
+            <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+
+            {/* Input Text */}
+            <InputText
+              value={globalFilter}
+              onChange={(e) => {
+                setGlobalFilter(e.target.value);
+                setFilters((prev: any) => ({
+                  ...prev,
+                  global: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
+                }));
+              }}
+              placeholder="Search..."
+              className="pl-10 w-full" // padding-left to leave space for icon + some buffer
+            />
+          </span>
+        </div>
       </div>
 
-      <DataTable
-        value={tableData}
-        dataKey={(rowData) => rowData._tempKey || rowData[primaryKey]}
-        editMode="row"
-        editingRows={editingRows}
-        onRowEditChange={(e: DataTableRowEditEvent) => setEditingRows(e.data)}
-        rowEditValidator={rowEditorValidator}
-        size="small"
-        scrollable
-        style={{ width: "100%" }}
-        selection={selectedRows}
-        onSelectionChange={(e) => setSelectedRows(e.value)}
-        rowClassName={(options) => (options.index % 2 === 0 ? "bg-gray-50" : "bg-white")}
-      >
-        <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
+      {/* ✅ DataTable with pagination & filters */}
+      <div className="flex-1 min-h-0">
+        <DataTable
+          value={tableData}
+          paginator
+          rows={10}
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          dataKey={(rowData) => rowData._tempKey || rowData[primaryKey]}
+          editMode="row"
+          editingRows={editingRows}
+          onRowEditChange={(e: DataTableRowEditEvent) => setEditingRows(e.data)}
+          filters={filters}
+          globalFilterFields={columns.map((c) => c.field as string)}
+          size="small"
+          scrollable
+          selection={selectedRows}
+          onSelectionChange={(e) => setSelectedRows(e.value)}
+          rowClassName={(options) => (options.index % 2 === 0 ? "bg-gray-50" : "bg-white")}
+          emptyMessage="No records found."
+          scrollHeight="100%"
+        >
+          <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
+          <Column
+            header="Sr. No."
+            body={(_, options) => options.rowIndex + 1}
+            style={{ width: "70px", minWidth: "70px" }}
+          />
 
-        <Column
-          header="Sr. No."
-          body={(_, options) => options.rowIndex + 1}
-          style={{ width: "70px", minWidth: "70px" }}
-        />
+          {columns
+            .filter((col) => !col.hidden)
+            .map((col) => (
+              <Column
+                key={String(col.field)}
+                field={col.field as string}
+                header={
+                  <>
+                    {col.header}
+                    {col.required && <span className="text-red-500">*</span>}
+                  </>
+                }
+                filter
+                showFilterMenu={false}
+                filterPlaceholder={`Search ${col.header}`}
+                editor={col.editable ? (options) => cellEditor(options, col) : undefined}
+                body={col.body ? (r: T) => col.body!(r) : undefined}
+                style={{ width: col.width || "auto", minWidth: col.width || "120px" }}
+              />
+            ))}
 
-        {columns
-          .filter((col) => !col.hidden)
-          .map((col) => (
-            <Column
-              key={String(col.field)}
-              field={col.field as string}
-              header={
-                <>
-                  {col.header}
-                  {col.required && <span className="text-red-500">*</span>}
-                </>
-              }
-              editor={col.editable ? (options) => cellEditor(options, col) : undefined}
-              body={col.body ? (r: T) => col.body!(r) : undefined}
-              style={{ width: col.width || "auto", minWidth: col.width || "120px" }}
-            />
-          ))}
-
-        <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} />
-      </DataTable>
+          <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} />
+        </DataTable>
+      </div>
     </div>
   );
 }

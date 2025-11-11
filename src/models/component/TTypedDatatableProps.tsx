@@ -6,6 +6,10 @@ export interface TTypedDatatableProps<T extends Record<string, any>> {
     primaryKey: keyof T;
     onSave?: (updatedData: T[]) => void;
     onDelete?: (updatedData: T[]) => void;
+    paginator?: boolean;
+    rows?: number;
+    rowsPerPageOptions?: number[];
+    showFilters?: boolean;
 }
 
 export interface TTypeDatatableProps<T extends Record<string, any>> {
