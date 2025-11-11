@@ -1,8 +1,10 @@
+import { OptionModel } from "./OptionModel";
+
 export interface ProductModel {
     productId: number;
     productName: string;
     productDescription?: string;
-    hsnCode?: string;
+    hsnCode: string;
     createdAt: string;
     isActive: boolean;
 
@@ -10,11 +12,11 @@ export interface ProductModel {
     gstPrice: number;
     salePrice: number;
     isGSTIncludedInPrice: boolean;
-    cgstRate : number;
-    sgstRate : number;
-    igstRate : number;
+    cgstRate: number;
+    sgstRate: number;
+    igstRate: number;
 
-    primaryUnitId:number;
+    primaryUnitId: number;
 
     // Parent Category + Group + Brand info
     productCategoryId: number;
@@ -28,4 +30,7 @@ export interface ProductModel {
     productBrandId: number;
     brandName: string;
     brandDescription?: string;
+
+    filteredGroups?: OptionModel[];
+    filteredBrands?: OptionModel[];
 }

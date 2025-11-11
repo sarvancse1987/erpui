@@ -51,23 +51,26 @@ code {
   color: #333;
 }
 
-.p-datatable .p-datatable-thead > tr > th {
+.p-datatable .p-datatable-thead>tr>th {
   background: #9872d5 !important;
 }
 
 /* Compact DataTable Rows */
-.p-datatable .p-datatable-tbody > tr > td {
-  padding: 0.4rem 0.5rem !important; /* vertical horizontal */
+.p-datatable .p-datatable-tbody>tr>td {
+  padding: 0.4rem 0.5rem !important;
+  /* vertical horizontal */
   line-height: 1.0 !important;
 }
 
-.p-datatable .p-datatable-thead > tr > th {
+.p-datatable .p-datatable-thead>tr>th {
   padding: 0.45rem 0.5rem !important;
 }
 
 .p-datatable-wrapper::-webkit-scrollbar {
-  height: 4px;   /* horizontal scrollbar height */
-  width: 4px;    /* vertical scrollbar width */
+  height: 4px;
+  /* horizontal scrollbar height */
+  width: 4px;
+  /* vertical scrollbar width */
 }
 
 .p-datatable-wrapper::-webkit-scrollbar-track {
@@ -100,20 +103,47 @@ code {
 .layout-main-container {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* full viewport height */
-  overflow: hidden; /* prevent overflow for container */
+  height: 100vh;
+  /* full viewport height */
+  overflow: hidden;
+  /* prevent overflow for container */
 }
 
 .layout-main {
-  flex: 1; /* fill available space */
-  max-height: 100%; /* do not exceed container height */
-  overflow-y: auto; /* allow scrolling if content is taller */
-  padding: 1rem; /* optional padding */
+  flex: 1;
+  /* fill available space */
+  max-height: 100%;
+  /* do not exceed container height */
+  overflow-y: auto;
+  /* allow scrolling if content is taller */
+  padding: 1rem;
+  /* optional padding */
 }
 
 @media (min-width: 768px) {
   .layout-main {
-    max-height: calc(100vh - 60px); /* adjust based on topbar/footer height */
+    max-height: calc(100vh - 60px);
+    /* adjust based on topbar/footer height */
     overflow-y: auto;
   }
+}
+
+.p-datatable .p-datatable-tbody>tr>td {
+  white-space: normal !important;
+  /* allow text to wrap */
+  word-break: break-word;
+  /* break long words */
+  vertical-align: top;
+  /* align content at top */
+}
+
+.mandatory-error {
+  color: #d9534f;
+  font-size: 0.75rem;
+  margin-top: 2px;
+  display: block;
+}
+
+.mandatory-border {
+  border-color: #d9534f !important;
 }

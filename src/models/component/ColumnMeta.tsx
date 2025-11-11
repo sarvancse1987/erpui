@@ -10,4 +10,5 @@ export interface ColumnMeta<T> {
     body?: (rowData: T) => React.ReactNode;
     onValueChange?: (row: T, value: any, tableData: T[], setTableData: React.Dispatch<React.SetStateAction<T[]>>) => void;
     hidden?: boolean;
+    style?: React.CSSProperties;
 }

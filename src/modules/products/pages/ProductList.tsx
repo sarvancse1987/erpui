@@ -1,253 +1,397 @@
 import React, { useEffect, useState } from "react";
-import { ColumnMeta } from "../../../models/component/ColumnMeta";
-import { TTypeDatatable } from "../../../components/TTypeDatatable";
 import apiService from "../../../services/apiService";
 import { ProductModel } from "../../../models/product/ProductModel";
 import { CategoryModel } from "../../../models/product/CategoryModel";
 import { GroupModel } from "../../../models/product/GroupModel";
 import { BrandModel } from "../../../models/product/BrandModel";
-
-interface Option {
-  label: string;
-  value: string | number;
-}
+import { Dropdown } from "primereact/dropdown";
+import { InputText } from "primereact/inputtext";
+import { InputNumber } from "primereact/inputnumber";
+import { Checkbox } from "primereact/checkbox";
+import { Button } from "primereact/button";
+import { OptionModel } from "../../../models/product/OptionModel";
 
 export default function ProductPage() {
-  const [categories, setCategories] = useState<Option[]>([]);
-  const [groups, setGroups] = useState<Option[]>([]);
-  const [brands, setBrands] = useState<Option[]>([]);
-  const [units, setUnits] = useState<Option[]>([]);
+  const [allCategories, setAllCategories] = useState<CategoryModel[]>([]);
+  const [allGroups, setAllGroups] = useState<GroupModel[]>([]);
+  const [allBrands, setAllBrands] = useState<BrandModel[]>([]);
+  const [categories, setCategories] = useState<OptionModel[]>([]);
+  const [units, setUnits] = useState<OptionModel[]>([]);
   const [products, setProducts] = useState<ProductModel[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const loadAllData = async () => {
       setLoading(true);
       try {
-        // 🔹 1. Fetch hierarchy (category, group, brand)
         const hierarchy = await apiService.get(
           "/ProductCategory/hierarchy?includeCategories=true&includeGroups=true&includeBrands=true&includeProducts=true"
         );
 
-        const categoryList: Option[] = (hierarchy.categories ?? []).map(
-          (c: CategoryModel) => ({
-            label: c.categoryName,
-            value: c.categoryId,
-          })
-        );
+        const cats: CategoryModel[] = hierarchy.categories ?? [];
+        const grps: GroupModel[] = hierarchy.groups ?? [];
+        const brs: BrandModel[] = hierarchy.brands ?? [];
 
-        const groupList: Option[] = (hierarchy.groups ?? []).map((g: GroupModel) => ({
-          label: g.groupName,
-          value: g.groupId,
-        }));
+        setAllCategories(cats);
+        setAllGroups(grps);
+        setAllBrands(brs);
+        setCategories(cats.map(c => ({ label: c.categoryName, value: c.categoryId })));
 
-        const brandList: Option[] = (hierarchy.brands ?? []).map((b: BrandModel) => ({
-          label: b.brandName,
-          value: b.brandId,
-        }));
-
-        // 🔹 2. Fetch units
         const unitRes = await apiService.get("/Unit");
-        const unitList: Option[] = (unitRes ?? []).map((u: any) => ({
-          label: u.name,
-          value: u.id,
-        }));
+        setUnits((unitRes ?? []).map((u: any) => ({ label: u.name, value: u.id })));
 
-        // 🔹 3. Fetch products
-        const productList: ProductModel[] = hierarchy.products ?? [];
-
-        setCategories(categoryList);
-        setGroups(groupList);
-        setBrands(brandList);
-        setUnits(unitList);
-        setProducts(productList);
+        const initialProducts: ProductModel[] = hierarchy.products ?? [];
+        if (!initialProducts.length) initialProducts.push(createEmptyProduct());
+        setProducts(initialProducts);
       } catch (err) {
         console.error("Error loading product data", err);
       } finally {
         setLoading(false);
       }
     };
-
     loadAllData();
   }, []);
 
-  // Helper: Get label from dropdown
-  const getLabel = (options: Option[], value: string | number) =>
-    options.find((opt) => opt.value === value)?.label || "";
+  const createEmptyProduct = (): ProductModel => ({
+    productId: 0,
+    productName: "",
+    productDescription: "",
+    hsnCode: "",
+    createdAt: new Date().toISOString(),
+    isActive: true,
+    purchasePrice: 0,
+    gstPrice: 0,
+    salePrice: 0,
+    isGSTIncludedInPrice: false,
+    cgstRate: 0,
+    sgstRate: 0,
+    igstRate: 0,
+    primaryUnitId: 0,
+    productCategoryId: 0,
+    categoryName: "",
+    categoryDescription: "",
+    productGroupId: 0,
+    groupName: "",
+    groupDescription: "",
+    productBrandId: 0,
+    brandName: "",
+    brandDescription: "",
+    filteredGroups: [],
+    filteredBrands: [],
+  });
 
-  // 🔹 Dynamic GST recalculation
-  const updateGSTPrice = (row: ProductModel) => {
-    const totalGST = (row.cgstRate ?? 0) + (row.sgstRate ?? 0) + (row.igstRate ?? 0);
-    if (row.isGSTIncludedInPrice) {
-      row.gstPrice = row.purchasePrice;
-    } else {
-      const gstAmount = (row.purchasePrice * totalGST) / 100;
-      row.gstPrice = +(row.purchasePrice + gstAmount).toFixed(2);
-    }
+  const updateGSTPrice = (product: ProductModel) => {
+    const totalGST = (product.cgstRate ?? 0) + (product.sgstRate ?? 0) + (product.igstRate ?? 0);
+    product.gstPrice = product.isGSTIncludedInPrice
+      ? product.purchasePrice
+      : +(product.purchasePrice + (product.purchasePrice * totalGST) / 100).toFixed(2);
   };
 
-  const columns: ColumnMeta<ProductModel>[] = [
-    { field: "productId", header: "ID", width: "80px" },
-    {
-      field: "productName",
-      header: "Product Name",
-      editable: true,
-      required: true,
-      width: "220px",
-    },
-    {
-      field: "productCategoryId",
-      header: "Category",
-      editable: true,
-      type: "select",
-      options: categories,
-      required: true,
-      body: (row) => getLabel(categories, row.productCategoryId),
-      width: "160px",
-    },
-    {
-      field: "productGroupId",
-      header: "Group",
-      editable: true,
-      type: "select",
-      options: groups,
-      required: true,
-      body: (row) => getLabel(groups, row.productGroupId),
-      width: "160px",
-    },
-    {
-      field: "productBrandId",
-      header: "Brand",
-      editable: true,
-      type: "select",
-      options: brands,
-      required: true,
-      body: (row) => getLabel(brands, row.productBrandId),
-      width: "160px",
-    },
-    {
-      field: "primaryUnitId",
-      header: "Unit",
-      editable: true,
-      type: "select",
-      options: units,
-      body: (row) => getLabel(units, row.primaryUnitId),
-      width: "160px",
-    },
-    {
-      field: "purchasePrice",
-      header: "Pur. Price",
-      editable: true,
-      type: "number",
-      width: "130px",
-      required: true,
-      onValueChange: (value: any, row: any) => {
-        row.purchasePrice = value;
-        updateGSTPrice(row);
-        setProducts([...products]);
-      },
-    },
-    {
-      field: "gstPrice",
-      header: "GST Price",
-      editable: false,
-      type: "number",
-      width: "130px",
-    },
-    {
-      field: "isGSTIncludedInPrice",
-      header: "Incl. GST",
-      editable: true,
-      type: "checkbox",
-      width: "100px",
-      onValueChange: (value, row) => {
-        row.isGSTIncludedInPrice = value;
-        updateGSTPrice(row);
-        setProducts([...products]);
-      },
-      body: (row) => (
-        <i
-          className={`pi ${
-            row.isGSTIncludedInPrice
-              ? "pi-check-circle text-green-500"
-              : "pi-times-circle text-red-500"
-          }`}
-        />
-      ),
-    },
-    {
-      field: "salePrice",
-      header: "Sale Price",
-      editable: true,
-      type: "number",
-      width: "130px",
-      required: true,
-    },
-    {
-      field: "cgstRate",
-      header: "CGST %",
-      editable: true,
-      type: "decimal",
-      width: "100px",
-      onValueChange: (value, row) => {
-        row.cgstRate = value;
-        updateGSTPrice(row);
-        setProducts([...products]);
-      },
-    },
-    {
-      field: "sgstRate",
-      header: "SGST %",
-      editable: true,
-      type: "decimal",
-      width: "100px",
-      onValueChange: (value, row) => {
-        row.sgstRate = value;
-        updateGSTPrice(row);
-        setProducts([...products]);
-      },
-    },
-    {
-      field: "igstRate",
-      header: "IGST %",
-      editable: true,
-      type: "decimal",
-      width: "100px",
-      onValueChange: (value, row) => {
-        row.igstRate = value;
-        updateGSTPrice(row);
-        setProducts([...products]);
-      },
-    },
-  ];
+  const handleChange = (product: ProductModel, field: keyof ProductModel, value: any) => {
+    (product as any)[field] = value;
+
+    if (["purchasePrice", "cgstRate", "sgstRate", "igstRate", "isGSTIncludedInPrice"].includes(field)) {
+      updateGSTPrice(product);
+    }
+
+    // Remove validation error if field is now valid
+    const idx = products.indexOf(product);
+    const errorKey = `product-${idx}-${field}`;
+    setValidationErrors(prev => {
+      const newErrors = { ...prev };
+      if (
+        (typeof value === "string" && value.trim() !== "") ||
+        (typeof value === "number" && value !== 0) ||
+        (typeof value === "boolean")
+      ) {
+        delete newErrors[errorKey];
+      }
+      return newErrors;
+    });
+
+    setProducts([...products]);
+  };
+
+  const addNewProduct = () => setProducts([createEmptyProduct(), ...products]);
+
+  const deleteProduct = (index: number) => {
+    const updated = [...products];
+    updated.splice(index, 1);
+    setProducts(updated.length ? updated : [createEmptyProduct()]);
+  };
+
+  const handleCategoryChange = (product: ProductModel, categoryId: number) => {
+    handleChange(product, "productCategoryId", categoryId);
+
+    const filteredGroups = allGroups
+      .filter(g => g.categoryId === categoryId && g.isActive)
+      .map(g => ({ label: g.groupName, value: g.groupId }));
+
+    product.filteredGroups = filteredGroups;
+    product.productGroupId = 0;
+    product.filteredBrands = [];
+    product.productBrandId = 0;
+
+    // Clear dependent errors
+    const idx = products.indexOf(product);
+    setValidationErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[`product-${idx}-productGroupId`];
+      delete newErrors[`product-${idx}-productBrandId`];
+      return newErrors;
+    });
+
+    setProducts([...products]);
+  };
+
+  const handleGroupChange = (product: ProductModel, groupId: number) => {
+    handleChange(product, "productGroupId", groupId);
+
+    const filteredBrands = allBrands
+      .filter(b => b.groupId === groupId && b.isActive)
+      .map(b => ({ label: b.brandName, value: b.brandId }));
+
+    product.filteredBrands = filteredBrands;
+    product.productBrandId = 0;
+
+    // Clear dependent errors
+    const idx = products.indexOf(product);
+    setValidationErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[`product-${idx}-productBrandId`];
+      return newErrors;
+    });
+
+    setProducts([...products]);
+  };
+
+  const validateProducts = (): boolean => {
+    const errors: Record<string, string> = {};
+    products.forEach((p, idx) => {
+      if (!p.productName.trim()) errors[`product-${idx}-productName`] = "Product Name is required";
+      if (!p.productCategoryId) errors[`product-${idx}-productCategoryId`] = "Category is required";
+      if (!p.productGroupId) errors[`product-${idx}-productGroupId`] = "Group is required";
+      if (!p.productBrandId) errors[`product-${idx}-productBrandId`] = "Brand is required";
+      if (!p.purchasePrice) errors[`product-${idx}-purchasePrice`] = "Purchase Price is required";
+      if (!p.salePrice) errors[`product-${idx}-salePrice`] = "Sale Price is required";
+      if (!p.hsnCode.trim()) errors[`product-${idx}-hsnCode`] = "HSN Code is required";
+    });
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSaveProducts = async () => {
+    if (!validateProducts()) return;
+    try {
+      await apiService.post("/Product/bulk", products);
+      alert("Products saved successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Error saving products");
+    }
+  };
 
   if (loading) return <p>Loading data...</p>;
 
   return (
-    <div className="p-4">
-      <h2 className="text-lg font-semibold mb-3">🛒 Product Management</h2>
+    <div className="p-3 h-[calc(100vh-100px)] overflow-auto">
+      <h2 className="text-lg font-semibold mb-4">🛒 Product Management</h2>
 
-      <TTypeDatatable<ProductModel>
-        data={products}
-        columns={columns}
-        primaryKey="productId"
-      />
+      <div className="flex gap-2 mb-4">
+        <Button label="Add New" icon="pi pi-plus" outlined severity="success" onClick={addNewProduct} />
+        <Button label="Save" icon="pi pi-save" onClick={handleSaveProducts} disabled={!products.length} />
+      </div>
 
-      <div className="mt-4 flex justify-end">
-        <button
-          onClick={async () => {
-            try {
-              await apiService.post("/Product/bulk", products);
-              alert("Products saved successfully!");
-            } catch (err) {
-              console.error("Error saving products", err);
-              alert("Error saving products");
-            }
-          }}
-          className="p-button p-button-success px-4 py-2 rounded-md shadow"
-        >
-          Save Products
-        </button>
+      <div className="space-y-4">
+        {products.map((product, idx) => (
+          <fieldset key={idx} className="border border-gray-300 rounded-md p-4 bg-white">
+            <legend className="text-sm font-semibold px-2 text-gray-700">Product {idx + 1}</legend>
+
+            {/* Row 1 */}
+            <div className="flex flex-wrap gap-3 p-1">
+              {/* Product Name */}
+              <div className="flex-1 min-w-[140px]">
+                <strong>Name</strong>
+                <InputText
+                  className={`w-full mt-1 ${validationErrors[`product-${idx}-productName`] ? "mandatory-border" : ""}`}
+                  value={product.productName}
+                  onChange={(e) => handleChange(product, "productName", e.target.value)}
+                />
+                {validationErrors[`product-${idx}-productName`] && (
+                  <small className="mandatory-error">{validationErrors[`product-${idx}-productName`]}</small>
+                )}
+              </div>
+
+              {/* Category */}
+              <div className="flex-1 min-w-[140px]">
+                <strong>Category</strong>
+                <Dropdown
+                  className={`w-full mt-1 ${validationErrors[`product-${idx}-productCategoryId`] ? "mandatory-border" : ""}`}
+                  value={product.productCategoryId}
+                  options={categories}
+                  optionLabel="label"
+                  optionValue="value"
+                  onChange={(e) => handleCategoryChange(product, e.value)}
+                />
+                {validationErrors[`product-${idx}-productCategoryId`] && (
+                  <small className="mandatory-error">{validationErrors[`product-${idx}-productCategoryId`]}</small>
+                )}
+              </div>
+
+              {/* Group */}
+              <div className="flex-1 min-w-[140px]">
+                <strong>Group</strong>
+                <Dropdown
+                  className={`w-full mt-1 ${validationErrors[`product-${idx}-productGroupId`] ? "mandatory-border" : ""}`}
+                  value={product.productGroupId}
+                  options={product.filteredGroups ?? []}
+                  optionLabel="label"
+                  optionValue="value"
+                  onChange={(e) => handleGroupChange(product, e.value)}
+                />
+                {validationErrors[`product-${idx}-productGroupId`] && (
+                  <small className="mandatory-error">{validationErrors[`product-${idx}-productGroupId`]}</small>
+                )}
+              </div>
+
+              {/* Brand */}
+              <div className="flex-1 min-w-[140px]">
+                <strong>Brand</strong>
+                <Dropdown
+                  className={`w-full mt-1 ${validationErrors[`product-${idx}-productBrandId`] ? "mandatory-border" : ""}`}
+                  value={product.productBrandId}
+                  options={product.filteredBrands ?? []}
+                  optionLabel="label"
+                  optionValue="value"
+                  onChange={(e) => handleChange(product, "productBrandId", e.value)}
+                />
+                {validationErrors[`product-${idx}-productBrandId`] && (
+                  <small className="mandatory-error">{validationErrors[`product-${idx}-productBrandId`]}</small>
+                )}
+              </div>
+
+              {/* Unit */}
+              <div className="flex-1 min-w-[140px]">
+                <strong>Unit</strong>
+                <Dropdown
+                  className="w-full mt-1"
+                  value={product.primaryUnitId}
+                  options={units}
+                  optionLabel="label"
+                  optionValue="value"
+                  onChange={(e) => handleChange(product, "primaryUnitId", e.value)}
+                />
+              </div>
+            </div>
+
+            {/* Row 2 */}
+            <div className="flex flex-wrap gap-3 p-1">
+              <div className="flex-1 min-w-[140px]">
+                <strong>Purchase Price</strong>
+                <InputNumber
+                  className={`w-full mt-1 ${validationErrors[`product-${idx}-purchasePrice`] ? "mandatory-border" : ""}`}
+                  value={product.purchasePrice}
+                  mode="currency"
+                  currency="INR"
+                  locale="en-IN"
+                  onValueChange={(e) => handleChange(product, "purchasePrice", e.value)}
+                />
+                {validationErrors[`product-${idx}-purchasePrice`] && (
+                  <small className="mandatory-error">{validationErrors[`product-${idx}-purchasePrice`]}</small>
+                )}
+              </div>
+
+              <div className="flex-1 min-w-[140px]">
+                <strong>Sale Price</strong>
+                <InputNumber
+                  className={`w-full mt-1 ${validationErrors[`product-${idx}-salePrice`] ? "mandatory-border" : ""}`}
+                  value={product.salePrice}
+                  mode="currency"
+                  currency="INR"
+                  locale="en-IN"
+                  onValueChange={(e) => handleChange(product, "salePrice", e.value)}
+                />
+                {validationErrors[`product-${idx}-salePrice`] && (
+                  <small className="mandatory-error">{validationErrors[`product-${idx}-salePrice`]}</small>
+                )}
+              </div>
+
+              <div className="flex-1 min-w-[140px]">
+                <strong>GST Price</strong>
+                <InputNumber value={product.gstPrice} mode="currency" currency="INR" locale="en-IN" disabled />
+              </div>
+
+              <div className="flex-1 min-w-[140px]">
+                <strong>CGST %</strong>
+                <InputNumber
+                  className="w-full mt-1"
+                  value={product.cgstRate}
+                  mode="decimal"
+                  minFractionDigits={0}
+                  maxFractionDigits={2}
+                  onValueChange={(e) => handleChange(product, "cgstRate", e.value)}
+                />
+              </div>
+
+              <div className="flex-1 min-w-[140px]">
+                <strong>SGST %</strong>
+                <InputNumber
+                  className="w-full mt-1"
+                  value={product.sgstRate}
+                  mode="decimal"
+                  minFractionDigits={0}
+                  maxFractionDigits={2}
+                  onValueChange={(e) => handleChange(product, "sgstRate", e.value)}
+                />
+              </div>
+            </div>
+
+            {/* Row 3 */}
+            <div className="flex flex-wrap gap-3 p-1">
+              <div className="flex-1 min-w-[140px]">
+                <strong>IGST %</strong>
+                <InputNumber
+                  className="w-full mt-1"
+                  value={product.igstRate}
+                  mode="decimal"
+                  minFractionDigits={0}
+                  maxFractionDigits={2}
+                  onValueChange={(e) => handleChange(product, "igstRate", e.value)}
+                />
+              </div>
+
+              <div className="flex-1 min-w-[140px]">
+                <strong>HSN Code</strong>
+                <InputText
+                  className={`w-full mt-1 ${validationErrors[`product-${idx}-hsnCode`] ? "mandatory-border" : ""}`}
+                  value={product.hsnCode}
+                  onChange={(e) => handleChange(product, "hsnCode", e.target.value)}
+                />
+                {validationErrors[`product-${idx}-hsnCode`] && (
+                  <small className="mandatory-error">{validationErrors[`product-${idx}-hsnCode`]}</small>
+                )}
+              </div>
+
+              <div className="flex-1 min-w-[140px] flex items-center justify-center gap-2">
+                <strong>GST Include</strong>
+                <Checkbox
+                  checked={product.isGSTIncludedInPrice}
+                  onChange={(e) => handleChange(product, "isGSTIncludedInPrice", e.checked)}
+                />
+              </div>
+
+              <div className="flex-1 min-w-[140px] flex items-center justify-center">
+                <Button
+                  icon="pi pi-trash"
+                  className="p-button-rounded p-button-sm p-button-danger"
+                  onClick={() => deleteProduct(idx)}
+                />
+              </div>
+            </div>
+          </fieldset>
+        ))}
       </div>
     </div>
   );

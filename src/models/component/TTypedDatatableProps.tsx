@@ -16,4 +16,5 @@ export interface TTypeDatatableProps<T extends Record<string, any>> {
     columns: ColumnMeta<T>[];
     data: T[];
     primaryKey: keyof T;
+    rowWrap?:boolean;
 }
