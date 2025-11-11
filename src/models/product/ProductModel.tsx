@@ -1,31 +1,29 @@
+// src/models/Product.ts
 export interface ProductModel {
     productId: number;
     productName: string;
     productDescription?: string;
     hsnCode?: string;
-    createdAt: string;
-    isActive: boolean;
-
     purchasePrice: number;
     gstPrice: number;
     salePrice: number;
     isGSTIncludedInPrice: boolean;
-    cgstRate : number;
-    sgstRate : number;
-    igstRate : number;
 
-    primaryUnitId:number;
+    cgstRate: number;
+    sgstRate: number;
+    igstRate: number;
+    createdAt: string; // ISO date string from backend
+    isActive: boolean;
 
-    // Parent Category + Group + Brand info
     productCategoryId: number;
-    categoryName: string;
+    categoryName?: string;
     categoryDescription?: string;
 
     productGroupId: number;
-    groupName: string;
+    groupName?: string;
     groupDescription?: string;
 
     productBrandId: number;
-    brandName: string;
+    brandName?: string;
     brandDescription?: string;
 }

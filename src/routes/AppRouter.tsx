@@ -6,6 +6,7 @@ import MinimalLayout from "../layout/MinimalLayout";
 import Category from "../modules/products/pages/Category";
 import Group from "../modules/products/pages/Group";
 import Brand from "../modules/products/pages/BrandPage";
+import Unit from "../modules/products/pages/Unit";
 
 const Dashboard = React.lazy(() => import("../modules/dashboard/Dashboard"));
 const ProductList = React.lazy(() => import("../modules/products/pages/ProductList"));
@@ -48,6 +49,7 @@ export default function AppRouter() {
                     <Route path="category" element={<Category />} />
                     <Route path="group" element={<Group />} />
                     <Route path="brand" element={<Brand />} />
+                    <Route path="unit" element={<Unit />} />
                 </Route>
 
                 {/* Sales Module */}

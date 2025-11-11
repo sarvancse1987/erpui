@@ -1,27 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { ColumnMeta } from "../../../models/component/ColumnMeta";
-import { TTypedDatatable } from "../../../components/TTypedDatatable";
 import { TTypeDatatable } from "../../../components/TTypeDatatable";
-
-interface Product {
-  id: string;
-  categoryId: string;
-  groupId: string;
-  brandId: string;
-  name: string;
-  unitId: string;
-  purchasePrice: number;
-  gstPrice: number;
-  salePrice: number;
-  isGSTIncludedInPrice: boolean;
-  cgstRate: number;
-  sgstRate: number;
-  igstRate: number;
-}
+import apiService from "../../../services/apiService";
+import { ProductModel } from "../../../models/product/ProductModel";
+import { CategoryModel } from "../../../models/product/CategoryModel";
+import { GroupModel } from "../../../models/product/GroupModel";
+import { BrandModel } from "../../../models/product/BrandModel";
 
 interface Option {
   label: string;
-  value: string;
+  value: string | number;
 }
 
 export default function ProductPage() {
@@ -29,132 +17,122 @@ export default function ProductPage() {
   const [groups, setGroups] = useState<Option[]>([]);
   const [brands, setBrands] = useState<Option[]>([]);
   const [units, setUnits] = useState<Option[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductModel[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
+    const loadAllData = async () => {
+      setLoading(true);
+      try {
+        // 🔹 1. Fetch hierarchy (category, group, brand)
+        const hierarchy = await apiService.get(
+          "/ProductCategory/hierarchy?includeCategories=true&includeGroups=true&includeBrands=true&includeProducts=true"
+        );
 
-    const categoryList: Option[] = [
-      { label: "Cement", value: "1" },
-      { label: "Steel", value: "2" },
-      { label: "Sand", value: "3" },
-    ];
+        const categoryList: Option[] = (hierarchy.categories ?? []).map(
+          (c: CategoryModel) => ({
+            label: c.categoryName,
+            value: c.categoryId,
+          })
+        );
 
-    const groupList: Option[] = [
-      { label: "Ramco Cement", value: "101" },
-      { label: "Tata Steel", value: "102" },
-      { label: "River Sand", value: "103" },
-    ];
+        const groupList: Option[] = (hierarchy.groups ?? []).map((g: GroupModel) => ({
+          label: g.groupName,
+          value: g.groupId,
+        }));
 
-    const brandList: Option[] = [
-      { label: "Ramco", value: "B1" },
-      { label: "UltraTech", value: "B2" },
-      { label: "Tata", value: "B3" },
-      { label: "Local", value: "B4" },
-    ];
+        const brandList: Option[] = (hierarchy.brands ?? []).map((b: BrandModel) => ({
+          label: b.brandName,
+          value: b.brandId,
+        }));
 
-    const unitList: Option[] = [
-      { label: "Bag", value: "U1" },
-      { label: "Ton", value: "U2" },
-      { label: "Kg", value: "U3" },
-    ];
+        // 🔹 2. Fetch units
+        const unitRes = await apiService.get("/Unit");
+        const unitList: Option[] = (unitRes ?? []).map((u: any) => ({
+          label: u.name,
+          value: u.id,
+        }));
 
-    const productList: Product[] = [
-      {
-        id: "P1",
-        categoryId: "1",
-        groupId: "101",
-        brandId: "B1",
-        name: "Ramco Super Grade",
-        unitId: "U1",
-        purchasePrice: 380,
-        gstPrice: 400,
-        salePrice: 420,
-        isGSTIncludedInPrice: true,
-        cgstRate: 9,
-        sgstRate: 9,
-        igstRate: 0,
-      },
-      {
-        id: "P2",
-        categoryId: "2",
-        groupId: "102",
-        brandId: "B3",
-        name: "Tata TMT Bar",
-        unitId: "U2",
-        purchasePrice: 55000,
-        gstPrice: 58000,
-        salePrice: 60000,
-        isGSTIncludedInPrice: false,
-        cgstRate: 9,
-        sgstRate: 9,
-        igstRate: 18,
-      },
-    ];
+        // 🔹 3. Fetch products
+        const productList: ProductModel[] = hierarchy.products ?? [];
 
-    setCategories(categoryList);
-    setGroups(groupList);
-    setBrands(brandList);
-    setUnits(unitList);
-    setProducts(productList);
-    setLoading(false);
+        setCategories(categoryList);
+        setGroups(groupList);
+        setBrands(brandList);
+        setUnits(unitList);
+        setProducts(productList);
+      } catch (err) {
+        console.error("Error loading product data", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAllData();
   }, []);
 
-  const getLabel = (options: Option[], value: string) =>
+  // Helper: Get label from dropdown
+  const getLabel = (options: Option[], value: string | number) =>
     options.find((opt) => opt.value === value)?.label || "";
 
-  // 🔹 Function to recalculate GST Price dynamically
-  const updateGSTPrice = (row: Product) => {
-    const totalGSTPercent = (row.cgstRate || 0) + (row.sgstRate || 0) + (row.igstRate || 0);
+  // 🔹 Dynamic GST recalculation
+  const updateGSTPrice = (row: ProductModel) => {
+    const totalGST = (row.cgstRate ?? 0) + (row.sgstRate ?? 0) + (row.igstRate ?? 0);
     if (row.isGSTIncludedInPrice) {
-      // GST Included → gstPrice = purchasePrice (already includes GST)
       row.gstPrice = row.purchasePrice;
     } else {
-      // GST Not Included → gstPrice = purchasePrice + GST amount
-      const gstAmount = (row.purchasePrice * totalGSTPercent) / 100;
+      const gstAmount = (row.purchasePrice * totalGST) / 100;
       row.gstPrice = +(row.purchasePrice + gstAmount).toFixed(2);
     }
   };
 
-  const columns: ColumnMeta<Product>[] = [
-    { field: "id", header: "ID", width: "70px" },
-    { field: "name", header: "Product Name", editable: true, required: true, width: "200px" },
+  const columns: ColumnMeta<ProductModel>[] = [
+    { field: "productId", header: "ID", width: "80px" },
     {
-      field: "categoryId",
+      field: "productName",
+      header: "Product Name",
+      editable: true,
+      required: true,
+      width: "220px",
+    },
+    {
+      field: "productCategoryId",
       header: "Category",
       editable: true,
       type: "select",
       options: categories,
-      body: (row) => getLabel(categories, row.categoryId),
-      width: "150px",
+      required: true,
+      body: (row) => getLabel(categories, row.productCategoryId),
+      width: "160px",
     },
     {
-      field: "groupId",
+      field: "productGroupId",
       header: "Group",
       editable: true,
       type: "select",
       options: groups,
-      body: (row) => getLabel(groups, row.groupId),
-      width: "150px",
+      required: true,
+      body: (row) => getLabel(groups, row.productGroupId),
+      width: "160px",
     },
     {
-      field: "brandId",
+      field: "productBrandId",
       header: "Brand",
       editable: true,
       type: "select",
       options: brands,
-      body: (row) => getLabel(brands, row.brandId),
-      width: "150px",
+      required: true,
+      body: (row) => getLabel(brands, row.productBrandId),
+      width: "160px",
     },
     {
-      field: "unitId",
+      field: "primaryUnitId",
       header: "Unit",
       editable: true,
       type: "select",
       options: units,
-      body: (row) => getLabel(units, row.unitId),
-      width: "100px",
+      body: (row) => getLabel(units, row.primaryUnitId),
+      width: "160px",
     },
     {
       field: "purchasePrice",
@@ -162,6 +140,7 @@ export default function ProductPage() {
       editable: true,
       type: "number",
       width: "130px",
+      required: true,
       onValueChange: (value: any, row: any) => {
         row.purchasePrice = value;
         updateGSTPrice(row);
@@ -188,7 +167,11 @@ export default function ProductPage() {
       },
       body: (row) => (
         <i
-          className={`pi ${row.isGSTIncludedInPrice ? "pi-check-circle text-green-500" : "pi-times-circle text-red-500"}`}
+          className={`pi ${
+            row.isGSTIncludedInPrice
+              ? "pi-check-circle text-green-500"
+              : "pi-times-circle text-red-500"
+          }`}
         />
       ),
     },
@@ -198,49 +181,30 @@ export default function ProductPage() {
       editable: true,
       type: "number",
       width: "130px",
+      required: true,
     },
     {
       field: "cgstRate",
       header: "CGST %",
       editable: true,
-      type: "gst",
-      onValueChange: (row, value, tableData, setTableData) => {
-        const purchase = Number(row["purchasePrice"] || 0);
-        const sgst = Number(row["sgstRate"] || 0);
-        const isGSTIncluded = !!row["isGSTIncludedInPrice"];
-
-        const updatedRow = { ...row, cgstRate: value };
-        updatedRow["gstPrice"] = isGSTIncluded
-          ? purchase + (purchase * (value + sgst)) / 100
-          : purchase;
-
-        const updatedTable = tableData.map((r) =>
-          r.id === updatedRow.id ? updatedRow : r
-        );
-
-        setTableData(updatedTable);
+      type: "decimal",
+      width: "100px",
+      onValueChange: (value, row) => {
+        row.cgstRate = value;
+        updateGSTPrice(row);
+        setProducts([...products]);
       },
     },
     {
       field: "sgstRate",
       header: "SGST %",
       editable: true,
-      type: "gst",
-      onValueChange: (row, value, tableData, setTableData) => {
-        const purchase = Number(row["purchasePrice"] || 0);
-        const cgst = Number(row["cgstRate"] || 0);
-        const isGSTIncluded = !!row["isGSTIncludedInPrice"];
-
-        const updatedRow = { ...row, sgstRate: value };
-        updatedRow["gstPrice"] = isGSTIncluded
-          ? purchase + (purchase * (cgst + value)) / 100
-          : purchase;
-
-        const updatedTable = tableData.map((r) =>
-          r.id === updatedRow.id ? updatedRow : r
-        );
-
-        setTableData(updatedTable);
+      type: "decimal",
+      width: "100px",
+      onValueChange: (value, row) => {
+        row.sgstRate = value;
+        updateGSTPrice(row);
+        setProducts([...products]);
       },
     },
     {
@@ -248,7 +212,7 @@ export default function ProductPage() {
       header: "IGST %",
       editable: true,
       type: "decimal",
-      width: "80px",
+      width: "100px",
       onValueChange: (value, row) => {
         row.igstRate = value;
         updateGSTPrice(row);
@@ -257,16 +221,31 @@ export default function ProductPage() {
     },
   ];
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <p>Loading data...</p>;
 
   return (
     <div className="p-4">
-      <h2 className="text-lg font-bold mb-4">🛒 Product Management</h2>
+      <h2 className="text-lg font-semibold mb-3">🛒 Product Management</h2>
 
-      <TTypeDatatable<Product> data={products} columns={columns} primaryKey="id" />
+      <TTypeDatatable<ProductModel>
+        data={products}
+        columns={columns}
+        primaryKey="productId"
+      />
 
       <div className="mt-4 flex justify-end">
-        <button className="p-button p-button-success px-4 py-2 rounded-md shadow">
+        <button
+          onClick={async () => {
+            try {
+              await apiService.post("/Product/bulk", products);
+              alert("Products saved successfully!");
+            } catch (err) {
+              console.error("Error saving products", err);
+              alert("Error saving products");
+            }
+          }}
+          className="p-button p-button-success px-4 py-2 rounded-md shadow"
+        >
           Save Products
         </button>
       </div>

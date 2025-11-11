@@ -34,24 +34,29 @@ const AppMenu: React.FC = () => {
           icon: "pi pi-fw pi-user",
           items: [
             {
-              label: "Category",
+              label: "Categories",
               icon: "pi pi-fw pi-sign-in",
               to: "/products/category",
             },
             {
-              label: "Group",
+              label: "Groups",
               icon: "pi pi-fw pi-times-circle",
               to: "/products/group",
             },
             {
-              label: "Brand",
+              label: "Brands",
               icon: "pi pi-fw pi-times-circle",
               to: "/products/brand",
             },
             {
-              label: "Product List",
+              label: "Products",
               icon: "pi pi-fw pi-times-circle",
               to: "/products",
+            },
+            {
+              label: "Units",
+              icon: "pi pi-fw pi-times-circle",
+              to: "/products/unit",
             },
           ],
         },
