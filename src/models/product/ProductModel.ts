@@ -14,21 +14,21 @@ export interface ProductModel {
     isGSTIncludedInPrice: boolean;
     cgstRate: number;
     sgstRate: number;
-    igstRate: number;
+    igstRate?: number;
 
     primaryUnitId: number;
 
     // Parent Category + Group + Brand info
     productCategoryId: number;
-    categoryName: string;
+    categoryName?: string;
     categoryDescription?: string;
 
     productGroupId: number;
-    groupName: string;
+    groupName?: string;
     groupDescription?: string;
 
     productBrandId: number;
-    brandName: string;
+    brandName?: string;
     brandDescription?: string;
 
     filteredGroups?: OptionModel[];
