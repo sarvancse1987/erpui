@@ -110,21 +110,6 @@ export default function ProductPage() {
     setNewProducts((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const validateNewProducts = (): boolean => {
-    const errors: Record<string, string> = {};
-    newProducts.forEach((p, idx) => {
-      if (!p.productName || !p.productName.trim()) errors[`new-${idx}-productName`] = "Product Name is required";
-      if (!p.productCategoryId) errors[`new-${idx}-productCategoryId`] = "Category is required";
-      if (!p.productGroupId) errors[`new-${idx}-productGroupId`] = "Group is required";
-      if (!p.productBrandId) errors[`new-${idx}-productBrandId`] = "Brand is required";
-      if (!p.purchasePrice) errors[`new-${idx}-purchasePrice`] = "Purchase Price is required";
-      if (!p.salePrice) errors[`new-${idx}-salePrice`] = "Sale Price is required";
-      if (!p.hsnCode || !p.hsnCode.trim()) errors[`new-${idx}-hsnCode`] = "HSN Code is required";
-    });
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
   const handleSaveProducts = async () => {
     const errors: Record<string, string> = {};
 

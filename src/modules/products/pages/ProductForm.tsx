@@ -15,9 +15,9 @@ interface ProductFormProps {
   allBrands: any[];
   units: OptionModel[];
   validationErrors?: Record<string, string>;
-  onSave: (product: ProductModel) => void;     // ✅ Used for both add & edit
+  onSave: (product: ProductModel) => void;
   onCancel?: () => void;
-  isEditSidebar: boolean;                    // ✅ For sidebar cancel
+  isEditSidebar: boolean;
 }
 
 export const ProductForm: React.FC<ProductFormProps> = ({
@@ -35,6 +35,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   const [formData, setFormData] = useState<ProductModel>({ ...product });
   const [filteredGroups, setFilteredGroups] = useState<OptionModel[]>([]);
   const [filteredBrands, setFilteredBrands] = useState<OptionModel[]>([]);
+  const [localValidationErrors, setLocalValidationErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (formData.productCategoryId) {
@@ -61,9 +62,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
   const handleChange = (field: keyof ProductModel, value: any) => {
     const updated = { ...formData, [field]: value };
-    if (
-      ["purchasePrice", "cgstRate", "sgstRate", "igstRate", "isGSTIncludedInPrice"].includes(field)
-    ) {
+    if (["purchasePrice", "cgstRate", "sgstRate", "igstRate", "isGSTIncludedInPrice"].includes(field)) {
       updateGSTPrice(updated);
     }
     setFormData(updated);
@@ -73,61 +72,70 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     const groups = allGroups
       .filter((g) => g.categoryId === categoryId && g.isActive)
       .map((g) => ({ label: g.groupName, value: g.groupId }));
-
     setFilteredGroups(groups);
     setFilteredBrands([]);
-    setFormData({
-      ...formData,
-      productCategoryId: categoryId,
-      productGroupId: 0,
-      productBrandId: 0,
-    });
+    setFormData({ ...formData, productCategoryId: categoryId, productGroupId: 0, productBrandId: 0 });
   };
 
   const handleGroupChange = (groupId: number) => {
     const brands = allBrands
       .filter((b) => b.groupId === groupId && b.isActive)
       .map((b) => ({ label: b.brandName, value: b.brandId }));
-
     setFilteredBrands(brands);
-    setFormData({
-      ...formData,
-      productGroupId: groupId,
-      productBrandId: 0,
-    });
+    setFormData({ ...formData, productGroupId: groupId, productBrandId: 0 });
+  };
+
+  const getErrorKey = (field: string) => `product-${index}-${field}`;
+
+  const getErrorMessage = (field: string) =>
+    isEditSidebar ? localValidationErrors[getErrorKey(field)] : validationErrors[getErrorKey(field)];
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.productName?.trim()) errors[getErrorKey("productName")] = "Product Name is required";
+    if (!formData.productCategoryId) errors[getErrorKey("productCategoryId")] = "Category is required";
+    if (!formData.productGroupId) errors[getErrorKey("productGroupId")] = "Group is required";
+    if (!formData.productBrandId) errors[getErrorKey("productBrandId")] = "Brand is required";
+    if (!formData.purchasePrice || formData.purchasePrice <= 0) errors[getErrorKey("purchasePrice")] = "Purchase Price is required";
+    if (!formData.salePrice || formData.salePrice <= 0) errors[getErrorKey("salePrice")] = "Sale Price is required";
+    if (!formData.hsnCode?.trim()) errors[getErrorKey("hsnCode")] = "HSN Code is required";
+
+    if (Object.keys(errors).length > 0) {
+      setLocalValidationErrors(errors);
+      return false;
+    }
+
+    setLocalValidationErrors({});
+    return true;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) return; // stop submit if invalid
     onSave(formData);
   };
-
-    const getErrorKey = (field: string) => `product-${index}-${field}`;
 
   return (
     <form onSubmit={handleSubmit}>
       <fieldset className="border border-gray-300 rounded-md p-4 bg-white mb-4">
         <legend className="text-sm font-semibold px-2 text-gray-700">
-          {formData.productId ? `Edit Product` : `Add Product`}
+          {formData.productId ? "Edit Product" : "Add Product"}
         </legend>
 
         {/* Row 1 */}
         <div className="flex flex-wrap gap-3 p-1">
-          {/* Name */}
+          {/* Product Name */}
           <div className="flex-1 min-w-[140px]">
             <strong>
               Name <span className="mandatory-asterisk">*</span>
             </strong>
             <InputText
-              className={`w-full mt-1 ${
-                validationErrors[getErrorKey("productName")] ? "mandatory-border" : ""
-              }`}
+              className={`w-full mt-1 ${getErrorMessage("productName") ? "mandatory-border" : ""}`}
               value={formData.productName}
               onChange={(e) => handleChange("productName", e.target.value)}
             />
-            {validationErrors[getErrorKey("productName")] && (
-              <span className="mandatory-error">{validationErrors[getErrorKey("productName")]}</span>
-            )}
+            {getErrorMessage("productName") && <span className="mandatory-error">{getErrorMessage("productName")}</span>}
           </div>
 
           {/* Category */}
@@ -136,18 +144,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               Category <span className="mandatory-asterisk">*</span>
             </strong>
             <Dropdown
-              className={`w-full mt-1 ${
-                validationErrors[getErrorKey("productCategoryId")] ? "mandatory-border" : ""
-              }`}
+              className={`w-full mt-1 ${getErrorMessage("productCategoryId") ? "mandatory-border" : ""}`}
               value={formData.productCategoryId}
               options={categories}
               optionLabel="label"
               optionValue="value"
               onChange={(e) => handleCategoryChange(e.value)}
             />
-            {validationErrors[getErrorKey("productCategoryId")] && (
-              <span className="mandatory-error">{validationErrors[getErrorKey("productCategoryId")]}</span>
-            )}
+            {getErrorMessage("productCategoryId") && <span className="mandatory-error">{getErrorMessage("productCategoryId")}</span>}
           </div>
 
           {/* Group */}
@@ -156,18 +160,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               Group <span className="mandatory-asterisk">*</span>
             </strong>
             <Dropdown
-              className={`w-full mt-1 ${
-                validationErrors[getErrorKey("productGroupId")] ? "mandatory-border" : ""
-              }`}
+              className={`w-full mt-1 ${getErrorMessage("productGroupId") ? "mandatory-border" : ""}`}
               value={formData.productGroupId}
               options={filteredGroups}
               optionLabel="label"
               optionValue="value"
               onChange={(e) => handleGroupChange(e.value)}
             />
-            {validationErrors[getErrorKey("productGroupId")] && (
-              <span className="mandatory-error">{validationErrors[getErrorKey("productGroupId")]}</span>
-            )}
+            {getErrorMessage("productGroupId") && <span className="mandatory-error">{getErrorMessage("productGroupId")}</span>}
           </div>
 
           {/* Brand */}
@@ -176,38 +176,28 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               Brand <span className="mandatory-asterisk">*</span>
             </strong>
             <Dropdown
-              className={`w-full mt-1 ${
-                validationErrors[getErrorKey("productBrandId")] ? "mandatory-border" : ""
-              }`}
+              className={`w-full mt-1 ${getErrorMessage("productBrandId") ? "mandatory-border" : ""}`}
               value={formData.productBrandId}
               options={filteredBrands}
               optionLabel="label"
               optionValue="value"
               onChange={(e) => handleChange("productBrandId", e.value)}
             />
-            {validationErrors[getErrorKey("productBrandId")] && (
-              <span className="mandatory-error">{validationErrors[getErrorKey("productBrandId")]}</span>
-            )}
+            {getErrorMessage("productBrandId") && <span className="mandatory-error">{getErrorMessage("productBrandId")}</span>}
           </div>
 
           {/* Unit */}
           <div className="flex-1 min-w-[140px]">
-            <strong>
-              Unit
-            </strong>
+            <strong>Unit</strong>
             <Dropdown
-              className={`w-full mt-1 ${
-                validationErrors[getErrorKey("primaryUnitId")] ? "mandatory-border" : ""
-              }`}
+              className={`w-full mt-1 ${getErrorMessage("primaryUnitId") ? "mandatory-border" : ""}`}
               value={formData.primaryUnitId}
               options={units}
               optionLabel="label"
               optionValue="value"
               onChange={(e) => handleChange("primaryUnitId", e.value)}
             />
-            {validationErrors[getErrorKey("primaryUnitId")] && (
-              <span className="mandatory-error">{validationErrors[getErrorKey("primaryUnitId")]}</span>
-            )}
+            {getErrorMessage("primaryUnitId") && <span className="mandatory-error">{getErrorMessage("primaryUnitId")}</span>}
           </div>
         </div>
 
@@ -215,54 +205,36 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         <div className="flex flex-wrap gap-3 p-1">
           {/* Purchase Price */}
           <div className="flex-1 min-w-[140px]">
-            <strong>
-              Purchase Price <span className="mandatory-asterisk">*</span>
-            </strong>
+            <strong>Purchase Price <span className="mandatory-asterisk">*</span></strong>
             <InputNumber
-              className={`w-full mt-1 ${
-                validationErrors[getErrorKey("purchasePrice")] ? "mandatory-border" : ""
-              }`}
+              className={`w-full mt-1 ${getErrorMessage("purchasePrice") ? "mandatory-border" : ""}`}
               value={formData.purchasePrice}
               mode="currency"
               currency="INR"
               locale="en-IN"
               onValueChange={(e) => handleChange("purchasePrice", e.value)}
             />
-            {validationErrors[getErrorKey("purchasePrice")] && (
-              <span className="mandatory-error">{validationErrors[getErrorKey("purchasePrice")]}</span>
-            )}
+            {getErrorMessage("purchasePrice") && <span className="mandatory-error">{getErrorMessage("purchasePrice")}</span>}
           </div>
 
           {/* Sale Price */}
           <div className="flex-1 min-w-[140px]">
-            <strong>
-              Sale Price <span className="mandatory-asterisk">*</span>
-            </strong>
+            <strong>Sale Price <span className="mandatory-asterisk">*</span></strong>
             <InputNumber
-              className={`w-full mt-1 ${
-                validationErrors[getErrorKey("salePrice")] ? "mandatory-border" : ""
-              }`}
+              className={`w-full mt-1 ${getErrorMessage("salePrice") ? "mandatory-border" : ""}`}
               value={formData.salePrice}
               mode="currency"
               currency="INR"
               locale="en-IN"
               onValueChange={(e) => handleChange("salePrice", e.value)}
             />
-            {validationErrors[getErrorKey("salePrice")] && (
-              <span className="mandatory-error">{validationErrors[getErrorKey("salePrice")]}</span>
-            )}
+            {getErrorMessage("salePrice") && <span className="mandatory-error">{getErrorMessage("salePrice")}</span>}
           </div>
 
-          {/* GST Price (readonly) */}
+          {/* GST Price */}
           <div className="flex-1 min-w-[140px]">
             <strong>GST Price</strong>
-            <InputNumber
-              value={formData.gstPrice}
-              mode="currency"
-              currency="INR"
-              locale="en-IN"
-              disabled
-            />
+            <InputNumber value={formData.gstPrice} mode="currency" currency="INR" locale="en-IN" disabled />
           </div>
 
           {/* CGST */}
@@ -309,19 +281,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
           {/* HSN */}
           <div className="flex-1 min-w-[140px]">
-            <strong>
-              HSN Code <span className="mandatory-asterisk">*</span>
-            </strong>
+            <strong>HSN Code <span className="mandatory-asterisk">*</span></strong>
             <InputText
-              className={`w-full mt-1 ${
-                validationErrors[getErrorKey("hsnCode")] ? "mandatory-border" : ""
-              }`}
+              className={`w-full mt-1 ${getErrorMessage("hsnCode") ? "mandatory-border" : ""}`}
               value={formData.hsnCode}
               onChange={(e) => handleChange("hsnCode", e.target.value)}
             />
-            {validationErrors[getErrorKey("hsnCode")] && (
-              <span className="mandatory-error">{validationErrors[getErrorKey("hsnCode")]}</span>
-            )}
+            {getErrorMessage("hsnCode") && <span className="mandatory-error">{getErrorMessage("hsnCode")}</span>}
           </div>
 
           {/* GST Include */}
@@ -336,15 +302,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
         {/* Buttons */}
         <div className="flex justify-end gap-2 mt-4">
-          {onCancel && (
-            <Button
-              type="button"
-              label="Cancel"
-              icon="pi pi-times"
-              outlined
-              onClick={onCancel}
-            />
-          )}
+          {onCancel && <Button type="button" label="Cancel" icon="pi pi-times" outlined onClick={onCancel} />}
           {isEditSidebar && (
             <Button
               type="submit"
