@@ -11,6 +11,11 @@ export async function post(url: string, data: any): Promise<any> {
   return client.post(url, data);
 }
 
+export async function put(url: string, data: any): Promise<any> {
+  const client = getHttpClient();
+  return client.put(url, data);
+}
+
 export async function del(url: string, data?: any): Promise<any> {
   const client = getHttpClient();
   return client.delete(url, { data });
@@ -41,6 +46,7 @@ export async function document(
 export default {
   get,
   post,
+  put,
   //postImage,
   del,
   document,

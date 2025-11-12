@@ -9,6 +9,7 @@ export interface ColumnMeta<T> {
     frozen?: boolean;
     body?: (rowData: T) => React.ReactNode;
     onValueChange?: (row: T, value: any, tableData: T[], setTableData: React.Dispatch<React.SetStateAction<T[]>>) => void;
+    onEdit?: (row: T) => void;
     hidden?: boolean;
     style?: React.CSSProperties;
 }

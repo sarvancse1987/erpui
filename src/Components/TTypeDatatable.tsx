@@ -20,12 +20,18 @@ export function TTypeDatatable<T extends Record<string, any>>({
   columns,
   data,
   primaryKey,
+  isNew,
+  isSave,
+  isDelete,
+  onEdit
 }: TTypeDatatableProps<T>) {
   const [tableData, setTableData] = useState<T[]>(data);
   const [editingRows, setEditingRows] = useState<{ [key: string]: boolean }>({});
   const [errors, setErrors] = useState<{ [rowId: string]: { [field: string]: string } }>({});
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [filters, setFilters] = useState<any>({});
+  const [editDialogVisible, setEditDialogVisible] = useState(false);
+  const [editingRowData, setEditingRowData] = useState<T | null>(null);
 
   useEffect(() => {
     const f: any = { global: { value: null, matchMode: FilterMatchMode.CONTAINS } };
@@ -308,33 +314,49 @@ export function TTypeDatatable<T extends Record<string, any>>({
     }
   };
 
+  const openEditDialog = (rowData: T) => {
+    setEditingRowData({ ...rowData });
+    setEditDialogVisible(true);
+  };
+
+  const actionBodyTemplate = (rowData: T) => (
+    <Button
+      icon="pi pi-pencil"
+      rounded
+      outlined
+      severity="info"
+      onClick={() => onEdit?.(rowData)}
+    />
+  );
+
   return (
     <div className="card p-3 h-[calc(100vh-100px)] overflow-auto">
       <div className="flex justify-between items-center mb-3">
         <div className="flex gap-2">
-          <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} />
-          <Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll} />
+          {isNew && <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} />}
+          {isSave && <Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll} />}
         </div>
 
-        {/* Global Search */}
-        <span className="p-input-icon-left relative w-64">
-          {/* Search Icon */}
-          <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <div className="ml-auto">
+          <span className="p-input-icon-left relative w-64">
+            {/* Search Icon */}
+            <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
 
-          {/* Input Text */}
-          <InputText
-            value={globalFilter}
-            onChange={(e) => {
-              setGlobalFilter(e.target.value);
-              setFilters((prev: any) => ({
-                ...prev,
-                global: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
-              }));
-            }}
-            placeholder="Search..."
-            className="pl-10 w-full" // padding-left to leave space for icon + some buffer
-          />
-        </span>
+            {/* Input Text */}
+            <InputText
+              value={globalFilter}
+              onChange={(e) => {
+                setGlobalFilter(e.target.value);
+                setFilters((prev: any) => ({
+                  ...prev,
+                  global: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
+                }));
+              }}
+              placeholder="Search..."
+              className="pl-10 w-full" // padding-left to leave space for icon + some buffer
+            />
+          </span>
+        </div>
       </div>
 
       <DataTable
@@ -375,11 +397,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
           />
         ))}
 
-        <Column
-          rowEditor
-          headerStyle={{ width: "5rem" }}
-          bodyStyle={{ textAlign: "center" }}
-        />
+        <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} />
       </DataTable>
     </div >
   );

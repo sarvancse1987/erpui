@@ -17,6 +17,7 @@ export interface ProductModel {
     igstRate?: number;
 
     primaryUnitId: number;
+    unitName?: string;
 
     // Parent Category + Group + Brand info
     productCategoryId: number;
