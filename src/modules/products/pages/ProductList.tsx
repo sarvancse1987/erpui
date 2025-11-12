@@ -4,25 +4,27 @@ import { ProductModel } from "../../../models/product/ProductModel";
 import { CategoryModel } from "../../../models/product/CategoryModel";
 import { GroupModel } from "../../../models/product/GroupModel";
 import { BrandModel } from "../../../models/product/BrandModel";
-import { Dropdown } from "primereact/dropdown";
-import { InputText } from "primereact/inputtext";
-import { InputNumber } from "primereact/inputnumber";
-import { Checkbox } from "primereact/checkbox";
 import { Button } from "primereact/button";
 import { TabView, TabPanel } from "primereact/tabview";
 import { OptionModel } from "../../../models/product/OptionModel";
 import { TTypeDatatable } from "../../../components/TTypeDatatable";
 import { ColumnMeta } from "../../../models/component/ColumnMeta";
+import { ProductForm } from "./ProductForm";
+import { Sidebar } from "primereact/sidebar";
 
 export default function ProductPage() {
   const [allGroups, setAllGroups] = useState<GroupModel[]>([]);
   const [allBrands, setAllBrands] = useState<BrandModel[]>([]);
   const [categories, setCategories] = useState<OptionModel[]>([]);
   const [units, setUnits] = useState<OptionModel[]>([]);
-  const [products, setProducts] = useState<ProductModel[]>([]);
-  const [addedProducts, setAddedProducts] = useState<ProductModel[]>([]);
+  const [products, setProducts] = useState<ProductModel[]>([]); // existing / saved products
+  const [newProducts, setNewProducts] = useState<ProductModel[]>([]); // unsaved products in Add tab
+  const [addedProducts, setAddedProducts] = useState<ProductModel[]>([]); // optional saved copy
   const [loading, setLoading] = useState(true);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  const [selectedProduct, setSelectedProduct] = useState<ProductModel | null>(null);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
 
   useEffect(() => {
     const loadAllData = async () => {
@@ -38,13 +40,12 @@ export default function ProductPage() {
 
         setAllGroups(grps);
         setAllBrands(brs);
-        setCategories(cats.map(c => ({ label: c.categoryName, value: c.categoryId })));
+        setCategories(cats.map((c) => ({ label: c.categoryName, value: c.categoryId })));
 
         const unitRes = await apiService.get("/Unit");
         setUnits((unitRes ?? []).map((u: any) => ({ label: u.name, value: u.id })));
 
         const initialProducts: ProductModel[] = hierarchy.products ?? [];
-        if (!initialProducts.length) initialProducts.push(createEmptyProduct());
         setProducts(initialProducts);
       } catch (err) {
         console.error("Error loading product data", err);
@@ -90,101 +91,54 @@ export default function ProductPage() {
       : +(product.purchasePrice + (product.purchasePrice * totalGST) / 100).toFixed(2);
   };
 
-  const handleChange = (product: ProductModel, field: keyof ProductModel, value: any) => {
-    (product as any)[field] = value;
+  // --------------------
+  // New-products (Add tab) helpers
+  // --------------------
+  const addNewProduct = () => {
+    setNewProducts((prev) => [createEmptyProduct(), ...prev]);
+  };
 
-    if (["purchasePrice", "cgstRate", "sgstRate", "igstRate", "isGSTIncludedInPrice"].includes(field)) {
-      updateGSTPrice(product);
-    }
-
-    const idx = products.indexOf(product);
-    const errorKey = `product-${idx}-${field}`;
-    setValidationErrors(prev => {
-      const newErrors = { ...prev };
-      if (
-        (typeof value === "string" && value.trim() !== "") ||
-        (typeof value === "number" && value !== 0) ||
-        (typeof value === "boolean")
-      ) {
-        delete newErrors[errorKey];
-      }
-      return newErrors;
+  const handleUpdateNewProduct = (index: number, updatedProduct: ProductModel) => {
+    setNewProducts((prev) => {
+      const copy = [...prev];
+      copy[index] = updatedProduct;
+      return copy;
     });
-
-    setProducts([...products]);
   };
 
-  const addNewProduct = () => setProducts([createEmptyProduct(), ...products]);
-
-  const deleteProduct = (index: number) => {
-    const updated = [...products];
-    updated.splice(index, 1);
-    setProducts(updated.length ? updated : [createEmptyProduct()]);
+  const handleRemoveNewProduct = (index: number) => {
+    setNewProducts((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleCategoryChange = (product: ProductModel, categoryId: number) => {
-    handleChange(product, "productCategoryId", categoryId);
-    const filteredGroups = allGroups
-      .filter(g => g.categoryId === categoryId && g.isActive)
-      .map(g => ({ label: g.groupName, value: g.groupId }));
-
-    product.filteredGroups = filteredGroups;
-    product.productGroupId = 0;
-    product.filteredBrands = [];
-    product.productBrandId = 0;
-
-    const idx = products.indexOf(product);
-    setValidationErrors(prev => {
-      const newErrors = { ...prev };
-      delete newErrors[`product-${idx}-productGroupId`];
-      delete newErrors[`product-${idx}-productBrandId`];
-      return newErrors;
-    });
-
-    setProducts([...products]);
-  };
-
-  const handleGroupChange = (product: ProductModel, groupId: number) => {
-    handleChange(product, "productGroupId", groupId);
-
-    const filteredBrands = allBrands
-      .filter(b => b.groupId === groupId && b.isActive)
-      .map(b => ({ label: b.brandName, value: b.brandId }));
-
-    product.filteredBrands = filteredBrands;
-    product.productBrandId = 0;
-
-    const idx = products.indexOf(product);
-    setValidationErrors(prev => {
-      const newErrors = { ...prev };
-      delete newErrors[`product-${idx}-productBrandId`];
-      return newErrors;
-    });
-
-    setProducts([...products]);
-  };
-
-  const validateProducts = (): boolean => {
+  const validateNewProducts = (): boolean => {
     const errors: Record<string, string> = {};
-    products.forEach((p, idx) => {
-      if (!p.productName.trim()) errors[`product-${idx}-productName`] = "Product Name is required";
-      if (!p.productCategoryId) errors[`product-${idx}-productCategoryId`] = "Category is required";
-      if (!p.productGroupId) errors[`product-${idx}-productGroupId`] = "Group is required";
-      if (!p.productBrandId) errors[`product-${idx}-productBrandId`] = "Brand is required";
-      if (!p.purchasePrice) errors[`product-${idx}-purchasePrice`] = "Purchase Price is required";
-      if (!p.salePrice) errors[`product-${idx}-salePrice`] = "Sale Price is required";
-      if (!p.hsnCode.trim()) errors[`product-${idx}-hsnCode`] = "HSN Code is required";
+    newProducts.forEach((p, idx) => {
+      if (!p.productName || !p.productName.trim()) errors[`new-${idx}-productName`] = "Product Name is required";
+      if (!p.productCategoryId) errors[`new-${idx}-productCategoryId`] = "Category is required";
+      if (!p.productGroupId) errors[`new-${idx}-productGroupId`] = "Group is required";
+      if (!p.productBrandId) errors[`new-${idx}-productBrandId`] = "Brand is required";
+      if (!p.purchasePrice) errors[`new-${idx}-purchasePrice`] = "Purchase Price is required";
+      if (!p.salePrice) errors[`new-${idx}-salePrice`] = "Sale Price is required";
+      if (!p.hsnCode || !p.hsnCode.trim()) errors[`new-${idx}-hsnCode`] = "HSN Code is required";
     });
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleSaveProducts = async () => {
-    if (!validateProducts()) return;
+    if (!validateNewProducts()) {
+      alert("Please fix validation errors for new products.");
+      return;
+    }
+
     try {
-      await apiService.post("/Product/bulk", products);
-      setAddedProducts([...addedProducts, ...products.map(p => ({ ...p }))]); // copy saved products
-      setProducts([createEmptyProduct()]);
+      // Option A: send all at once to bulk endpoint
+      await apiService.post("/Product/bulk", newProducts);
+
+      // Optional: move saved newProducts to existing list and clear newProducts
+      setProducts((prev) => [...newProducts.map((p) => ({ ...p })), ...prev]);
+      setAddedProducts((prev) => [...prev, ...newProducts.map((p) => ({ ...p }))]);
+      setNewProducts([]);
       alert("Products saved successfully!");
     } catch (err) {
       console.error(err);
@@ -192,6 +146,34 @@ export default function ProductPage() {
     }
   };
 
+  // --------------------
+  // Edit existing product (sidebar)
+  // --------------------
+  const handleOpenEdit = (product: ProductModel) => {
+    setSelectedProduct({ ...product }); // copy to avoid direct mutation
+    setSidebarVisible(true);
+  };
+
+  const handleUpdateProduct = async (updatedProduct: ProductModel) => {
+    try {
+      // persist to API (if you want)
+      if (updatedProduct.productId) {
+        await apiService.put(`/Product/${updatedProduct.productId}`, updatedProduct);
+      }
+
+      // update in local state
+      setProducts((prevProducts) =>
+        prevProducts.map((p) => (p.productId === updatedProduct.productId ? { ...updatedProduct } : p))
+      );
+
+      alert("✅ Product updated successfully!");
+    } catch (err) {
+      console.error("Error updating product:", err);
+      alert("❌ Error updating product. Please try again.");
+    }
+  };
+
+  // helper to render labels in columns
   const getLabel = (options: OptionModel[], value: string | number) =>
     options.find((opt) => opt.value === value)?.label || "";
 
@@ -203,6 +185,7 @@ export default function ProductPage() {
       editable: true,
       required: true,
       width: "220px",
+      frozen: true, // if you want sticky/frozen (depends on DataTable support)
     },
     {
       field: "categoryName",
@@ -270,12 +253,7 @@ export default function ProductPage() {
         setProducts([...products]);
       },
       body: (row) => (
-        <i
-          className={`pi ${row.isGSTIncludedInPrice
-            ? "pi-check-circle text-green-500"
-            : "pi-times-circle text-red-500"
-            }`}
-        />
+        <i className={`pi ${row.isGSTIncludedInPrice ? "pi-check-circle text-green-500" : "pi-times-circle text-red-500"}`} />
       ),
     },
     {
@@ -332,6 +310,7 @@ export default function ProductPage() {
         <h2 className="text-lg font-semibold mb-4">🛒 Product Management</h2>
 
         <TabView>
+          {/* Existing Products */}
           <TabPanel header="Products">
             {products.length === 0 ? (
               <p>No products added yet.</p>
@@ -340,195 +319,77 @@ export default function ProductPage() {
                 <TTypeDatatable<ProductModel>
                   data={products}
                   columns={columns}
-                  primaryKey="productId" />
+                  primaryKey="productId"
+                  // provide an onEdit so child can notify parent to open sidebar
+                  onEdit={(row: ProductModel) => handleOpenEdit(row)}
+                />
               </div>
             )}
           </TabPanel>
 
+          {/* Add / Edit Products (new unsaved products) */}
           <TabPanel header="Add / Edit Products">
             <div className="flex gap-2 mb-4">
               <Button label="Add New" icon="pi pi-plus" outlined severity="success" onClick={addNewProduct} />
-              <Button label="Save" icon="pi pi-save" onClick={handleSaveProducts} disabled={!products.length} />
+              <Button label="Save All" icon="pi pi-save" onClick={handleSaveProducts} disabled={!newProducts.length} />
             </div>
 
             <div className="space-y-4">
-              {products.map((product, idx) => (
-                <fieldset key={idx} className="border border-gray-300 rounded-md p-4 bg-white">
-                  <legend className="text-sm font-semibold px-2 text-gray-700">Product {idx + 1}</legend>
-
-                  {/* Row 1 */}
-                  <div className="flex flex-wrap gap-3 p-1">
-                    {/* Product Name */}
-                    <div className="flex-1 min-w-[140px]">
-                      <strong>Name</strong>
-                      <InputText
-                        className={`w-full mt-1 ${validationErrors[`product-${idx}-productName`] ? "mandatory-border" : ""}`}
-                        value={product.productName}
-                        onChange={(e) => handleChange(product, "productName", e.target.value)} />
-                      {validationErrors[`product-${idx}-productName`] && (
-                        <small className="mandatory-error">{validationErrors[`product-${idx}-productName`]}</small>
-                      )}
-                    </div>
-
-                    {/* Category */}
-                    <div className="flex-1 min-w-[140px]">
-                      <strong>Category</strong>
-                      <Dropdown
-                        className={`w-full mt-1 ${validationErrors[`product-${idx}-productCategoryId`] ? "mandatory-border" : ""}`}
-                        value={product.productCategoryId}
-                        options={categories}
-                        optionLabel="label"
-                        optionValue="value"
-                        onChange={(e) => handleCategoryChange(product, e.value)} />
-                      {validationErrors[`product-${idx}-productCategoryId`] && (
-                        <small className="mandatory-error">{validationErrors[`product-${idx}-productCategoryId`]}</small>
-                      )}
-                    </div>
-
-                    {/* Group */}
-                    <div className="flex-1 min-w-[140px]">
-                      <strong>Group</strong>
-                      <Dropdown
-                        className={`w-full mt-1 ${validationErrors[`product-${idx}-productGroupId`] ? "mandatory-border" : ""}`}
-                        value={product.productGroupId}
-                        options={product.filteredGroups ?? []}
-                        optionLabel="label"
-                        optionValue="value"
-                        onChange={(e) => handleGroupChange(product, e.value)} />
-                      {validationErrors[`product-${idx}-productGroupId`] && (
-                        <small className="mandatory-error">{validationErrors[`product-${idx}-productGroupId`]}</small>
-                      )}
-                    </div>
-
-                    {/* Brand */}
-                    <div className="flex-1 min-w-[140px]">
-                      <strong>Brand</strong>
-                      <Dropdown
-                        className={`w-full mt-1 ${validationErrors[`product-${idx}-productBrandId`] ? "mandatory-border" : ""}`}
-                        value={product.productBrandId}
-                        options={product.filteredBrands ?? []}
-                        optionLabel="label"
-                        optionValue="value"
-                        onChange={(e) => handleChange(product, "productBrandId", e.value)} />
-                      {validationErrors[`product-${idx}-productBrandId`] && (
-                        <small className="mandatory-error">{validationErrors[`product-${idx}-productBrandId`]}</small>
-                      )}
-                    </div>
-
-                    {/* Unit */}
-                    <div className="flex-1 min-w-[140px]">
-                      <strong>Unit</strong>
-                      <Dropdown
-                        className="w-full mt-1"
-                        value={product.primaryUnitId}
-                        options={units}
-                        optionLabel="label"
-                        optionValue="value"
-                        onChange={(e) => handleChange(product, "primaryUnitId", e.value)} />
-                    </div>
-                  </div>
-
-                  {/* Row 2 */}
-                  <div className="flex flex-wrap gap-2 p-1">
-                    <div className="flex-1 min-w-[140px]">
-                      <strong>Purchase Price</strong>
-                      <InputNumber
-                        className={`w-full mt-1 ${validationErrors[`product-${idx}-purchasePrice`] ? "mandatory-border" : ""}`}
-                        value={product.purchasePrice}
-                        mode="currency"
-                        currency="INR"
-                        locale="en-IN"
-                        onValueChange={(e) => handleChange(product, "purchasePrice", e.value)} />
-                      {validationErrors[`product-${idx}-purchasePrice`] && (
-                        <small className="mandatory-error">{validationErrors[`product-${idx}-purchasePrice`]}</small>
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-w-[140px]">
-                      <strong>Sale Price</strong>
-                      <InputNumber
-                        className={`w-full mt-1 ${validationErrors[`product-${idx}-salePrice`] ? "mandatory-border" : ""}`}
-                        value={product.salePrice}
-                        mode="currency"
-                        currency="INR"
-                        locale="en-IN"
-                        onValueChange={(e) => handleChange(product, "salePrice", e.value)} />
-                      {validationErrors[`product-${idx}-salePrice`] && (
-                        <small className="mandatory-error">{validationErrors[`product-${idx}-salePrice`]}</small>
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-w-[140px]">
-                      <strong>GST Price</strong>
-                      <InputNumber value={product.gstPrice} mode="currency" currency="INR" locale="en-IN" disabled />
-                    </div>
-
-                    <div className="flex-1 min-w-[140px]">
-                      <strong>CGST %</strong>
-                      <InputNumber
-                        className="w-full mt-1"
-                        value={product.cgstRate}
-                        mode="decimal"
-                        minFractionDigits={0}
-                        maxFractionDigits={2}
-                        onValueChange={(e) => handleChange(product, "cgstRate", e.value)} />
-                    </div>
-
-                    <div className="flex-1 min-w-[140px]">
-                      <strong>SGST %</strong>
-                      <InputNumber
-                        className="w-full mt-1"
-                        value={product.sgstRate}
-                        mode="decimal"
-                        minFractionDigits={0}
-                        maxFractionDigits={2}
-                        onValueChange={(e) => handleChange(product, "sgstRate", e.value)} />
-                    </div>
-                  </div>
-
-                  {/* Row 3 */}
-                  <div className="flex flex-wrap gap-3 p-1">
-                    <div className="flex-1 min-w-[140px]">
-                      <strong>IGST %</strong>
-                      <InputNumber
-                        className="w-full mt-1"
-                        value={product.igstRate}
-                        mode="decimal"
-                        minFractionDigits={0}
-                        maxFractionDigits={2}
-                        onValueChange={(e) => handleChange(product, "igstRate", e.value)} />
-                    </div>
-
-                    <div className="flex-1 min-w-[140px]">
-                      <strong>HSN Code</strong>
-                      <InputText
-                        className={`w-full mt-1 ${validationErrors[`product-${idx}-hsnCode`] ? "mandatory-border" : ""}`}
-                        value={product.hsnCode}
-                        onChange={(e) => handleChange(product, "hsnCode", e.target.value)} />
-                      {validationErrors[`product-${idx}-hsnCode`] && (
-                        <small className="mandatory-error">{validationErrors[`product-${idx}-hsnCode`]}</small>
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-w-[140px] flex items-center justify-center gap-2">
-                      <strong>GST Include</strong>
-                      <Checkbox
-                        checked={product.isGSTIncludedInPrice}
-                        onChange={(e) => handleChange(product, "isGSTIncludedInPrice", e.checked)} />
-                    </div>
-
-                    <div className="flex-1 min-w-[140px] flex items-center justify-center">
-                      <Button
-                        icon="pi pi-trash"
-                        className="p-button-rounded p-button-sm p-button-danger"
-                        onClick={() => deleteProduct(idx)} />
-                    </div>
-                  </div>
-                </fieldset>
-              ))}
+              {newProducts.length === 0 ? (
+                <p className="text-gray-500">No new products. Click "Add New" to create.</p>
+              ) : (
+                newProducts.map((product, idx) => (
+                  <ProductForm
+                    key={idx}
+                    product={product}
+                    index={idx}
+                    categories={categories}
+                    allGroups={allGroups}
+                    allBrands={allBrands}
+                    units={units}
+                    validationErrors={validationErrors}
+                    onSave={(updatedProduct) => handleUpdateNewProduct(idx, updatedProduct)}
+                    onCancel={() => handleRemoveNewProduct(idx)}
+                    isEditSidebar={false}
+                  />
+                ))
+              )}
             </div>
           </TabPanel>
         </TabView>
+
+        {/* Sidebar for editing existing product */}
+        <Sidebar
+          visible={sidebarVisible}
+          position="right"
+          onHide={() => setSidebarVisible(false)}
+          header="Edit Product"
+          style={{ width: '68rem', height: '100%' }}
+        >
+          {selectedProduct ? (
+            <div className="p-4 overflow-y-auto max-h-[80vh]"> {/* scrollable for longer forms */}
+              <ProductForm
+                key={selectedProduct.productId || "edit"}
+                product={selectedProduct}
+                categories={categories}
+                allGroups={allGroups}
+                allBrands={allBrands}
+                units={units}
+                validationErrors={validationErrors}
+                onSave={(updatedProduct) => {
+                  handleUpdateProduct(updatedProduct);
+                  setSidebarVisible(false);
+                }}
+                onCancel={() => setSidebarVisible(false)}
+                isEditSidebar={true}
+              />
+            </div>
+          ) : (
+            <div className="p-4 text-gray-500 text-center">
+              Select a product to edit.
+            </div>
+          )}
+        </Sidebar>
       </div>
     </>
   );
