@@ -126,20 +126,30 @@ export default function ProductPage() {
   };
 
   const handleSaveProducts = async () => {
-    if (!validateNewProducts()) {
-      alert("Please fix validation errors for new products.");
-      return;
+    const errors: Record<string, string> = {};
+
+    newProducts.forEach((p, idx) => {
+      if (!p.productName.trim()) errors[`product-${idx}-productName`] = "Product Name is required";
+      if (!p.productCategoryId) errors[`product-${idx}-productCategoryId`] = "Category is required";
+      if (!p.productGroupId) errors[`product-${idx}-productGroupId`] = "Group is required";
+      if (!p.productBrandId) errors[`product-${idx}-productBrandId`] = "Brand is required";
+      if (!p.purchasePrice) errors[`product-${idx}-purchasePrice`] = "Purchase Price is required";
+      if (!p.salePrice) errors[`product-${idx}-salePrice`] = "Sale Price is required";
+      if (!p.hsnCode.trim()) errors[`product-${idx}-hsnCode`] = "HSN Code is required";
+    });
+
+    setValidationErrors(errors); // ✅ Trigger re-render with errors
+
+    if (Object.keys(errors).length > 0) {
+      return; // stop saving if errors exist
     }
 
     try {
-      // Option A: send all at once to bulk endpoint
       await apiService.post("/Product/bulk", newProducts);
-
-      // Optional: move saved newProducts to existing list and clear newProducts
-      setProducts((prev) => [...newProducts.map((p) => ({ ...p })), ...prev]);
-      setAddedProducts((prev) => [...prev, ...newProducts.map((p) => ({ ...p }))]);
+      setProducts((prev) => [...newProducts, ...prev]);
+      setAddedProducts((prev) => [...prev, ...newProducts]);
       setNewProducts([]);
-      alert("Products saved successfully!");
+      setValidationErrors({}); // clear errors after successful save
     } catch (err) {
       console.error(err);
       alert("Error saving products");

@@ -102,6 +102,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     onSave(formData);
   };
 
+    const getErrorKey = (field: string) => `product-${index}-${field}`;
+
   return (
     <form onSubmit={handleSubmit}>
       <fieldset className="border border-gray-300 rounded-md p-4 bg-white mb-4">
@@ -111,91 +113,147 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
         {/* Row 1 */}
         <div className="flex flex-wrap gap-3 p-1">
+          {/* Name */}
           <div className="flex-1 min-w-[140px]">
-            <strong>Name</strong>
+            <strong>
+              Name <span className="mandatory-asterisk">*</span>
+            </strong>
             <InputText
-              className={`w-full mt-1 ${validationErrors[`product-${index}-productName`] ? "mandatory-border" : ""
-                }`}
+              className={`w-full mt-1 ${
+                validationErrors[getErrorKey("productName")] ? "mandatory-border" : ""
+              }`}
               value={formData.productName}
               onChange={(e) => handleChange("productName", e.target.value)}
             />
+            {validationErrors[getErrorKey("productName")] && (
+              <span className="mandatory-error">{validationErrors[getErrorKey("productName")]}</span>
+            )}
           </div>
 
+          {/* Category */}
           <div className="flex-1 min-w-[140px]">
-            <strong>Category</strong>
+            <strong>
+              Category <span className="mandatory-asterisk">*</span>
+            </strong>
             <Dropdown
-              className="w-full mt-1"
+              className={`w-full mt-1 ${
+                validationErrors[getErrorKey("productCategoryId")] ? "mandatory-border" : ""
+              }`}
               value={formData.productCategoryId}
               options={categories}
               optionLabel="label"
               optionValue="value"
               onChange={(e) => handleCategoryChange(e.value)}
             />
+            {validationErrors[getErrorKey("productCategoryId")] && (
+              <span className="mandatory-error">{validationErrors[getErrorKey("productCategoryId")]}</span>
+            )}
           </div>
 
+          {/* Group */}
           <div className="flex-1 min-w-[140px]">
-            <strong>Group</strong>
+            <strong>
+              Group <span className="mandatory-asterisk">*</span>
+            </strong>
             <Dropdown
-              className="w-full mt-1"
+              className={`w-full mt-1 ${
+                validationErrors[getErrorKey("productGroupId")] ? "mandatory-border" : ""
+              }`}
               value={formData.productGroupId}
               options={filteredGroups}
               optionLabel="label"
               optionValue="value"
               onChange={(e) => handleGroupChange(e.value)}
             />
+            {validationErrors[getErrorKey("productGroupId")] && (
+              <span className="mandatory-error">{validationErrors[getErrorKey("productGroupId")]}</span>
+            )}
           </div>
 
+          {/* Brand */}
           <div className="flex-1 min-w-[140px]">
-            <strong>Brand</strong>
+            <strong>
+              Brand <span className="mandatory-asterisk">*</span>
+            </strong>
             <Dropdown
-              className="w-full mt-1"
+              className={`w-full mt-1 ${
+                validationErrors[getErrorKey("productBrandId")] ? "mandatory-border" : ""
+              }`}
               value={formData.productBrandId}
               options={filteredBrands}
               optionLabel="label"
               optionValue="value"
               onChange={(e) => handleChange("productBrandId", e.value)}
             />
+            {validationErrors[getErrorKey("productBrandId")] && (
+              <span className="mandatory-error">{validationErrors[getErrorKey("productBrandId")]}</span>
+            )}
           </div>
 
+          {/* Unit */}
           <div className="flex-1 min-w-[140px]">
-            <strong>Unit</strong>
+            <strong>
+              Unit
+            </strong>
             <Dropdown
-              className="w-full mt-1"
+              className={`w-full mt-1 ${
+                validationErrors[getErrorKey("primaryUnitId")] ? "mandatory-border" : ""
+              }`}
               value={formData.primaryUnitId}
               options={units}
               optionLabel="label"
               optionValue="value"
               onChange={(e) => handleChange("primaryUnitId", e.value)}
             />
+            {validationErrors[getErrorKey("primaryUnitId")] && (
+              <span className="mandatory-error">{validationErrors[getErrorKey("primaryUnitId")]}</span>
+            )}
           </div>
         </div>
 
         {/* Row 2 */}
         <div className="flex flex-wrap gap-3 p-1">
+          {/* Purchase Price */}
           <div className="flex-1 min-w-[140px]">
-            <strong>Purchase Price</strong>
+            <strong>
+              Purchase Price <span className="mandatory-asterisk">*</span>
+            </strong>
             <InputNumber
-              className="w-full mt-1"
+              className={`w-full mt-1 ${
+                validationErrors[getErrorKey("purchasePrice")] ? "mandatory-border" : ""
+              }`}
               value={formData.purchasePrice}
               mode="currency"
               currency="INR"
               locale="en-IN"
               onValueChange={(e) => handleChange("purchasePrice", e.value)}
             />
+            {validationErrors[getErrorKey("purchasePrice")] && (
+              <span className="mandatory-error">{validationErrors[getErrorKey("purchasePrice")]}</span>
+            )}
           </div>
 
+          {/* Sale Price */}
           <div className="flex-1 min-w-[140px]">
-            <strong>Sale Price</strong>
+            <strong>
+              Sale Price <span className="mandatory-asterisk">*</span>
+            </strong>
             <InputNumber
-              className="w-full mt-1"
+              className={`w-full mt-1 ${
+                validationErrors[getErrorKey("salePrice")] ? "mandatory-border" : ""
+              }`}
               value={formData.salePrice}
               mode="currency"
               currency="INR"
               locale="en-IN"
               onValueChange={(e) => handleChange("salePrice", e.value)}
             />
+            {validationErrors[getErrorKey("salePrice")] && (
+              <span className="mandatory-error">{validationErrors[getErrorKey("salePrice")]}</span>
+            )}
           </div>
 
+          {/* GST Price (readonly) */}
           <div className="flex-1 min-w-[140px]">
             <strong>GST Price</strong>
             <InputNumber
@@ -207,6 +265,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             />
           </div>
 
+          {/* CGST */}
           <div className="flex-1 min-w-[140px]">
             <strong>CGST %</strong>
             <InputNumber
@@ -219,6 +278,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             />
           </div>
 
+          {/* SGST */}
           <div className="flex-1 min-w-[140px]">
             <strong>SGST %</strong>
             <InputNumber
@@ -234,6 +294,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
         {/* Row 3 */}
         <div className="flex flex-wrap gap-3 p-1">
+          {/* IGST */}
           <div className="flex-1 min-w-[140px]">
             <strong>IGST %</strong>
             <InputNumber
@@ -246,15 +307,24 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             />
           </div>
 
+          {/* HSN */}
           <div className="flex-1 min-w-[140px]">
-            <strong>HSN Code</strong>
+            <strong>
+              HSN Code <span className="mandatory-asterisk">*</span>
+            </strong>
             <InputText
-              className="w-full mt-1"
+              className={`w-full mt-1 ${
+                validationErrors[getErrorKey("hsnCode")] ? "mandatory-border" : ""
+              }`}
               value={formData.hsnCode}
               onChange={(e) => handleChange("hsnCode", e.target.value)}
             />
+            {validationErrors[getErrorKey("hsnCode")] && (
+              <span className="mandatory-error">{validationErrors[getErrorKey("hsnCode")]}</span>
+            )}
           </div>
 
+          {/* GST Include */}
           <div className="flex items-center gap-2">
             <strong>GST Include</strong>
             <Checkbox
