@@ -11,6 +11,7 @@ import { TTypeDatatable } from "../../../components/TTypeDatatable";
 import { ColumnMeta } from "../../../models/component/ColumnMeta";
 import { ProductForm } from "./ProductForm";
 import { Sidebar } from "primereact/sidebar";
+import { useToast } from "../../../components/ToastService";
 
 export default function ProductPage() {
   const [allGroups, setAllGroups] = useState<GroupModel[]>([]);
@@ -25,6 +26,7 @@ export default function ProductPage() {
 
   const [selectedProduct, setSelectedProduct] = useState<ProductModel | null>(null);
   const [sidebarVisible, setSidebarVisible] = useState(false);
+  const { showSuccess, showError } = useToast();
 
   useEffect(() => {
     const loadAllData = async () => {
@@ -135,9 +137,11 @@ export default function ProductPage() {
       setAddedProducts((prev) => [...prev, ...newProducts]);
       setNewProducts([]);
       setValidationErrors({}); // clear errors after successful save
+      showSuccess('Product updated successfully!');
     } catch (err) {
       console.error(err);
       alert("Error saving products");
+      showError('Error updating product. Please try again.');
     }
   };
 
@@ -151,22 +155,30 @@ export default function ProductPage() {
 
   const handleUpdateProduct = async (updatedProduct: ProductModel) => {
     try {
-      // persist to API (if you want)
+      // ✅ Only call API first
       if (updatedProduct.productId) {
         await apiService.put(`/Product/${updatedProduct.productId}`, updatedProduct);
       }
 
-      // update in local state
+      // ✅ Update local state only after API success
       setProducts((prevProducts) =>
-        prevProducts.map((p) => (p.productId === updatedProduct.productId ? { ...updatedProduct } : p))
+        prevProducts.map((p) =>
+          p.productId === updatedProduct.productId ? { ...updatedProduct } : p
+        )
       );
 
-      alert("✅ Product updated successfully!");
+      showSuccess('Product updated successfully!');
+
+      // ✅ Close sidebar only after API and state update
+      setSidebarVisible(false);
+      setSelectedProduct(null);
     } catch (err) {
       console.error("Error updating product:", err);
-      alert("❌ Error updating product. Please try again.");
+      showError('Error updating product. Please try again.');
     }
   };
+
+
 
   // helper to render labels in columns
   const getLabel = (options: OptionModel[], value: string | number) =>
