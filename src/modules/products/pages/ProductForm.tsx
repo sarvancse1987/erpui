@@ -60,6 +60,15 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       : +(data.purchasePrice + (data.purchasePrice * totalGST) / 100).toFixed(2);
   };
 
+  const onClearError = (fieldKey: string) => {
+  setLocalValidationErrors((prevErrors) => {
+    if (!prevErrors[fieldKey]) return prevErrors; // No change needed
+    const newErrors = { ...prevErrors };
+    delete newErrors[fieldKey]; // ✅ remove the key completely
+    return newErrors;
+  });
+};
+
   const handleChange = (field: keyof ProductModel, value: any) => {
     const updated = { ...formData, [field]: value };
 
@@ -83,6 +92,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         // Notify parent to clear it — since parent manages add-tab errors
         // Simplest way: call a prop function to clear, or skip if static
         validationErrors[errorKey] = "";
+        onClearError(errorKey);
       }
     }
   };
