@@ -62,11 +62,31 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
   const handleChange = (field: keyof ProductModel, value: any) => {
     const updated = { ...formData, [field]: value };
+
     if (["purchasePrice", "cgstRate", "sgstRate", "igstRate", "isGSTIncludedInPrice"].includes(field)) {
       updateGSTPrice(updated);
     }
+
     setFormData(updated);
+
+    // 🧹 Clear the error for this specific field (local and parent)
+    const errorKey = getErrorKey(field);
+
+    if (isEditSidebar) {
+      if (localValidationErrors[errorKey]) {
+        const newErrors = { ...localValidationErrors };
+        delete newErrors[errorKey];
+        setLocalValidationErrors(newErrors);
+      }
+    } else {
+      if (validationErrors[errorKey]) {
+        // Notify parent to clear it — since parent manages add-tab errors
+        // Simplest way: call a prop function to clear, or skip if static
+        validationErrors[errorKey] = "";
+      }
+    }
   };
+
 
   const handleCategoryChange = (categoryId: number) => {
     const groups = allGroups
