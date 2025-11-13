@@ -169,7 +169,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               options={categories}
               optionLabel="label"
               optionValue="value"
-              onChange={(e) => handleCategoryChange(e.value)}
+              //onChange={(e) => handleCategoryChange(e.value)}
+              onChange={(e) => handleChange("productCategoryId", e.value)}
             />
             {getErrorMessage("productCategoryId") && <span className="mandatory-error">{getErrorMessage("productCategoryId")}</span>}
           </div>
@@ -185,7 +186,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               options={filteredGroups}
               optionLabel="label"
               optionValue="value"
-              onChange={(e) => handleGroupChange(e.value)}
+              //onChange={(e) => handleGroupChange(e.value)}
+              onChange={(e) => handleChange("productGroupId", e.value)}
             />
             {getErrorMessage("productGroupId") && <span className="mandatory-error">{getErrorMessage("productGroupId")}</span>}
           </div>
