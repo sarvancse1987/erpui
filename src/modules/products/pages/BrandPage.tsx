@@ -8,11 +8,13 @@ import { CategoryModel } from "../../../models/product/CategoryModel";
 import { GroupModel } from "../../../models/product/GroupModel";
 import { BrandModel } from "../../../models/product/BrandModel";
 import apiService from "../../../services/apiService";
+import { useToast } from "../../../components/ToastService";
 
 export default function BrandPage() {
     const [categories, setCategories] = useState<CategoryModel[]>([]);
     const [expandedCategory, setExpandedCategory] = useState<any>(null);
     const [expandedGroup, setExpandedGroup] = useState<any>(null);
+    const { showSuccess, showError } = useToast();
 
     // 🔹 Fetch hierarchy from backend (category → group → brand)
     const fetchHierarchy = async () => {
@@ -107,8 +109,10 @@ export default function BrandPage() {
                 }));
                 await apiService.post("/ProductBrand/bulk", payload);
                 await fetchHierarchy();
+                showSuccess("Brands saved successfully!");
             } catch (err) {
                 console.error("❌ Failed to save brand", err);
+                showError("Error saving brands. Please try again.");
             }
         };
 

@@ -61,13 +61,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   };
 
   const onClearError = (fieldKey: string) => {
-  setLocalValidationErrors((prevErrors) => {
-    if (!prevErrors[fieldKey]) return prevErrors; // No change needed
-    const newErrors = { ...prevErrors };
-    delete newErrors[fieldKey]; // ✅ remove the key completely
-    return newErrors;
-  });
-};
+    setLocalValidationErrors((prevErrors) => {
+      if (!prevErrors[fieldKey]) return prevErrors; // No change needed
+      const newErrors = { ...prevErrors };
+      delete newErrors[fieldKey]; // ✅ remove the key completely
+      return newErrors;
+    });
+  };
 
   const handleChange = (field: keyof ProductModel, value: any) => {
     const updated = { ...formData, [field]: value };
@@ -95,6 +95,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         onClearError(errorKey);
       }
     }
+    if (!isEditSidebar)
+      onSave(updated);
   };
 
 

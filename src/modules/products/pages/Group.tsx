@@ -7,6 +7,7 @@ import { ColumnMeta } from "../../../models/component/ColumnMeta";
 import { GroupModel } from "../../../models/product/GroupModel";
 import { CategoryModel } from "../../../models/product/CategoryModel";
 import apiService from "../../../services/apiService";
+import { useToast } from "../../../components/ToastService";
 
 
 export default function GroupPage() {
@@ -15,6 +16,7 @@ export default function GroupPage() {
 
     const [expandedRows, setExpandedRows] = useState<any>(null);
     const [expandedRowKey, setExpandedRowKey] = useState<string | null>(null);
+    const { showSuccess, showError } = useToast();
 
     const columns: ColumnMeta<GroupModel>[] = [
         { field: "groupId", header: "ID", editable: false, width: "80px", hidden: true },
@@ -79,9 +81,10 @@ export default function GroupPage() {
                     return [...others, ...savedGroups];
                 });
 
-                console.log("✅ Saved groups:", savedGroups.map((g: any) => g.groupName).join(", "));
+                showSuccess("Groups saved successfully!");
             } catch (error) {
                 console.error("❌ Failed to save groups", error);
+                 showError("Error saving groups. Please try again.");
             }
         };
 

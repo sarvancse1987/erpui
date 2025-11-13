@@ -28,33 +28,34 @@ export default function ProductPage() {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const { showSuccess, showError } = useToast();
 
+  const loadAllData = async () => {
+    setLoading(true);
+    try {
+      const hierarchy = await apiService.get(
+        "/ProductCategory/hierarchy?includeCategories=true&includeGroups=true&includeBrands=true&includeProducts=true"
+      );
+
+      const cats: CategoryModel[] = hierarchy.categories ?? [];
+      const grps: GroupModel[] = hierarchy.groups ?? [];
+      const brs: BrandModel[] = hierarchy.brands ?? [];
+
+      setAllGroups(grps);
+      setAllBrands(brs);
+      setCategories(cats.map((c) => ({ label: c.categoryName, value: c.categoryId })));
+
+      const unitRes = await apiService.get("/Unit");
+      setUnits((unitRes ?? []).map((u: any) => ({ label: u.name, value: u.id })));
+
+      const initialProducts: ProductModel[] = hierarchy.products ?? [];
+      setProducts(initialProducts);
+    } catch (err) {
+      console.error("Error loading product data", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const loadAllData = async () => {
-      setLoading(true);
-      try {
-        const hierarchy = await apiService.get(
-          "/ProductCategory/hierarchy?includeCategories=true&includeGroups=true&includeBrands=true&includeProducts=true"
-        );
-
-        const cats: CategoryModel[] = hierarchy.categories ?? [];
-        const grps: GroupModel[] = hierarchy.groups ?? [];
-        const brs: BrandModel[] = hierarchy.brands ?? [];
-
-        setAllGroups(grps);
-        setAllBrands(brs);
-        setCategories(cats.map((c) => ({ label: c.categoryName, value: c.categoryId })));
-
-        const unitRes = await apiService.get("/Unit");
-        setUnits((unitRes ?? []).map((u: any) => ({ label: u.name, value: u.id })));
-
-        const initialProducts: ProductModel[] = hierarchy.products ?? [];
-        setProducts(initialProducts);
-      } catch (err) {
-        console.error("Error loading product data", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     loadAllData();
   }, []);
 
@@ -133,14 +134,12 @@ export default function ProductPage() {
 
     try {
       await apiService.post("/Product/bulk", newProducts);
-      setProducts((prev) => [...newProducts, ...prev]);
-      setAddedProducts((prev) => [...prev, ...newProducts]);
+      await loadAllData();
       setNewProducts([]);
-      setValidationErrors({}); // clear errors after successful save
-      showSuccess('Product updated successfully!');
+      setValidationErrors({});
+      showSuccess("Products saved successfully!");
     } catch (err) {
       console.error(err);
-      alert("Error saving products");
       showError('Error updating product. Please try again.');
     }
   };

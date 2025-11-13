@@ -4,11 +4,13 @@ import { ColumnMeta } from "../../../models/component/ColumnMeta";
 import { TTypedDatatable } from "../../../components/TTypedDatatable";
 import apiService from "../../../services/apiService";
 import { CategoryModel } from "../../../models/product/CategoryModel";
+import { useToast } from "../../../components/ToastService";
 
 export default function Category() {
     const [categories, setCategories] = useState<CategoryModel[]>([]);
     const [activeCategories, setActiveCategories] = useState<CategoryModel[]>([]);
     const [inactiveCategories, setInActiveCategories] = useState<CategoryModel[]>([]);
+    const { showSuccess, showError } = useToast();
 
     const baseColumns: ColumnMeta<CategoryModel>[] = [
         { field: "categoryId", header: "ID", editable: false, hidden: true },
@@ -56,8 +58,10 @@ export default function Category() {
             setActiveCategories(latestCategories.filter(c => c.isActive));
             setInActiveCategories(latestCategories.filter(c => !c.isActive));
             setCategories(latestCategories);
+            showSuccess("Categories saved successfully!");
         } catch (error) {
             console.error("Failed to save categories", error);
+            showError("Error saving categories. Please try again.");
         }
     };
 
@@ -72,7 +76,7 @@ export default function Category() {
     };
 
     const onActiveDelete = async (toDelete: CategoryModel[]) => {
-         const updatedWithActive = toDelete.map(c => ({ ...c, isActive: false }));
+        const updatedWithActive = toDelete.map(c => ({ ...c, isActive: false }));
         await saveCategories(updatedWithActive, true);
     }
 
