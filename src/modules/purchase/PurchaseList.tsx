@@ -3,18 +3,13 @@ import { Button } from "primereact/button";
 import { TabView, TabPanel } from "primereact/tabview";
 import { Sidebar } from "primereact/sidebar";
 import { PurchaseModel } from "../../models/purchase/PurchaseModel";
-import { OptionModel } from "../../models/product/OptionModel";
 import { useToast } from "../../components/ToastService";
 import apiService from "../../services/apiService";
 import { PurchaseForm } from "./PurchaseForm";
-import { SupplierModel } from "../../models/supplier/SupplierModel";
 
 export default function PurchaseList() {
     const [purchases, setPurchases] = useState<PurchaseModel[]>([]);
     const [newPurchases, setNewPurchases] = useState<PurchaseModel[]>([]);
-    const [suppliers, setSuppliers] = useState<SupplierModel[]>([]);
-    const [products, setProducts] = useState<any[]>([]);
-    const [units, setUnits] = useState<OptionModel[]>([]);
     const [loading, setLoading] = useState(true);
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
     const [selectedPurchase, setSelectedPurchase] = useState<PurchaseModel | null>(null);
@@ -27,15 +22,6 @@ export default function PurchaseList() {
         try {
             const purchasesRes = await apiService.get("/Purchase");
             setPurchases(purchasesRes ?? []);
-
-            const suppliersRes = await apiService.get("/Supplier/getallsupplier");
-            setSuppliers(suppliersRes.suppliers ?? []);
-
-            const productsRes = await apiService.get("/Product");
-            setProducts(productsRes ?? []);
-
-            const unitsRes = await apiService.get("/Unit");
-            setUnits((unitsRes ?? []).map((u: any) => ({ label: u.name, value: u.id })));
         } catch (err) {
             console.error(err);
         } finally {
@@ -161,9 +147,6 @@ export default function PurchaseList() {
                                 key={idx}
                                 purchase={p}
                                 index={idx}
-                                suppliers={suppliers}
-                                products={products}
-                                units={units}
                                 validationErrors={validationErrors}
                                 onSave={(updated) => handleUpdateNewPurchase(idx, updated)}
                                 onCancel={() => handleRemoveNewPurchase(idx)}
@@ -179,9 +162,6 @@ export default function PurchaseList() {
                     <PurchaseForm
                         key={selectedPurchase.purchaseId || "edit"}
                         purchase={selectedPurchase}
-                        suppliers={suppliers}
-                        products={products}
-                        units={units}
                         validationErrors={validationErrors}
                         onSave={handleUpdatePurchase}
                         onCancel={() => setSidebarVisible(false)}

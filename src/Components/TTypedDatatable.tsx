@@ -164,16 +164,48 @@ export function TTypedDatatable<T extends Record<string, any>>({
       case "number":
       case "decimal":
       case "gst":
+      // return (
+      //   <div className="flex flex-col">
+      //     <InputNumber
+      //       value={options.value}
+      //       onValueChange={(e) => updateValue(e.value)}
+      //       mode={col.type === "decimal" ? "decimal" : "currency"}
+      //       currency={col.type === "gst" ? "INR" : undefined}
+      //       locale="en-IN"
+      //       minFractionDigits={col.type === "decimal" ? 0 : undefined}
+      //       maxFractionDigits={col.type === "decimal" ? 2 : undefined}
+      //       style={{ width: "80%" }}
+      //     />
+      //     {fieldError && <small className="p-error text-xs mt-1">{fieldError}</small>}
+      //   </div>
+      // );
+      case "currency":
+        let inputMode: "decimal" | "currency" = "decimal";
+        let inputCurrency: string | undefined = undefined;
+        let minFrac: number | undefined = undefined;
+        let maxFrac: number | undefined = undefined;
+
+        if (col.type === "currency") {
+          inputMode = "currency";
+          inputCurrency = "INR";
+        } else if (col.type === "decimal" || col.type === "gst") {
+          inputMode = "decimal";
+          minFrac = 0;
+          maxFrac = 2;
+        } else {
+          inputMode = "decimal"; // number
+        }
+
         return (
           <div className="flex flex-col">
             <InputNumber
               value={options.value}
               onValueChange={(e) => updateValue(e.value)}
-              mode={col.type === "decimal" ? "decimal" : "currency"}
-              currency={col.type === "gst" ? "INR" : undefined}
+              mode={inputMode}
+              currency={inputCurrency}
               locale="en-IN"
-              minFractionDigits={col.type === "decimal" ? 0 : undefined}
-              maxFractionDigits={col.type === "decimal" ? 2 : undefined}
+              minFractionDigits={minFrac}
+              maxFractionDigits={maxFrac}
               style={{ width: "80%" }}
             />
             {fieldError && <small className="p-error text-xs mt-1">{fieldError}</small>}

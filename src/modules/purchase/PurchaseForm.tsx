@@ -1,24 +1,21 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "primereact/button";
-import { Dropdown } from "primereact/dropdown";
-import { InputNumber } from "primereact/inputnumber";
 import { Calendar } from "primereact/calendar";
 import { PurchaseModel } from "../../models/purchase/PurchaseModel";
 import { ProductModel } from "../../models/product/ProductModel";
 import { OptionModel } from "../../models/product/OptionModel";
 import { PurchaseItemModel } from "../../models/purchase/PurchaseItemModel";
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
 import { InputText } from "primereact/inputtext";
 import { SupplierSelector } from "../supplier/SupplierSelector";
 import { SupplierModel } from "../../models/supplier/SupplierModel";
+import { ColumnMeta } from "../../models/component/ColumnMeta";
+import { TTypedDatatable } from "../../components/TTypedDatatable";
+import { useToast } from "../../components/ToastService";
+import apiService from "../../services/apiService";
 
 interface PurchaseFormProps {
   purchase: PurchaseModel;
   index?: number;
-  suppliers: SupplierModel[];
-  products: ProductModel[];
-  units: OptionModel[];
   validationErrors?: Record<string, string>;
   onSave: (purchase: PurchaseModel) => void;
   onCancel?: () => void;
@@ -28,15 +25,41 @@ interface PurchaseFormProps {
 export const PurchaseForm: React.FC<PurchaseFormProps> = ({
   purchase,
   index = 0,
-  suppliers,
-  products,
-  units,
   validationErrors = {},
   onSave,
   onCancel,
   isEditSidebar,
 }) => {
   const [formData, setFormData] = useState<PurchaseModel>({ ...purchase });
+  const [loading, setLoading] = useState(true);
+  const { showSuccess, showError } = useToast();
+  const [suppliers, setSuppliers] = useState<SupplierModel[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [units, setUnits] = useState<OptionModel[]>([]);
+
+  // Load all data
+  const loadAllData = async () => {
+    setLoading(true);
+    try {
+
+      const suppliersRes = await apiService.get("/Supplier/getallsupplier");
+      setSuppliers(suppliersRes.suppliers ?? []);
+
+      const productsRes = await apiService.get("/Product");
+      setProducts(productsRes ?? []);
+
+      const unitsRes = await apiService.get("/Unit");
+      setUnits((unitsRes ?? []).map((u: any) => ({ label: u.name, value: u.id })));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAllData();
+  }, []);
 
   const handleChange = (field: keyof PurchaseModel, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -84,6 +107,16 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     e.preventDefault();
     onSave(formData);
   };
+
+  const columns: ColumnMeta<PurchaseItemModel>[] = [
+    { field: "productId", header: "Item Name", editable: true, type: "productSearch", required: true },
+    { field: "unitId", header: "Unit", editable: true, type: "select", options: units, required: true },
+    { field: "unitPrice", header: "Rate", editable: true, type: "number", required: true },
+    { field: "quantity", header: "Qty", editable: true, type: "number", required: true },
+    { field: "gstRate", header: "GST %", editable: true, type: "gst", required: true },
+    { field: "gstAmount", header: "GST Amount", editable: false, type: "number" },
+    { field: "total", header: "Total", editable: false, type: "number" },
+  ];
 
   return (
     <form onSubmit={handleSubmit} className="border border-gray-200 rounded-md p-4">
@@ -142,50 +175,17 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
       {/* Purchase Items Grid */}
       <fieldset className="border border-gray-200 rounded-md p-3 mt-4">
         <legend className="text-sm font-semibold">Purchase Items</legend>
-        <Button label="Add Item" icon="pi pi-plus" outlined severity="success" className="mb-2" onClick={addNewItem} />
+        {/* <Button label="Add Item" icon="pi pi-plus" outlined severity="success" className="mb-2" onClick={addNewItem} /> */}
 
-        <DataTable value={formData.purchaseItems} className="p-datatable-gridlines" responsiveLayout="scroll">
-          <Column header="S.No" body={(_, i: any) => i + 1} style={{ width: "50px" }} />
-          <Column header="Item Name" body={(row, i) => row.productName} editor={(options) => (
-            <Dropdown
-              value={options.rowData.productId}
-              options={products.map(p => ({ label: p.productName, value: p.productId }))}
-              onChange={(e) => {
-                const selected = products.find(p => p.productId === e.value);
-                handleItemChange(options.rowIndex, "productId", selected?.productId || 0);
-                handleItemChange(options.rowIndex, "productName", selected?.productName || "");
-                handleItemChange(options.rowIndex, "unitPrice", selected?.purchasePrice || 0);
-              }}
-              placeholder="Select Product"
-              filter
-              showClear
-            />
-          )} />
-          <Column header="Unit" body={(row) => units.find(u => u.value === row.unitId)?.label || ""} editor={(options) => (
-            <Dropdown
-              value={options.rowData.unitId}
-              options={units}
-              optionLabel="label"
-              optionValue="value"
-              onChange={(e) => handleItemChange(options.rowIndex, "unitId", e.value)}
-              showClear
-            />
-          )} />
-          <Column header="Rate" body={(row) => row.unitPrice} editor={(options) => (
-            <InputNumber value={options.rowData.unitPrice} onValueChange={(e) => handleItemChange(options.rowIndex, "unitPrice", e.value)} mode="currency" currency="INR" locale="en-IN" />
-          )} />
-          <Column header="Qty" body={(row) => row.quantity} editor={(options) => (
-            <InputNumber value={options.rowData.quantity} onValueChange={(e) => handleItemChange(options.rowIndex, "quantity", e.value)} min={1} />
-          )} />
-          <Column header="GST %" body={(row) => row.gstRate} editor={(options) => (
-            <InputNumber value={options.rowData.gstRate} onValueChange={(e) => handleItemChange(options.rowIndex, "gstRate", e.value)} suffix="%" />
-          )} />
-          <Column header="GST Amount" body={(row) => row.gstAmount} />
-          <Column header="Total" body={(row) => row.total} />
-          <Column header="Actions" body={(_, options) => (
-            <Button icon="pi pi-trash" className="p-button-danger p-button-rounded" onClick={() => removeItem(options.rowIndex)} />
-          )} style={{ width: "80px" }} />
-        </DataTable>
+        <TTypedDatatable<PurchaseItemModel>
+          columns={columns}
+          data={formData.purchaseItems}
+          primaryKey="purchaseItemId"
+          products={products}
+        // onSave={onActiveSave}
+        // onDelete={onActiveDelete}
+        />
+
       </fieldset>
 
       {/* Totals */}

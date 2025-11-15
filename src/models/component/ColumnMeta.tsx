@@ -3,7 +3,7 @@ export interface ColumnMeta<T> {
     header: string;
     editable?: boolean;
     required?: boolean;
-    type?: "text" | "select" | "date" | "checkbox" | "number" | "decimal" | "gst" | "productSearch";
+    type?: "text" | "select" | "date" | "checkbox" | "number" | "decimal" | "currency" | "gst" | "productSearch";
     options?: { label: string; value: any }[];
     width?: string;
     frozen?: boolean;
