@@ -85,6 +85,18 @@ const AppMenu: React.FC = () => {
       ],
     },
     {
+      label: "Purchase",
+      icon: "pi pi-fw pi-briefcase",
+      to: "/purchase",
+      items: [
+        {
+          label: "Purchase",
+          icon: "pi pi-fw pi-globe",
+          to: "/purchase",
+        }
+      ],
+    },
+    {
       label: "Sales",
       icon: "pi pi-fw pi-briefcase",
       to: "/sales",
@@ -93,28 +105,7 @@ const AppMenu: React.FC = () => {
           label: "Sales",
           icon: "pi pi-fw pi-globe",
           to: "/sales",
-        },
-        {
-          label: "Auth",
-          icon: "pi pi-fw pi-user",
-          items: [
-            {
-              label: "Login",
-              icon: "pi pi-fw pi-sign-in",
-              to: "/testimonial",
-            },
-            {
-              label: "Error",
-              icon: "pi pi-fw pi-times-circle",
-              to: "/Myprofile",
-            },
-          ],
-        },
-        {
-          label: "Crud",
-          icon: "pi pi-fw pi-pencil",
-          to: "/pages/crud",
-        },
+        }
       ],
     },
     {

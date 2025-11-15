@@ -1,19 +1,23 @@
 import React, { useEffect, useState } from "react";
-import {
-  DataTable,
-  DataTableRowEditEvent,
-} from "primereact/datatable";
+import { DataTable, DataTableRowEditEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
 import { Checkbox } from "primereact/checkbox";
 import { Button } from "primereact/button";
-import { classNames } from "primereact/utils";
 import { InputNumber } from "primereact/inputnumber";
+import { RadioButton } from "primereact/radiobutton";
+import { classNames } from "primereact/utils";
 import { ColumnMeta } from "../models/component/ColumnMeta";
 import { TTypedDatatableProps } from "../models/component/TTypedDatatableProps";
 import { FilterMatchMode } from "primereact/api";
+
+interface Product {
+  productId: number;
+  productName: string;
+  unitPrice: number;
+}
 
 export function TTypedDatatable<T extends Record<string, any>>({
   columns,
@@ -21,7 +25,8 @@ export function TTypedDatatable<T extends Record<string, any>>({
   primaryKey,
   onSave,
   onDelete,
-}: TTypedDatatableProps<T>) {
+  products = [] as Product[], // pass products as a prop
+}: TTypedDatatableProps<T> & { products?: Product[] }) {
   const [tableData, setTableData] = useState<T[]>([]);
   const [editingRows, setEditingRows] = useState<{ [key: string]: boolean }>({});
   const [errors, setErrors] = useState<{ [rowId: string]: { [field: string]: string } }>({});
@@ -29,28 +34,24 @@ export function TTypedDatatable<T extends Record<string, any>>({
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [filters, setFilters] = useState<any>({});
 
+  // For Product search per row
+  const [showTableMap, setShowTableMap] = useState<{ [key: string]: boolean }>({});
+  const [searchTextMap, setSearchTextMap] = useState<{ [key: string]: string }>({});
+
   useEffect(() => {
     setTableData(data.map((d) => ({ ...d })));
   }, [data]);
 
   useEffect(() => {
-    // initialize filters for all columns
-    const f: any = {
-      global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    };
-    columns.forEach((c) => {
-      f[c.field] = { value: null, matchMode: FilterMatchMode.CONTAINS };
-    });
+    const f: any = { global: { value: null, matchMode: FilterMatchMode.CONTAINS } };
+    columns.forEach((c) => f[c.field] = { value: null, matchMode: FilterMatchMode.CONTAINS });
     setFilters(f);
   }, [columns]);
 
-  // ✅ Add Row
   const addRow = () => {
     if (Object.keys(editingRows).length > 0) return;
-
     const newRow = columns.reduce((acc, col) => {
-      if (col.type === "checkbox") acc[col.field as string] = false;
-      else acc[col.field as string] = "";
+      acc[col.field as string] = col.type === "checkbox" ? false : "";
       return acc;
     }, {} as Record<string, any>) as T;
 
@@ -62,7 +63,6 @@ export function TTypedDatatable<T extends Record<string, any>>({
     setEditingRows((prev) => ({ ...prev, [newRow._tempKey]: true }));
   };
 
-  // ✅ Validation
   const validateRow = (rowData: T) => {
     const rowErrors: { [key: string]: string } = {};
     columns.forEach((col) => {
@@ -143,27 +143,24 @@ export function TTypedDatatable<T extends Record<string, any>>({
             {fieldError && <small className="p-error text-xs mt-1">{fieldError}</small>}
           </div>
         );
-
       case "date":
         return (
           <div className="flex flex-col">
             <Calendar
               value={options.value ? new Date(options.value) : null}
               onChange={(e) => updateValue(e.value)}
-              dateFormat="yy-mm-dd"
+              dateFormat="dd-mm-yy"
               {...commonProps}
             />
             {fieldError && <small className="p-error text-xs mt-1">{fieldError}</small>}
           </div>
         );
-
       case "checkbox":
         return (
           <div className="flex justify-center items-center h-full">
             <Checkbox checked={!!options.value} onChange={(e) => updateValue(e.checked)} />
           </div>
         );
-
       case "number":
       case "decimal":
       case "gst":
@@ -182,7 +179,53 @@ export function TTypedDatatable<T extends Record<string, any>>({
             {fieldError && <small className="p-error text-xs mt-1">{fieldError}</small>}
           </div>
         );
-
+      case "productSearch":
+        const filteredProducts = products.filter((p) =>
+          p.productName.toLowerCase().includes((searchTextMap[key] || "").toLowerCase())
+        );
+        return (
+          <div className="relative w-full">
+            <InputText
+              className="w-full"
+              value={options.value?.productName || ""}
+              placeholder="Search Item"
+              onChange={(e) => {
+                const val = e.target.value;
+                setSearchTextMap((prev) => ({ ...prev, [key]: val }));
+                setShowTableMap((prev) => ({ ...prev, [key]: val.trim() !== "" }));
+              }}
+              onFocus={() => setShowTableMap((prev) => ({ ...prev, [key]: true }))}
+            />
+            {showTableMap[key] && (
+              <>
+                <div className="fixed inset-0 bg-black opacity-20" onClick={() => setShowTableMap((prev) => ({ ...prev, [key]: false }))} />
+                <div className="absolute z-30 w-full max-h-64 overflow-auto bg-white border shadow-lg">
+                  <DataTable
+                    value={filteredProducts}
+                    size="small"
+                    responsiveLayout="scroll"
+                    showHeaders
+                    scrollable
+                  >
+                    <Column header="Select" body={(row) => (
+                      <RadioButton
+                        value={row.productId}
+                        onChange={() => {
+                          options.editorCallback(row);
+                          markRowEdited({ ...options.rowData, productId: row.productId, productName: row.productName });
+                          setShowTableMap((prev) => ({ ...prev, [key]: false }));
+                        }}
+                        checked={options.value?.productId === row.productId}
+                      />
+                    )} style={{ width: "60px" }} />
+                    <Column field="productName" header="Item Name" style={{ minWidth: "200px" }} />
+                    <Column field="unitPrice" header="Rate" style={{ minWidth: "120px" }} />
+                  </DataTable>
+                </div>
+              </>
+            )}
+          </div>
+        );
       default:
         return (
           <div className="flex flex-col">
@@ -210,38 +253,28 @@ export function TTypedDatatable<T extends Record<string, any>>({
 
   return (
     <div className="card p-3 h-[calc(100vh-100px)] overflow-auto">
-      {/* Toolbar */}
       <div className="flex justify-between items-center mb-3">
         <div className="flex gap-2 mb-3 flex-none">
           <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} />
           <Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll} disabled={!isSaveEnabled} />
           <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={deleteSelected} disabled={!selectedRows.length} />
         </div>
-
-        {/* ✅ Global Search */}
         <div className="ml-auto">
           <span className="p-input-icon-left relative w-64">
-            {/* Search Icon */}
             <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-
-            {/* Input Text */}
             <InputText
               value={globalFilter}
               onChange={(e) => {
                 setGlobalFilter(e.target.value);
-                setFilters((prev: any) => ({
-                  ...prev,
-                  global: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
-                }));
+                setFilters((prev: any) => ({ ...prev, global: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS } }));
               }}
               placeholder="Search..."
-              className="pl-10 w-full" // padding-left to leave space for icon + some buffer
+              className="pl-10 w-full"
             />
           </span>
         </div>
       </div>
 
-      {/* ✅ DataTable with pagination & filters */}
       <div className="flex-1 min-h-0">
         <DataTable
           value={tableData}
@@ -263,33 +296,20 @@ export function TTypedDatatable<T extends Record<string, any>>({
           scrollHeight="100%"
         >
           <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
-          <Column
-            header="Sr. No."
-            body={(_, options) => options.rowIndex + 1}
-            style={{ width: "70px", minWidth: "70px" }}
-          />
-
-          {columns
-            .filter((col) => !col.hidden)
-            .map((col) => (
-              <Column
-                key={String(col.field)}
-                field={col.field as string}
-                header={
-                  <>
-                    {col.header}
-                    {col.required && <span className="text-red-500">*</span>}
-                  </>
-                }
-                filter
-                showFilterMenu={false}
-                filterPlaceholder={`Search ${col.header}`}
-                editor={col.editable ? (options) => cellEditor(options, col) : undefined}
-                body={col.body ? (r: T) => col.body!(r) : undefined}
-                style={{ width: col.width || "auto", minWidth: col.width || "120px" }}
-              />
-            ))}
-
+          <Column header="Sr. No." body={(_, options) => options.rowIndex + 1} style={{ width: "70px", minWidth: "70px" }} />
+          {columns.filter((col) => !col.hidden).map((col) => (
+            <Column
+              key={String(col.field)}
+              field={col.field as string}
+              header={<>{col.header}{col.required && <span className="text-red-500">*</span>}</>}
+              filter
+              showFilterMenu={false}
+              filterPlaceholder={`Search ${col.header}`}
+              editor={col.editable ? (options) => cellEditor(options, col) : undefined}
+              body={col.body ? (r: T) => col.body!(r) : undefined}
+              style={{ width: col.width || "auto", minWidth: col.width || "120px" }}
+            />
+          ))}
           <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} />
         </DataTable>
       </div>
