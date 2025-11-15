@@ -15,6 +15,7 @@ import { InputNumber } from "primereact/inputnumber";
 import { TTypeDatatableProps } from "../models/component/TTypedDatatableProps";
 import { ColumnMeta } from "../models/component/ColumnMeta";
 import { FilterMatchMode } from "primereact/api";
+import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 
 export function TTypeDatatable<T extends Record<string, any>>({
   columns,
@@ -23,7 +24,8 @@ export function TTypeDatatable<T extends Record<string, any>>({
   isNew,
   isSave,
   isDelete,
-  onEdit
+  onEdit,
+  onDelete
 }: TTypeDatatableProps<T>) {
   const [tableData, setTableData] = useState<T[]>(data);
   const [editingRows, setEditingRows] = useState<{ [key: string]: boolean }>({});
@@ -32,6 +34,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
   const [filters, setFilters] = useState<any>({});
   const [editDialogVisible, setEditDialogVisible] = useState(false);
   const [editingRowData, setEditingRowData] = useState<T | null>(null);
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
 
   useEffect(() => {
     const f: any = { global: { value: null, matchMode: FilterMatchMode.CONTAINS } };
@@ -328,12 +331,50 @@ export function TTypeDatatable<T extends Record<string, any>>({
     />
   );
 
+  const handleDelete = () => {
+    if (selectedRows.length === 0) return;
+
+    confirmDialog({
+      message: "Are you sure you want to delete the selected record(s)?",
+      header: "Confirm Delete",
+      icon: "pi pi-exclamation-triangle",
+      acceptLabel: "Yes",
+      rejectLabel: "No",
+      acceptClassName: "p-button-danger p-button-sm",
+      rejectClassName: "p-button-secondary p-button-sm",
+
+      accept: () => {
+        const remainingRows = tableData.filter(
+          (row) => !selectedRows.some((sel) => sel[primaryKey] === row[primaryKey])
+        );
+
+        // send deleted rows to parent
+        if (onDelete) {
+          onDelete(selectedRows);
+        }
+
+        setTableData(remainingRows);
+      }
+    });
+  };
+
+
   return (
     <div className="card p-3 h-[calc(100vh-100px)] overflow-auto">
+
       <div className="flex justify-between items-center mb-3">
         <div className="flex gap-2">
           {isNew && <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} />}
           {isSave && <Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll} />}
+          {isDelete && selectedRows.length > 0 && (
+            <Button
+              label="Delete"
+              icon="pi pi-trash"
+              severity="danger"
+              outlined
+              onClick={() => handleDelete()}
+            />
+          )}
         </div>
 
         <div className="ml-auto">
@@ -358,9 +399,13 @@ export function TTypeDatatable<T extends Record<string, any>>({
         </div>
       </div>
 
+      <ConfirmDialog />
+
       <DataTable
         value={tableData}
         dataKey={primaryKey as string}
+        selection={selectedRows}
+        onSelectionChange={(e) => setSelectedRows(e.value)}
         editMode="row"
         editingRows={editingRows}
         onRowEditChange={(e: DataTableRowEditEvent) => setEditingRows(e.data)}
@@ -377,7 +422,13 @@ export function TTypeDatatable<T extends Record<string, any>>({
         rows={10} // rows per page
         rowsPerPageOptions={[5, 10, 25, 50]}
       >
-        {columns.map((col) => (
+        <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
+        <Column
+          header="Sr. No."
+          body={(_, options) => options.rowIndex + 1}
+          style={{ width: "70px", minWidth: "70px" }}
+        />
+        {columns.filter(col => !col.hidden).map((col) => (
           <Column
             key={String(col.field)}
             field={col.field as string}

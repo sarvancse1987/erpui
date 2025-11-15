@@ -85,14 +85,14 @@ const AppMenu: React.FC = () => {
       ],
     },
     {
-      label: "Company",
+      label: "Sales",
       icon: "pi pi-fw pi-briefcase",
-      to: "/pages",
+      to: "/sales",
       items: [
         {
-          label: "Landing",
+          label: "Sales",
           icon: "pi pi-fw pi-globe",
-          to: "/landing",
+          to: "/sales",
         },
         {
           label: "Auth",

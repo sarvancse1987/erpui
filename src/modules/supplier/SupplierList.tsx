@@ -134,10 +134,29 @@ export default function SupplierList() {
         { field: "gstNumber", header: "GST", width: "140px" },
         { field: "city", header: "City", width: "140px" },
         { field: "stateName", header: "State", width: "220px" },
-        { field: "isActive", header: "Active", width: "100px", body: (row) => (row.isActive ? "✅" : "❌") },
+        { field: "isActive", header: "Active", width: "100px", body: (row) => (row.isActive ? "✅" : "❌"), editable: false, hidden: true },
     ];
 
     if (loading) return <p>Loading suppliers...</p>;
+
+    const handleDeleteSuppliers = async (rows: SupplierModel[]) => {
+        try {
+            // Extract IDs only
+            const ids = rows.map(r => r.supplierId);
+
+            // Call API (bulk delete)
+            await apiService.post("/Supplier/bulk-delete", ids);
+
+            showSuccess("Supplier(s) deleted successfully!");
+
+            // Reload table
+            await loadSuppliers();
+        } catch (err) {
+            console.error(err);
+            showError("Error deleting suppliers");
+        }
+    };
+
 
     return (
         <div className="p-3 h-[calc(100vh-100px)] overflow-auto">
@@ -150,6 +169,8 @@ export default function SupplierList() {
                         columns={columns}
                         primaryKey="supplierId"
                         onEdit={handleOpenEdit}
+                        isDelete={true}
+                        onDelete={handleDeleteSuppliers}
                     />
                 </TabPanel>
 
