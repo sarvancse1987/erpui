@@ -78,7 +78,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
     setFormData(updated);
 
-    // 🧹 Clear the error for this specific field (local and parent)
     const errorKey = getErrorKey(field);
 
     if (isEditSidebar) {
@@ -89,8 +88,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       }
     } else {
       if (validationErrors[errorKey]) {
-        // Notify parent to clear it — since parent manages add-tab errors
-        // Simplest way: call a prop function to clear, or skip if static
         validationErrors[errorKey] = "";
         onClearError(errorKey);
       }
@@ -144,7 +141,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return; // stop submit if invalid
+    if (!validateForm()) return;
     onSave(formData);
   };
 
@@ -183,6 +180,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               optionValue="value"
               //onChange={(e) => handleCategoryChange(e.value)}
               onChange={(e) => handleChange("productCategoryId", e.value)}
+              filter
+              showClear
+              filterBy="label,value"
             />
             {getErrorMessage("productCategoryId") && <span className="mandatory-error">{getErrorMessage("productCategoryId")}</span>}
           </div>
@@ -200,6 +200,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               optionValue="value"
               //onChange={(e) => handleGroupChange(e.value)}
               onChange={(e) => handleChange("productGroupId", e.value)}
+              filter
+              showClear
+              filterBy="label,value"
             />
             {getErrorMessage("productGroupId") && <span className="mandatory-error">{getErrorMessage("productGroupId")}</span>}
           </div>
@@ -216,6 +219,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               optionLabel="label"
               optionValue="value"
               onChange={(e) => handleChange("productBrandId", e.value)}
+              filter
+              showClear
+              filterBy="label,value"
             />
             {getErrorMessage("productBrandId") && <span className="mandatory-error">{getErrorMessage("productBrandId")}</span>}
           </div>
@@ -230,6 +236,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               optionLabel="label"
               optionValue="value"
               onChange={(e) => handleChange("primaryUnitId", e.value)}
+              filter
+              showClear
+              filterBy="label,value"
             />
             {getErrorMessage("primaryUnitId") && <span className="mandatory-error">{getErrorMessage("primaryUnitId")}</span>}
           </div>

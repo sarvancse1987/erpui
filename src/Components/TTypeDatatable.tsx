@@ -322,9 +322,8 @@ export function TTypeDatatable<T extends Record<string, any>>({
   const actionBodyTemplate = (rowData: T) => (
     <Button
       icon="pi pi-pencil"
-      rounded
-      outlined
-      severity="info"
+      className="p-button-sm p-button-rounded p-button-outlined p-button-info"
+      style={{ width: '25px', height: '25px', padding: '0' }}
       onClick={() => onEdit?.(rowData)}
     />
   );

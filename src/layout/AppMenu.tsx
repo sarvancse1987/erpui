@@ -23,12 +23,6 @@ const AppMenu: React.FC = () => {
     {
       label: "Master",
       items: [
-        // { label: "Products", icon: "pi pi-fw pi-id-card", to: "/products" },
-        // {
-        //   label: "DataTable",
-        //   icon: "pi pi-fw pi-check-square",
-        //   to: "/datatable",
-        // },
         {
           label: "Products",
           icon: "pi pi-fw pi-user",
@@ -63,14 +57,14 @@ const AppMenu: React.FC = () => {
       ],
     },
     {
-      label: "User",
+      label: "Suppliers",
       icon: "pi pi-fw pi-briefcase",
-      to: "/pages",
+      to: "/suppliers",
       items: [
         {
-          label: "Landing",
+          label: "Suppliers",
           icon: "pi pi-fw pi-globe",
-          to: "/landing",
+          to: "/suppliers",
         },
         {
           label: "Auth",

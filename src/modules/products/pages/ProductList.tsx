@@ -13,7 +13,7 @@ import { ProductForm } from "./ProductForm";
 import { Sidebar } from "primereact/sidebar";
 import { useToast } from "../../../components/ToastService";
 
-export default function ProductPage() {
+export default function ProductList() {
   const [allGroups, setAllGroups] = useState<GroupModel[]>([]);
   const [allBrands, setAllBrands] = useState<BrandModel[]>([]);
   const [categories, setCategories] = useState<OptionModel[]>([]);
