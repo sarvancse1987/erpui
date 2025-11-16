@@ -22,6 +22,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
   isSave,
   onSave,
   onDelete,
+  itemsSaveTrigger,
   products = [] as ProductModel[], // pass products as a prop
 }: TTypedDatatableProps<T> & { products?: ProductModel[] }) {
   const [tableData, setTableData] = useState<T[]>([]);
@@ -51,6 +52,11 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
     columns.forEach((c) => f[c.field] = { value: null, matchMode: FilterMatchMode.CONTAINS });
     setFilters(f);
   }, [columns]);
+
+  useEffect(() => {
+    if (!itemsSaveTrigger) return;
+    saveAll(); // <-- RUN CHILD VALIDATION
+  }, [itemsSaveTrigger]);
 
   const addRow = () => {
     if (Object.keys(editingRows).length > 0) return;
@@ -132,12 +138,11 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
     );
   };
 
-
   const cellEditor = (options: any, col: ColumnMeta<T>) => {
     const key = options.rowData._tempKey || options.rowData[primaryKey];
     const fieldError = errors[key]?.[col.field as string];
     const commonProps = {
-      className: classNames({ "p-invalid border-red-500": !!fieldError }),
+      className: classNames({ "mandatory-border": !!fieldError }),
       style: { width: "100%" },
     };
 
@@ -150,7 +155,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
     switch (col.type) {
       case "inputdisabled":
         return (
-          <div className="flex flex-col">
+          <div className={classNames("flex flex-col", { "mandatory-border": !!fieldError })}>
             <InputText
               value={options.value || ""} disabled
               {...commonProps}
@@ -159,7 +164,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
         );
       case "select":
         return (
-          <div className="flex flex-col">
+          <div className={classNames("flex flex-col", { "mandatory-border": !!fieldError })}>
             <Dropdown
               value={options.value}
               options={col.options || []}
@@ -168,12 +173,11 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
               onChange={(e) => updateValue(e.value)}
               {...commonProps}
             />
-            {fieldError && <small className="p-error text-xs mt-1">{fieldError}</small>}
           </div>
         );
       case "selectsearch":
         return (
-          <div className="flex flex-col">
+          <div className={classNames("flex flex-col", { "mandatory-border": !!fieldError })}>
             <Dropdown
               value={options.value}
               options={col.options || []}
@@ -185,19 +189,17 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
               showClear               // <-- optional, allow clearing selection
               {...commonProps}
             />
-            {fieldError && <small className="p-error text-xs mt-1">{fieldError}</small>}
           </div>
         );
       case "date":
         return (
-          <div className="flex flex-col">
+          <div className={classNames("flex flex-col", { "mandatory-border": !!fieldError })}>
             <Calendar
               value={options.value ? new Date(options.value) : null}
               onChange={(e) => updateValue(e.value)}
               dateFormat="dd-mm-yy"
               {...commonProps}
             />
-            {fieldError && <small className="p-error text-xs mt-1">{fieldError}</small>}
           </div>
         );
       case "checkbox":
@@ -224,7 +226,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
         }
 
         return (
-          <div className="flex flex-col">
+          <div className={classNames("flex flex-col", { "mandatory-border": !!fieldError })}>
             <InputNumber
               value={options.value}
               onValueChange={(e) => {
@@ -267,7 +269,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
       case "gst":
         return (
           <InputText
-            className={classNames("w-full", { "p-invalid border-red-500": !!fieldError })}
+            className={classNames("flex flex-col", { "mandatory-border": !!fieldError })}
             value={options.value || ""}
             onChange={(e) => {
               const val = e.target.value;
@@ -334,7 +336,6 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
               onChange={(e) => updateValue(e.target.value)}
               {...commonProps}
             />
-            {fieldError && <small className="p-error text-xs mt-1">{fieldError}</small>}
           </div>
         );
     }

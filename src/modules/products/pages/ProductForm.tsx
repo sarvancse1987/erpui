@@ -277,7 +277,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           {/* GST Price */}
           <div className="flex-1 min-w-[140px]">
             <strong>GST Price</strong>
-            <InputNumber value={formData.gstPrice} mode="currency" currency="INR" locale="en-IN" disabled />
+            <InputNumber value={formData.gstPrice} mode="currency" currency="INR" locale="en-IN" disabled className="w-full mt-1"/>
           </div>
 
           {/* CGST */}

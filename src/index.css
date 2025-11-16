@@ -165,3 +165,32 @@ code {
   display: flex !important;
   justify-content: flex-end !important;
 }
+
+.mandatory-border input,
+.mandatory-border .p-dropdown,
+.mandatory-border .p-inputnumber,
+.mandatory-border .p-calendar {
+  border: 1px solid #d9534f !important;
+}
+
+/* Remove the inner input’s default border */
+.mandatory-border input,
+.mandatory-border .p-dropdown .p-dropdown-label,
+.mandatory-border .p-inputnumber input,
+.mandatory-border .p-calendar input {
+  border: none !important;
+}
+
+.p-dropdown.mandatory-border .p-dropdown-label {
+  border: 1px solid #d9534f !important;
+  border-radius: 4px; /* optional, match your style */
+  background-color: white; /* optional */
+}
+
+.p-inputnumber.mandatory-border input {
+  border: 1px solid #d9534f !important;
+}
+
+.p-calendar.mandatory-border input {
+  border: 1px solid #d9534f !important;
+}

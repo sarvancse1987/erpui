@@ -15,6 +15,10 @@ export default function PurchaseList() {
     const [selectedPurchase, setSelectedPurchase] = useState<PurchaseModel | null>(null);
     const [sidebarVisible, setSidebarVisible] = useState(false);
     const { showSuccess, showError } = useToast();
+    const [validationErrorsAll, setValidationErrorsAll] = useState<
+        Record<number, Record<string, string>>
+    >({});
+    const [triggerValidation, setTriggerValidation] = useState(0);
 
     // Load all data
     const loadAllData = async () => {
@@ -73,6 +77,8 @@ export default function PurchaseList() {
             if (!p.purchaseDate) errors[`purchase-${idx}-purchaseDate`] = "Purchase Date is required";
             if (!p.purchaseItems || p.purchaseItems.length === 0) errors[`purchase-${idx}-purchaseItems`] = "Add at least one item";
         });
+
+        setTriggerValidation(Date.now());
 
         setValidationErrors(errors);
         if (Object.keys(errors).length > 0) return;
@@ -150,7 +156,14 @@ export default function PurchaseList() {
                                 key={idx}
                                 purchase={p}
                                 index={idx}
-                                validationErrors={validationErrors}
+                                validationErrors={validationErrorsAll[idx] ?? {}}
+                                triggerValidation={triggerValidation}
+                                onValidation={(childErr) => {
+                                    setValidationErrorsAll((prev) => ({
+                                        ...prev,
+                                        [idx]: childErr
+                                    }));
+                                }}
                                 onSave={(updated) => handleUpdateNewPurchase(idx, updated)}
                                 onCancel={() => handleRemoveNewPurchase(idx)}
                                 isEditSidebar={false}
@@ -169,6 +182,7 @@ export default function PurchaseList() {
                         onSave={handleUpdatePurchase}
                         onCancel={() => setSidebarVisible(false)}
                         isEditSidebar={true}
+                        triggerValidation={triggerValidation}
                     />
                 ) : <p className="p-4 text-gray-500 text-center">Select a purchase to edit.</p>}
             </Sidebar>

@@ -19,6 +19,8 @@ interface PurchaseFormProps {
   onSave: (purchase: PurchaseModel) => void;
   onCancel?: () => void;
   isEditSidebar: boolean;
+  triggerValidation?: any;
+  onValidation?: (errors: Record<string, string>) => void;
 }
 
 export const PurchaseForm: React.FC<PurchaseFormProps> = ({
@@ -28,6 +30,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
   onSave,
   onCancel,
   isEditSidebar,
+  triggerValidation,
+  onValidation,
 }) => {
   const [formData, setFormData] = useState<PurchaseModel>({ ...purchase });
   const [loading, setLoading] = useState(true);
@@ -36,6 +40,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
   const [products, setProducts] = useState<any[]>([]);
   const [units, setUnits] = useState<OptionModel[]>([]);
   const [itemErrors, setItemErrors] = useState<Record<string, Record<string, string>>>({});
+  const [saveTrigger, setSaveTrigger] = useState(0);
 
   // Load all data
   const loadAllData = async () => {
@@ -61,13 +66,11 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     loadAllData();
   }, []);
 
-  const handleChange = (field: keyof PurchaseModel, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
+  useEffect(() => {
+    if (triggerValidation) runLocalValidation();
+  }, [triggerValidation]);
 
   const columns: ColumnMeta<PurchaseItemModel>[] = [
-    { field: "isNew", header: "New Item", editable: true, type: "checkbox", hidden: true },
     {
       field: "productId",
       header: "Item Name",
@@ -144,12 +147,16 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
 
   ];
 
+  const handleChange = (field: keyof PurchaseModel, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
+  // ---------------- ITEM VALIDATION ----------------
   const validateItems = (items: PurchaseItemModel[]) => {
     const errors: Record<string, Record<string, string>> = {};
 
     items.forEach((item) => {
-      const key = item.purchaseItemId; // fallback for new rows
+      const key = item.purchaseItemId;
       errors[key] = {};
 
       if (!item.productId) errors[key].productId = "Item Name is required";
@@ -157,48 +164,48 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
       if (!item.quantity || item.quantity <= 0) errors[key].quantity = "Qty is required";
       if (item.gstRate == null || item.gstRate < 0) errors[key].gstRate = "GST % is required";
 
-      // Remove empty rows
       if (Object.keys(errors[key]).length === 0) delete errors[key];
     });
 
     return errors;
   };
 
+  // 🔥 FULL LOCAL VALIDATION (used by parent and save)
+  const runLocalValidation = () => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.supplierId) errors.supplierId = "Supplier is required";
+    if (!formData.invoiceNumber?.trim()) errors.invoiceNumber = "Invoice Number is required";
+    if (!formData.invoiceAmount || formData.invoiceAmount <= 0)
+      errors.invoiceAmount = "Invoice Amount is required";
+    if (!formData.invoiceDate) errors.invoiceDate = "Invoice Date is required";
+    if (!formData.purchaseDate) errors.purchaseDate = "Purchase Date is required";
+
+    const itemErrs = validateItems(formData.purchaseItems);
+    setItemErrors(itemErrs);
+
+    const hasAnyErrors = Object.keys(errors).length > 0 || Object.keys(itemErrs).length > 0;
+
+    // Send errors to parent
+    if (onValidation) {
+      onValidation({ ...errors });
+    }
+
+    setSaveTrigger(prev => prev + 1);
+    return !hasAnyErrors;
+  };
+
+  // ---------------- FORM SUBMIT ----------------
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // ----------------------------
-    // 1. Validate Form Required Fields
-    // ----------------------------
-    const formErrors: Record<string, string> = {};
-
-    if (!formData.supplierId) formErrors.supplierId = "Supplier is required";
-    if (!formData.invoiceNumber?.trim()) formErrors.invoiceNumber = "Invoice Number is required";
-    if (!formData.invoiceAmount || formData.invoiceAmount <= 0)
-      formErrors.invoiceAmount = "Invoice Amount is required";
-    if (!formData.invoiceDate) formErrors.invoiceDate = "Invoice Date is required";
-    if (!formData.purchaseDate) formErrors.purchaseDate = "Purchase Date is required";
-
-    if (Object.keys(formErrors).length > 0) {
-      showError("Please fill all required fields.");
+    if (!runLocalValidation()) {
+      showError("Please fix validation errors.");
       return;
     }
 
-    // ----------------------------
-    // 2. Validate Item Rows
-    // ----------------------------
-    const itemErrors = validateItems(formData.purchaseItems);
-
-    if (Object.keys(itemErrors).length > 0) {
-      setItemErrors(itemErrors);
-      showError("Please fill all required item fields.");
-      return;
-    }
-
-    setItemErrors({});
     onSave(formData);
   };
-
 
 
   return (
@@ -207,28 +214,40 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
       <div className="flex flex-wrap gap-4 mb-2">
         {/* Supplier */}
         <div className="flex-1 min-w-[200px]">
-          <label className="block font-semibold mb-1">Supplier</label>
+          <strong>
+            Supplier <span className="mandatory-asterisk">*</span>
+          </strong>
           <SupplierSelector
             suppliers={suppliers}
             selectedSupplierId={formData.supplierId}
             onSelect={(supplier) => handleChange("supplierId", supplier.supplierId)}
           />
+          {validationErrors?.supplierId && (
+            <span className="mandatory-error">{validationErrors.supplierId}</span>
+          )}
         </div>
 
         {/* Invoice Number */}
         <div className="flex-1 min-w-[200px]">
-          <label className="block font-semibold mb-1">Invoice Number</label>
+          <strong>
+            Invoice Number <span className="mandatory-asterisk">*</span>
+          </strong>
           <InputText
             className="w-full mt-1"
             value={formData.invoiceNumber} placeholder="Invoice Number"
             onChange={(e) => handleChange("invoiceNumber", e.target.value)}
             required
           />
+          {validationErrors?.invoiceNumber && (
+            <span className="mandatory-error">{validationErrors.invoiceNumber}</span>
+          )}
         </div>
 
         {/* Invoice Number */}
         <div className="flex-1 min-w-[200px]">
-          <label className="block font-semibold mb-1">Invoice Amount</label>
+          <strong>
+            Invoice Amount <span className="mandatory-asterisk">*</span>
+          </strong>
           <InputNumber
             className="w-full mt-1"
             value={formData.invoiceAmount} placeholder="Invoice Amount"
@@ -240,11 +259,16 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             onChange={(e) => handleChange("invoiceAmount", e.value)}
             required
           />
+          {validationErrors?.invoiceAmount && (
+            <span className="mandatory-error">{validationErrors.invoiceAmount}</span>
+          )}
         </div>
 
         {/* Invoice Date */}
         <div className="flex-1 min-w-[200px]">
-          <label className="block font-semibold mb-1">Invoice Date</label>
+          <strong>
+            Invoice Date <span className="mandatory-asterisk">*</span>
+          </strong>
           <Calendar
             value={formData.invoiceDate ? new Date(formData.invoiceDate) : null}
             onChange={(e) => handleChange("invoiceDate", e.value)}
@@ -255,11 +279,16 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             inline={false}
             required
           />
+          {validationErrors?.invoiceDate && (
+            <span className="mandatory-error">{validationErrors.invoiceDate}</span>
+          )}
         </div>
 
         {/* Purchase Date */}
         <div className="flex-1 min-w-[200px]">
-          <label className="block font-semibold mb-1">Purchase Date</label>
+          <strong>
+            Purchase Date <span className="mandatory-asterisk">*</span>
+          </strong>
           <Calendar
             value={formData.purchaseDate ? new Date(formData.purchaseDate) : null}
             onChange={(e) => handleChange("purchaseDate", e.value)}
@@ -270,6 +299,10 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             inline={false}
             required
           />
+
+          {validationErrors?.purchaseDate && (
+            <span className="mandatory-error">{validationErrors.purchaseDate}</span>
+          )}
         </div>
       </div>
 
@@ -282,6 +315,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
         primaryKey="purchaseItemId"
         products={products}
         isSave={false}
+        itemsSaveTrigger={saveTrigger}
       />
     </form>
   );

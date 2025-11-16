@@ -14,6 +14,7 @@ export interface TTypedDatatableProps<T extends Record<string, any>> {
     isNew?: boolean;
     isSave?: boolean;
     isDelete?: boolean;
+    itemsSaveTrigger?: number;
 }
 
 export interface TTypeDatatableProps<T extends Record<string, any>> {
