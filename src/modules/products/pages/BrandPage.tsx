@@ -137,6 +137,9 @@ export default function BrandPage() {
                     primaryKey="brandId"
                     onSave={handleSave}
                     onDelete={handleDelete}
+                    isNew={true}
+                    isSave={true}
+                    isDelete={true}
                 />
             </div>
         );

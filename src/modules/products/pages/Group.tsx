@@ -84,7 +84,7 @@ export default function GroupPage() {
                 showSuccess("Groups saved successfully!");
             } catch (error) {
                 console.error("❌ Failed to save groups", error);
-                 showError("Error saving groups. Please try again.");
+                showError("Error saving groups. Please try again.");
             }
         };
 
@@ -128,6 +128,9 @@ export default function GroupPage() {
                     paginator
                     rows={5} // default rows per page
                     rowsPerPageOptions={[5, 10, 25]}
+                    isNew={true}
+                    isSave={true}
+                    isDelete={true}
                 />
             </div>
         );

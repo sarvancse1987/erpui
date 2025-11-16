@@ -5,9 +5,11 @@ export interface PurchaseItemModel {
     productName: string;
     quantity: number;
     unitPrice: number;
-    gstRate: number;
+    gstPercent: number;
+    amount: number;
     gstAmount: number;
-    total: number;
-    grandTotal: number;
+    totalAmount: number;
     isNew: boolean;
+    _tempKey?: string;
+    _edited?: boolean;
 }

@@ -119,6 +119,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
     setErrors({});
     setEditingRows({});
   };
+  
   const handleValueChange = (value: any, options: any, col: ColumnMeta<T>) => {
     const field = (options?.column?.field || options?.field) as keyof T;
 

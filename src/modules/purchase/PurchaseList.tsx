@@ -47,7 +47,7 @@ export default function PurchaseList() {
         invoiceAmount: 0,
         invoiceNumber: "",
         totalAmount: 0,
-        gstAmount: 0,
+        totalGST: 0,
         grandTotal: 0,
         isActive: true,
         purchaseItems: [],
@@ -84,7 +84,7 @@ export default function PurchaseList() {
         if (Object.keys(errors).length > 0) return;
 
         try {
-            await apiService.post("/Purchase/bulk", newPurchases);
+            await apiService.post("/Purchase", newPurchases[0]);
             await loadAllData();
             setNewPurchases([]);
             setValidationErrors({});
@@ -143,7 +143,7 @@ export default function PurchaseList() {
                 </TabPanel>
 
                 <TabPanel header="Add / Edit Purchases">
-                    <div className="flex gap-2 mb-4">
+                    <div className="flex gap-2 mb-2">
                         <Button label="Add New" icon="pi pi-plus" outlined severity="success" onClick={addNewPurchase} />
                         <Button label="Save All" icon="pi pi-save" onClick={handleSavePurchases} disabled={!newPurchases.length} />
                     </div>
@@ -155,6 +155,7 @@ export default function PurchaseList() {
                             <PurchaseForm
                                 key={idx}
                                 purchase={p}
+                                newPurchase={p}
                                 index={idx}
                                 validationErrors={validationErrorsAll[idx] ?? {}}
                                 triggerValidation={triggerValidation}
@@ -178,6 +179,7 @@ export default function PurchaseList() {
                     <PurchaseForm
                         key={selectedPurchase.purchaseId || "edit"}
                         purchase={selectedPurchase}
+                        newPurchase={selectedPurchase}
                         validationErrors={validationErrors}
                         onSave={handleUpdatePurchase}
                         onCancel={() => setSidebarVisible(false)}

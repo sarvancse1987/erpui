@@ -25,7 +25,8 @@ export function TTypedDatatable<T extends Record<string, any>>({
   isSave,
   isDelete,
   onEdit,
-  onDelete
+  onDelete,
+  onSave
 }: TTypeDatatableProps<T>) {
   const [tableData, setTableData] = useState<T[]>(data);
   const [editingRows, setEditingRows] = useState<{ [key: string]: boolean }>({});
@@ -118,7 +119,12 @@ export function TTypedDatatable<T extends Record<string, any>>({
     console.log("✅ Saved Data:", tableData);
     setErrors({});
     setEditingRows({});
+
+    if (tableData && tableData.length > 0 && onSave) {
+      onSave(tableData);
+    }
   };
+
   const handleValueChange = (value: any, options: any, col: ColumnMeta<T>) => {
     const field = (options?.column?.field || options?.field) as keyof T;
 
@@ -447,7 +453,8 @@ export function TTypedDatatable<T extends Record<string, any>>({
           />
         ))}
 
-        <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} />
+        {/* <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} /> */}
+        <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} />
       </DataTable>
     </div >
   );

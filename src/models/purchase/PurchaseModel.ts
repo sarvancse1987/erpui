@@ -9,7 +9,7 @@ export interface PurchaseModel {
     invoiceDate: string;
     purchaseDate: string;
     totalAmount: number;
-    gstAmount: number;
+    totalGST: number;
     grandTotal: number;
     remarks?: string;
     isActive: boolean;

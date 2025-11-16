@@ -92,6 +92,9 @@ export default function Category() {
                         primaryKey="categoryId"
                         onSave={onActiveSave}
                         onDelete={onActiveDelete}
+                        isNew={true}
+                        isSave={true}
+                        isDelete={true}
                     />
                 </TabPanel>
 
@@ -101,6 +104,9 @@ export default function Category() {
                         data={inactiveCategories}
                         primaryKey="categoryId"
                         onSave={onInactiveSave}
+                        isNew={true}
+                        isSave={true}
+                        isDelete={true}
                     />
                 </TabPanel>
             </TabView>

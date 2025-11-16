@@ -328,6 +328,9 @@ export default function ProductList() {
                   primaryKey="productId"
                   // provide an onEdit so child can notify parent to open sidebar
                   onEdit={(row: ProductModel) => handleOpenEdit(row)}
+                  isNew={true}
+                  isSave={true}
+                  isDelete={true}
                 />
               </div>
             )}

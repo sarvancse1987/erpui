@@ -10,12 +10,14 @@ interface SupplierSelectorProps {
     suppliers: SupplierModel[];
     selectedSupplierId: number | null;
     onSelect: (supplier: SupplierModel) => void;
+    isValid?: boolean;
 }
 
 export const SupplierSelector: React.FC<SupplierSelectorProps> = ({
     suppliers,
     selectedSupplierId,
     onSelect,
+    isValid
 }) => {
     const [selectedSupplier, setSelectedSupplier] = useState<SupplierModel | null>(
         suppliers.find((s) => s.supplierId === selectedSupplierId) || null
@@ -77,7 +79,7 @@ export const SupplierSelector: React.FC<SupplierSelectorProps> = ({
     return (
         <div className="relative w-full" ref={wrapperRef}>
             <InputText
-                className="w-full"
+                className={`w-full mt-1 ${isValid ? "p-invalid" : ""}`}
                 placeholder="Search Supplier"
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}

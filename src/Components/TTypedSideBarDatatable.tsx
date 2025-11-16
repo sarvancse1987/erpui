@@ -20,10 +20,13 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
   data,
   primaryKey,
   isSave,
+  isDelete,
   onSave,
+  onEdit,
   onDelete,
   itemsSaveTrigger,
-  products = [] as ProductModel[], // pass products as a prop
+  products = [] as ProductModel[],
+  onChange,
 }: TTypedDatatableProps<T> & { products?: ProductModel[] }) {
   const [tableData, setTableData] = useState<T[]>([]);
   const [editingRows, setEditingRows] = useState<{ [key: string]: boolean }>({});
@@ -113,38 +116,28 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
   const markRowEdited = (updatedRow: any) => {
     const key = (updatedRow as any)._tempKey || updatedRow[primaryKey];
 
-    // Calculate total
+    // Recalculate totals...
     const unitPrice = parseFloat(updatedRow.unitPrice) || 0;
     const quantity = parseFloat(updatedRow.quantity) || 0;
-    const total = parseFloat((unitPrice * quantity).toFixed(2));
+    const amount = parseFloat((unitPrice * quantity).toFixed(2));
+    const gstPercent = parseFloat(updatedRow.gstPercent) || 0;
+    const gstAmount = parseFloat(((amount * gstPercent) / 100).toFixed(2));
+    const totalAmount = parseFloat((amount + gstAmount).toFixed(2));
 
-    // Calculate GST
-    const gstRate = parseFloat(updatedRow.gstRate) || 0;
-    const gstAmount = parseFloat(((total * gstRate) / 100).toFixed(2));
-
-    // Calculate Grand Total
-    const grandTotal = parseFloat((total + gstAmount).toFixed(2));
-
-    updatedRow.total = total;
+    updatedRow.amount = amount;
     updatedRow.gstAmount = gstAmount;
-    updatedRow.grandTotal = grandTotal;
+    updatedRow.totalAmount = totalAmount;
 
-    setTableData((prev) =>
-      prev.map((r) =>
-        (r._tempKey || r[primaryKey]) === key
-          ? { ...r, ...updatedRow, _edited: true }
-          : r
-      )
-    );
+    setTableData(prev => {
+      const newData = prev.map(r => (r._tempKey || r[primaryKey]) === key ? { ...r, ...updatedRow, _edited: true } : r);
+      onChange?.(newData); // <-- EMIT TO PARENT
+      return newData;
+    });
   };
 
   const cellEditor = (options: any, col: ColumnMeta<T>) => {
     const key = options.rowData._tempKey || options.rowData[primaryKey];
     const fieldError = errors[key]?.[col.field as string];
-    const commonProps = {
-      className: classNames({ "mandatory-border": !!fieldError }),
-      style: { width: "100%" },
-    };
 
     const showError =
       (col.required && (options.value === null || options.value === "")) ||
@@ -162,9 +155,8 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
 
           <InputText
             value={options.value || ""} disabled
-
             className={classNames({ "p-invalid": showError })}
-            style={{ width: "100%" }}
+            style={{ width: "100%" }} size="small"
           />
 
         );
@@ -177,26 +169,24 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
             optionLabel="label"
             optionValue="value"
             onChange={(e) => updateValue(e.value)}
-            className={classNames({ "p-invalid": showError })}
+            className={classNames("p-dropdown-sm", { "p-invalid": showError })}
             style={{ width: "100%" }}
           />
 
         );
       case "selectsearch":
         return (
-          <div className={classNames("flex flex-col", { "mandatory-border": !!fieldError })}>
-            <Dropdown
-              value={options.value}
-              options={col.options || []}
-              optionLabel="label"
-              optionValue="value"
-              onChange={(e) => updateValue(e.value)}
-              filter                  // <-- enables search
-              filterBy="label"        // <-- search based on label field
-              showClear               // <-- optional, allow clearing selection
-              {...commonProps}
-            />
-          </div>
+          <Dropdown
+            value={options.value}
+            options={col.options || []}
+            optionLabel="label"
+            optionValue="value"
+            onChange={(e) => updateValue(e.value)}
+            filter                  // <-- enables search
+            filterBy="label"        // <-- search based on label field
+            showClear               // <-- optional, allow clearing selection
+            className={classNames("p-dropdown-sm", { "p-invalid": showError })}
+          />
         );
       case "date":
         return (
@@ -205,15 +195,14 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
               value={options.value ? new Date(options.value) : null}
               onChange={(e) => updateValue(e.value)}
               dateFormat="dd-mm-yy"
-              {...commonProps}
+              className="p-inputtext-sm"
             />
           </div>
         );
       case "checkbox":
         return (
-          <div className="flex justify-center items-center h-full">
-            <Checkbox checked={!!options.value} onChange={(e) => updateValue(e.checked)} />
-          </div>
+          <Checkbox checked={!!options.value} onChange={(e) => updateValue(e.checked)}
+            className={classNames("p-checkbox-sm", { "p-invalid": showError })} />
         );
       case "number":
       case "decimal":
@@ -242,19 +231,19 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
               if (col.field === "unitPrice" || col.field === "quantity") {
                 const unitPrice = parseFloat(updatedRow.unitPrice) || 0;
                 const quantity = parseFloat(updatedRow.quantity) || 0;
-                updatedRow.total = parseFloat((unitPrice * quantity).toFixed(2));
+                updatedRow.amount = parseFloat((unitPrice * quantity).toFixed(2));
 
-                const gstRate = parseFloat(updatedRow.gstRate) || 0;
-                updatedRow.gstAmount = parseFloat(((updatedRow.total * gstRate) / 100).toFixed(2));
+                const gstPercent = parseFloat(updatedRow.gstPercent) || 0;
+                updatedRow.gstAmount = parseFloat(((updatedRow.amount * gstPercent) / 100).toFixed(2));
               }
 
               // Auto-calculate GST if gstRate changes
-              if (col.field === "gstRate") {
+              if (col.field === "gstPercent") {
                 const unitPrice = parseFloat(updatedRow.unitPrice) || 0;
                 const quantity = parseFloat(updatedRow.quantity) || 0;
-                const total = parseFloat((unitPrice * quantity).toFixed(2));
-                const gstRate = parseFloat(updatedRow.gstRate) || 0;
-                updatedRow.gstAmount = parseFloat(((total * gstRate) / 100).toFixed(2));
+                const amount = parseFloat((unitPrice * quantity).toFixed(2));
+                const gstPercent = parseFloat(updatedRow.gstPercent) || 0;
+                updatedRow.gstAmount = parseFloat(((amount * gstPercent) / 100).toFixed(2));
               }
 
               options.editorCallback(e.value);
@@ -265,8 +254,8 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
             locale="en-IN"
             minFractionDigits={minFrac}
             maxFractionDigits={maxFrac}
-            className={classNames({ "p-invalid": showError })}
-            style={{ width: "100%" }}
+            className={classNames("p-inputnumber-sm", { "p-invalid": showError })}
+            style={{ width: "60%" }}
           />
 
         );
@@ -278,92 +267,97 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
               const val = e.target.value;
 
               if (val === "" || /^[0-9]*\.?[0-9]{0,3}$/.test(val)) {
-                const updatedRow = { ...options.rowData, gstRate: val };
+                const updatedRow = { ...options.rowData, gstPercent: val };
 
                 // calculate GST Amount
-                const total = parseFloat(updatedRow.total) || 0;
-                const gstRate = parseFloat(val) || 0;
-                updatedRow.gstAmount = parseFloat(((total * gstRate) / 100).toFixed(2));
+                const amount = parseFloat(updatedRow.amount) || 0;
+                const gstPercent = parseFloat(val) || 0;
+                updatedRow.gstAmount = parseFloat(((amount * gstPercent) / 100).toFixed(2));
 
                 options.editorCallback(val);
                 markRowEdited(updatedRow);
               }
             }}
-            className={classNames({ "p-invalid": showError })}
+            className={classNames("p-inputnumber-sm", { "p-invalid": showError })}
             style={{ width: "100%" }}
           />
         );
       case "productSearch":
         return (
-          <div className="relative w-full">
-            <InputText
-              className={classNames("w-full", { "p-invalid border-red-500": !!fieldError })}
-              value={options.value || ""}
-              placeholder="Search Item"
-              readOnly={false}
-              onClick={() => {
-                if (!options.rowData.isNew) {
-                  setProductSidebarVisible(true);
-                  setSidebarRowKey(key);
-                }
-              }}
-              onChange={(e) => {
-                if (options.rowData.isNew) {
-                  const val = e.target.value;
-                  options.editorCallback(val);
-                  markRowEdited({ ...options.rowData, productName: val });
-                }
-              }}
-              onFocus={() => {
-                if (options.rowData.isNew) {
-                  setShowTableMap((prev) => ({ ...prev, [key]: true }));
-                }
-              }}
-            />
-          </div>
+          <InputText
+            className={classNames("p-inputnumber-sm", { "p-invalid": showError })}
+            value={options.value || ""}
+            placeholder="Search Item"
+            readOnly={false}
+            onClick={() => {
+              if (!options.rowData.isNew) {
+                setProductSidebarVisible(true);
+                setSidebarRowKey(key);
+              }
+            }}
+            onChange={(e) => {
+              if (options.rowData.isNew) {
+                const val = e.target.value;
+                options.editorCallback(val);
+                markRowEdited({ ...options.rowData, productName: val });
+              }
+            }}
+            onFocus={() => {
+              if (options.rowData.isNew) {
+                setShowTableMap((prev) => ({ ...prev, [key]: true }));
+              }
+            }}
+          />
         );
       case "textdisabled":
         return (
-          <div className="flex flex-col">
-            <InputText
-              value={options.value || ""}
-              onChange={(e) => updateValue(e.target.value)}
-              {...commonProps}
-              readOnly={true}
-            />
-          </div>
+          <InputText
+            value={options.value || ""}
+            onChange={(e) => updateValue(e.target.value)}
+            className={classNames("p-inputnumber-sm", { "p-invalid": showError })}
+            readOnly={true}
+          />
         );
       default:
         return (
-          <div className="flex flex-col">
-            <InputText
-              value={options.value || ""}
-              onChange={(e) => updateValue(e.target.value)}
-              {...commonProps}
-            />
-          </div>
+          <InputText
+            value={options.value || ""}
+            onChange={(e) => updateValue(e.target.value)}
+            className={classNames("p-inputnumber-sm", { "p-invalid": showError })}
+          />
         );
     }
   };
 
   const deleteSelected = () => {
     if (!selectedRows.length) return;
-    const selectedIds = selectedRows.map((r) => r[primaryKey]);
-    const remaining = tableData.filter((r) => !selectedIds.includes(r[primaryKey]));
-    setTableData(remaining);
+    const selectedIds = selectedRows.map(r => r[primaryKey]);
+    setTableData(prev => {
+      const remaining = prev.filter(r => !selectedIds.includes(r[primaryKey]));
+      onChange?.(remaining); // <-- EMIT TO PARENT
+      return remaining;
+    });
     setSelectedRows([]);
-    if (onDelete) onDelete(selectedRows);
   };
 
   const isSaveEnabled = tableData.some((r) => r[primaryKey] === 0 || !!r._edited);
 
+  const actionBodyTemplate = (rowData: any) => (
+    <Button
+      icon="pi pi-pencil"
+      className="p-button-sm p-button-rounded p-button-outlined p-button-info"
+      style={{ width: '25px', height: '25px', padding: '0' }}
+      onClick={() => onEdit?.(rowData)}
+    />
+  );
+
   return (
     <div className="card p-3 h-[calc(100vh-100px)] overflow-auto">
-      <div className="flex justify-between items-center mb-3">
+      <div className="flex justify-between items-center mb-1">
         <div className="flex gap-2 mb-1 flex-none">
-          <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} />
-          {isSave && < Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll} disabled={!isSaveEnabled} />}
-          <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={deleteSelected} disabled={!selectedRows.length} />
+          <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} size="small" />
+          {isSave && < Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll} disabled={!isSaveEnabled} size="small" />}
+          {isDelete && tableData.length > 0 && <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={deleteSelected} disabled={!selectedRows.length} size="small" />}
         </div>
         <div className="ml-auto">
           <span className="p-input-icon-left relative w-64">
@@ -404,7 +398,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
             <div className="custom-footer flex gap-4">
               {/* Total Amount */}
               <div
-                className="flex items-center justify-center px-4 py-2 text-base font-semibold"
+                className="flex items-center justify-center px-4 py-1 text-base font-semibold"
                 style={{
                   background: "#2ecc71",   // Modern Emerald Green
                   color: "white",
@@ -414,12 +408,12 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                 }}
               >
                 Total Amount: ₹
-                {tableData.reduce((a, r) => a + (r.total || 0), 0).toFixed(2)}
+                {tableData.reduce((a, r) => a + (r.amount || 0), 0).toFixed(2)}
               </div>
 
               {/* GST Amount */}
               <div
-                className="flex items-center justify-center px-4 py-2 text-base font-semibold"
+                className="flex items-center justify-center px-4 py-1 text-base font-semibold"
                 style={{
                   background: "#f1c40f",   // Modern Yellow
                   color: "black",
@@ -434,7 +428,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
 
               {/* Grand Total */}
               <div
-                className="flex items-center justify-center px-4 py-2 text-base font-semibold"
+                className="flex items-center justify-center px-4 py-1 text-base font-semibold"
                 style={{
                   background: "#3498db",   // Nice Blue
                   color: "white",
@@ -444,10 +438,9 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                 }}
               >
                 Grand Total: ₹
-                {tableData.reduce((a, r) => a + (r.grandTotal || 0), 0).toFixed(2)}
+                {tableData.reduce((a, r) => a + (r.totalAmount || 0), 0).toFixed(2)}
               </div>
             </div>
-
           }
         >
           <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
@@ -456,7 +449,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
             <Column
               key={String(col.field)}
               field={col.field as string}
-              header={<>{col.header}{col.required && <span className="text-red-500">*</span>}</>}
+              header={<>{col.header} {col.required && <span className="required-asterisk">*</span>}</>}
               filter
               showFilterMenu={false}
               filterPlaceholder={`Search ${col.header}`}

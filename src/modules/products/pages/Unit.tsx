@@ -88,6 +88,9 @@ export default function Unit() {
                         primaryKey="id"
                         onSave={onActiveSave}
                         onDelete={onActiveDelete}
+                        isNew={true}
+                        isSave={true}
+                        isDelete={true}
                     />
                 </TabPanel>
 
@@ -97,6 +100,9 @@ export default function Unit() {
                         data={inactiveUnits}
                         primaryKey="id"
                         onSave={onInactiveSave}
+                        isNew={true}
+                        isSave={true}
+                        isDelete={true}
                     />
                 </TabPanel>
             </TabView>

@@ -13,6 +13,7 @@ import { TTypedSideBarDatatable } from "../../components/TTypedSideBarDatatable"
 import { InputNumber } from "primereact/inputnumber";
 
 interface PurchaseFormProps {
+  newPurchase: PurchaseModel;
   purchase: PurchaseModel;
   index?: number;
   validationErrors?: Record<string, string>;
@@ -25,6 +26,7 @@ interface PurchaseFormProps {
 
 export const PurchaseForm: React.FC<PurchaseFormProps> = ({
   purchase,
+  newPurchase,
   index = 0,
   validationErrors = {},
   onSave,
@@ -33,12 +35,21 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
   triggerValidation,
   onValidation,
 }) => {
-  const [formData, setFormData] = useState<PurchaseModel>({ ...purchase });
+
+  const initialData = {
+    ...purchase,
+    ...newPurchase,
+    purchaseItems: [
+      ...(purchase?.purchaseItems ?? []),
+      ...(newPurchase?.purchaseItems ?? []),
+    ],
+  };
+
+  const [formData, setFormData] = useState<PurchaseModel>(initialData);
   const [loading, setLoading] = useState(true);
   const { showSuccess, showError } = useToast();
   const [suppliers, setSuppliers] = useState<SupplierModel[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const [units, setUnits] = useState<OptionModel[]>([]);
   const [itemErrors, setItemErrors] = useState<Record<string, Record<string, string>>>({});
   const [saveTrigger, setSaveTrigger] = useState(0);
 
@@ -53,8 +64,6 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
       const productsRes = await apiService.get("/Product");
       setProducts(productsRes ?? []);
 
-      const unitsRes = await apiService.get("/Unit");
-      setUnits((unitsRes ?? []).map((u: any) => ({ label: u.name, value: u.id })));
     } catch (err) {
       console.error(err);
     } finally {
@@ -81,9 +90,9 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     },
     { field: "unitPrice", header: "Rate", editable: true, type: "currency", required: true },
     { field: "quantity", header: "Qty", editable: true, type: "decimal", required: true },
-    { field: "gstRate", header: "GST %", editable: true, type: "decimal", required: true },
+    { field: "gstPercent", header: "GST %", editable: true, type: "decimal", required: true },
     {
-      field: "total",
+      field: "amount",
       header: "Amount",
       editable: false,
       body: (row: any) => (
@@ -98,7 +107,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             height: "100%",     // keeps height consistent
           }}
         >
-          ₹{(row.total ?? 0).toFixed(2)}
+          ₹{(row.amount ?? 0).toFixed(2)}
         </div>
       )
     },
@@ -125,7 +134,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     },
 
     {
-      field: "grandTotal",
+      field: "totalAmount",
       header: "Grand Total",
       editable: false,
       body: (row: any) => (
@@ -140,7 +149,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             height: "100%",
           }}
         >
-          ₹{(row.grandTotal ?? 0).toFixed(2)}
+          ₹{(row.totalAmount ?? 0).toFixed(2)}
         </div>
       )
     },
@@ -148,7 +157,25 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
   ];
 
   const handleChange = (field: keyof PurchaseModel, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    const updated = { ...formData, [field]: value };
+    setFormData(updated);
+    onSave?.(updated); // emit combined
+  };
+
+  const handleItemsChange = (items: PurchaseItemModel[]) => {
+    const updatedFormData = { ...formData, purchaseItems: items };
+
+    // Recalculate totals
+    const amount = items.reduce((sum, i) => sum + (i.amount ?? 0), 0);
+    const gstAmount = items.reduce((sum, i) => sum + (i.gstAmount ?? 0), 0);
+    const grandTotal = items.reduce((sum, i) => sum + (i.totalAmount ?? 0), 0);
+
+    updatedFormData.totalAmount = amount;
+    updatedFormData.totalGST = gstAmount;
+    updatedFormData.grandTotal = grandTotal;
+
+    setFormData(updatedFormData);
+    onSave?.(updatedFormData); // emit combined to parent
   };
 
   // ---------------- ITEM VALIDATION ----------------
@@ -162,7 +189,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
       if (!item.productId) errors[key].productId = "Item Name is required";
       if (!item.unitPrice || item.unitPrice <= 0) errors[key].unitPrice = "Rate is required";
       if (!item.quantity || item.quantity <= 0) errors[key].quantity = "Qty is required";
-      if (item.gstRate == null || item.gstRate < 0) errors[key].gstRate = "GST % is required";
+      if (item.gstPercent == null || item.gstPercent < 0) errors[key].gstPercent = "GST % is required";
 
       if (Object.keys(errors[key]).length === 0) delete errors[key];
     });
@@ -221,6 +248,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             suppliers={suppliers}
             selectedSupplierId={formData.supplierId}
             onSelect={(supplier) => handleChange("supplierId", supplier.supplierId)}
+            isValid={!!validationErrors?.supplierId}
           />
           {validationErrors?.supplierId && (
             <span className="mandatory-error">{validationErrors.supplierId}</span>
@@ -233,10 +261,9 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             Invoice Number <span className="mandatory-asterisk">*</span>
           </strong>
           <InputText
-            className="w-full mt-1"
             value={formData.invoiceNumber} placeholder="Invoice Number"
             onChange={(e) => handleChange("invoiceNumber", e.target.value)}
-            required
+            className={`w-full mt-1 ${validationErrors?.invoiceNumber ? "p-invalid" : ""}`}
           />
           {validationErrors?.invoiceNumber && (
             <span className="mandatory-error">{validationErrors.invoiceNumber}</span>
@@ -249,7 +276,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             Invoice Amount <span className="mandatory-asterisk">*</span>
           </strong>
           <InputNumber
-            className="w-full mt-1"
+            className={`w-full mt-1 ${validationErrors?.invoiceAmount ? "p-invalid" : ""}`}
             value={formData.invoiceAmount} placeholder="Invoice Amount"
             mode="currency"
             currency={"INR"}
@@ -257,7 +284,6 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             minFractionDigits={0}
             maxFractionDigits={2}
             onChange={(e) => handleChange("invoiceAmount", e.value)}
-            required
           />
           {validationErrors?.invoiceAmount && (
             <span className="mandatory-error">{validationErrors.invoiceAmount}</span>
@@ -272,12 +298,12 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
           <Calendar
             value={formData.invoiceDate ? new Date(formData.invoiceDate) : null}
             onChange={(e) => handleChange("invoiceDate", e.value)}
-            className="w-full h-8 text-sm p-1"
             placeholder="Select Date"
             dateFormat="dd-mm-yy"
             showIcon
+            showButtonBar
             inline={false}
-            required
+            className={`w-full h-8 text-sm p-1 ${validationErrors?.invoiceDate ? "p-invalid" : ""}`}
           />
           {validationErrors?.invoiceDate && (
             <span className="mandatory-error">{validationErrors.invoiceDate}</span>
@@ -292,12 +318,12 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
           <Calendar
             value={formData.purchaseDate ? new Date(formData.purchaseDate) : null}
             onChange={(e) => handleChange("purchaseDate", e.value)}
-            className="w-full h-8 text-sm p-1"
+            className={`w-full h-8 text-sm p-1 ${validationErrors?.purchaseDate ? "p-invalid" : ""}`}
             placeholder="Select Date"
             dateFormat="dd-mm-yy"
             showIcon
             inline={false}
-            required
+            showButtonBar
           />
 
           {validationErrors?.purchaseDate && (
@@ -305,7 +331,6 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
           )}
         </div>
       </div>
-
 
       {/* Purchase Items Grid */}
 
@@ -316,6 +341,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
         products={products}
         isSave={false}
         itemsSaveTrigger={saveTrigger}
+        onChange={handleItemsChange}
       />
     </form>
   );
