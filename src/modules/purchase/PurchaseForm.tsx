@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Calendar } from "primereact/calendar";
 import { PurchaseModel } from "../../models/purchase/PurchaseModel";
-import { OptionModel } from "../../models/product/OptionModel";
 import { PurchaseItemModel } from "../../models/purchase/PurchaseItemModel";
 import { InputText } from "primereact/inputtext";
 import { SupplierSelector } from "../supplier/SupplierSelector";

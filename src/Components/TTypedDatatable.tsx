@@ -53,25 +53,30 @@ export function TTypedDatatable<T extends Record<string, any>>({
     return (maxId + 1).toString();
   };
 
-  const addRow = () => {
-    // ✅ Check if any row is already open for editing
-    if (Object.keys(editingRows).length > 0) {
-      return;
-    }
 
+  const addRow = () => {
+    // Prevent adding if any row is already being edited
+    if (Object.keys(editingRows).length > 0) return;
+
+    // Create new row with default values
     const newRow = {} as T;
     columns.forEach((col) => {
       if (col.type === "checkbox") (newRow[col.field] as any) = false;
       else (newRow[col.field] as any) = "";
     });
-    (newRow[primaryKey] as any) = getNextPrimaryKey();
 
-    const newData = [...tableData, newRow];
-    setTableData(newData);
+    // Assign primary key and mark as edited
+    (newRow[primaryKey] as any) = 0; // or use getNextPrimaryKey() if you want incremental
+    (newRow as any)._edited = true; // mark as new/edited
+    (newRow as any)._tempKey = `temp-${Date.now()}-${Math.random()}`; // unique temp key
 
-    const newKey = newRow[primaryKey] as string;
-    setEditingRows({ [newKey]: true }); // ✅ open only this row
+    // Add row to table
+    setTableData((prev) => [...prev, newRow]);
+
+    // Open this row in edit mode immediately using tempKey
+    setEditingRows({ [(newRow as any)._tempKey]: true });
   };
+
 
   const validateRow = (rowData: T) => {
     const rowErrors: { [key: string]: string } = {};
@@ -279,7 +284,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
 
   const rowEditorValidator = (rowData: T) => {
     const rowErrors = validateRow(rowData);
-    const key = (rowData[primaryKey] as string) ?? "";
+    const key = (rowData as any)._tempKey || (rowData[primaryKey] as string);
 
     if (Object.keys(rowErrors).length > 0) {
       // Keep row open
@@ -297,7 +302,9 @@ export function TTypedDatatable<T extends Record<string, any>>({
 
     // Update tableData
     setTableData((prev) =>
-      prev.map((item) => ((item[primaryKey] as string) === key ? rowData : item))
+      prev.map((item) =>
+        ((item as any)._tempKey || item[primaryKey]) === key ? rowData : item
+      )
     );
 
     // Close the editing row
@@ -309,6 +316,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
 
     return true;
   };
+
 
   const updateGSTPrice = (rowData: any) => {
     if (rowData["isGSTIncludedInPrice"]) {
@@ -409,7 +417,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
 
       <DataTable
         value={tableData}
-        dataKey={primaryKey as string}
+        dataKey={(row) => (row as any)._tempKey || row[primaryKey]}
         selection={selectedRows}
         onSelectionChange={(e) => setSelectedRows(e.value)}
         editMode="row"

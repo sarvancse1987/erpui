@@ -6,6 +6,8 @@ import { PurchaseModel } from "../../models/purchase/PurchaseModel";
 import { useToast } from "../../components/ToastService";
 import apiService from "../../services/apiService";
 import { PurchaseForm } from "./PurchaseForm";
+import { TTypeDatatable } from "../../components/TTypeDatatable";
+import { ColumnMeta } from "../../models/component/ColumnMeta";
 
 export default function PurchaseList() {
     const [purchases, setPurchases] = useState<PurchaseModel[]>([]);
@@ -117,6 +119,19 @@ export default function PurchaseList() {
         }
     };
 
+    const columns: ColumnMeta<PurchaseModel>[] = [
+        { field: "purchaseId", header: "ID", width: "80px", editable: false, hidden: true },
+        { field: "purchaseName", header: "Name", width: "220px" },
+        { field: "invoiceNumber", header: "Invoice Number", width: "180px" },
+        { field: "invoiceAmount", header: "Invoice Amount", width: "160px" },
+        { field: "invoiceDate", header: "Invoice Date", width: "140px" },
+        { field: "purchaseDate", header: "Purchase Date", width: "140px" },
+        { field: "totalAmount", header: "Total Amount", width: "220px" },
+        { field: "totalGST", header: "Gst Amount", width: "220px" },
+        { field: "grandTotal", header: "Grant Amount", width: "220px" },
+        { field: "isActive", header: "Active", width: "100px", body: (row) => (row.isActive ? "✅" : "❌"), editable: false, hidden: true },
+    ];
+
     if (loading) return <p>Loading purchases...</p>;
 
     return (
@@ -127,17 +142,16 @@ export default function PurchaseList() {
                 <TabPanel header="Purchases">
                     {purchases.length === 0 ? <p>No purchases found.</p> : (
                         <div className="space-y-2">
-                            {purchases.map((p, idx) => (
-                                <div
-                                    key={p.purchaseId}
-                                    className="p-3 border border-gray-200 rounded-md flex justify-between items-center"
-                                >
-                                    <div>
-                                        {/* <strong>{p.invoiceDate.slice(0, 10)}</strong> | Supplier: {suppliers.find(s => s.value === p.supplierId)?.label} */}
-                                    </div>
-                                    <Button label="Edit" icon="pi pi-pencil" onClick={() => handleOpenEdit(p)} />
-                                </div>
-                            ))}
+                            <TTypeDatatable<PurchaseModel>
+                                data={purchases}
+                                columns={columns}
+                                primaryKey="supplierId"
+                                onEdit={handleOpenEdit}
+                                isDelete={true}
+                                //onDelete={handleDeleteSuppliers}
+                                isNew={true}
+                                isSave={true}
+                            />
                         </div>
                     )}
                 </TabPanel>

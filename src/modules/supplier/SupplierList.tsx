@@ -171,6 +171,8 @@ export default function SupplierList() {
                         onEdit={handleOpenEdit}
                         isDelete={true}
                         onDelete={handleDeleteSuppliers}
+                        isNew={true}
+                        isSave={true}
                     />
                 </TabPanel>
 
@@ -191,6 +193,7 @@ export default function SupplierList() {
                                 onSave={(updated) => handleUpdateNewSupplier(idx, updated)}
                                 onCancel={() => handleRemoveNewSupplier(idx)}
                                 validationErrors={validationErrors}
+                                isEditSidebar={false}
                             />
                         ))
                     )}

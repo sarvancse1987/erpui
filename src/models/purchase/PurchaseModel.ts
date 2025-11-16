@@ -2,8 +2,9 @@ import { PurchaseItemModel } from "./PurchaseItemModel";
 
 export interface PurchaseModel {
     purchaseId: number;
+    purchaseName?: string;
     supplierId: number;
-    supplierName: string;
+    supplierName?: string;
     invoiceNumber: string;
     invoiceAmount: number;
     invoiceDate: string;
