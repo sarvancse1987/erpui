@@ -2,16 +2,15 @@ import React, { useEffect, useState } from "react";
 import { Button } from "primereact/button";
 import { Calendar } from "primereact/calendar";
 import { PurchaseModel } from "../../models/purchase/PurchaseModel";
-import { ProductModel } from "../../models/product/ProductModel";
 import { OptionModel } from "../../models/product/OptionModel";
 import { PurchaseItemModel } from "../../models/purchase/PurchaseItemModel";
 import { InputText } from "primereact/inputtext";
 import { SupplierSelector } from "../supplier/SupplierSelector";
 import { SupplierModel } from "../../models/supplier/SupplierModel";
 import { ColumnMeta } from "../../models/component/ColumnMeta";
-import { TTypedDatatable } from "../../components/TTypedDatatable";
 import { useToast } from "../../components/ToastService";
 import apiService from "../../services/apiService";
+import { TTypedSideBarDatatable } from "../../components/TTypedSideBarDatatable";
 
 interface PurchaseFormProps {
   purchase: PurchaseModel;
@@ -65,63 +64,34 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const addNewItem = () => {
-    const newItem: PurchaseItemModel = {
-      purchaseItemId: 0,
-      productId: 0,
-      productName: "",
-      quantity: 1,
-      unitId: 0,
-      unitPrice: 0,
-      gstRate: 0,
-      gstAmount: 0,
-      total: 0,
-    };
-    setFormData((prev) => ({ ...prev, purchaseItems: [newItem, ...prev.purchaseItems] }));
-  };
-
-  const handleItemChange = (idx: number, field: keyof PurchaseItemModel, value: any) => {
-    const updatedItems = [...formData.purchaseItems];
-    const item = { ...updatedItems[idx], [field]: value };
-
-    // Calculate GST & total
-    const totalWithoutGST = (item.unitPrice || 0) * (item.quantity || 0);
-    item.gstAmount = +(totalWithoutGST * (item.gstRate || 0) / 100).toFixed(2);
-    item.total = +(totalWithoutGST + item.gstAmount).toFixed(2);
-
-    updatedItems[idx] = item;
-    setFormData((prev) => ({ ...prev, purchaseItems: updatedItems }));
-
-    // Update purchase totals
-    const totalAmount = updatedItems.reduce((sum, i) => sum + i.total, 0);
-    const gstAmount = updatedItems.reduce((sum, i) => sum + i.gstAmount, 0);
-    setFormData((prev) => ({ ...prev, totalAmount, gstAmount, grandTotal: totalAmount + gstAmount }));
-  };
-
-  const removeItem = (idx: number) => {
-    const updatedItems = formData.purchaseItems.filter((_, i) => i !== idx);
-    setFormData((prev) => ({ ...prev, purchaseItems: updatedItems }));
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
   };
 
   const columns: ColumnMeta<PurchaseItemModel>[] = [
-    { field: "productId", header: "Item Name", editable: true, type: "productSearch", required: true },
-    { field: "unitId", header: "Unit", editable: true, type: "select", options: units, required: true },
-    { field: "unitPrice", header: "Rate", editable: true, type: "number", required: true },
-    { field: "quantity", header: "Qty", editable: true, type: "number", required: true },
+    { field: "isNew", header: "New Item", editable: true, type: "checkbox", hidden: true },
+    {
+      field: "productId",
+      header: "Item Name",
+      editable: false,
+      type: "textdisabled",
+      required: true,
+      body: (row: PurchaseItemModel) => row.productName || "",
+    },
+    { field: "unitPrice", header: "Rate", editable: true, type: "currency", required: true },
+    { field: "quantity", header: "Qty", editable: true, type: "decimal", required: true },
     { field: "gstRate", header: "GST %", editable: true, type: "gst", required: true },
-    { field: "gstAmount", header: "GST Amount", editable: false, type: "number" },
-    { field: "total", header: "Total", editable: false, type: "number" },
+    { field: "total", header: "Amount", editable: false, body: (row: any) => row.total?.toFixed(2) || "0.00" },
+    { field: "gstAmount", header: "GST Amount", editable: false, body: (row: any) => row.gstAmount?.toFixed(2) || "0.00" },
+    { field: "grandTotal", header: "Grand Total", editable: false, body: (row: any) => row.grandTotal?.toFixed(2) || "0.00" },
   ];
 
+
   return (
-    <form onSubmit={handleSubmit} className="border border-gray-200 rounded-md p-4">
+    <form onSubmit={handleSubmit} className="border border-gray-200 rounded-md p-2">
       {/* Supplier & Dates */}
-      <div className="flex flex-wrap gap-4 mb-4">
+      <div className="flex flex-wrap gap-4 mb-2">
         {/* Supplier */}
         <div className="flex-1 min-w-[200px]">
           <label className="block font-semibold mb-1">Supplier</label>
@@ -173,33 +143,23 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
 
 
       {/* Purchase Items Grid */}
-      <fieldset className="border border-gray-200 rounded-md p-3 mt-4">
-        <legend className="text-sm font-semibold">Purchase Items</legend>
-        {/* <Button label="Add Item" icon="pi pi-plus" outlined severity="success" className="mb-2" onClick={addNewItem} /> */}
 
-        <TTypedDatatable<PurchaseItemModel>
-          columns={columns}
-          data={formData.purchaseItems}
-          primaryKey="purchaseItemId"
-          products={products}
-        // onSave={onActiveSave}
-        // onDelete={onActiveDelete}
-        />
-
-      </fieldset>
+      <TTypedSideBarDatatable<PurchaseItemModel>
+        columns={columns}
+        data={formData.purchaseItems}
+        primaryKey="purchaseItemId"
+        products={products}
+        isSave={false}
+      // onSave={onActiveSave}
+      // onDelete={onActiveDelete}
+      />
 
       {/* Totals */}
-      <div className="flex justify-end gap-4 mt-4">
+      {/* <div className="absolute bottom-0 right-0 m-4 flex gap-8 bg-gray-50 p-3 rounded shadow">
         <div>Total Amount: ₹{formData.totalAmount.toFixed(2)}</div>
-        <div>GST: ₹{formData.gstAmount.toFixed(2)}</div>
+        <div>GST Amount: ₹{formData.gstAmount.toFixed(2)}</div>
         <div>Grand Total: ₹{formData.grandTotal.toFixed(2)}</div>
-      </div>
-
-      {/* Buttons */}
-      <div className="flex justify-end gap-2 mt-4">
-        {onCancel && <Button type="button" label="Cancel" icon="pi pi-times" outlined onClick={onCancel} />}
-        <Button type="submit" label={formData.purchaseId ? "Update" : "Save"} icon="pi pi-save" severity="success" />
-      </div>
+      </div> */}
     </form>
   );
 };

@@ -35,3 +35,30 @@ export interface ProductModel {
     filteredGroups?: OptionModel[];
     filteredBrands?: OptionModel[];
 }
+
+
+export interface ProductSearchModel {
+    productId: number;
+    productName: string;
+    hsnCode: string;
+
+    purchasePrice?: number;
+    gstPrice?: number;
+    salePrice?: number;
+    isGSTIncludedInPrice?: boolean;
+    cgstRate?: number;
+    sgstRate?: number;
+    igstRate?: number;
+
+    primaryUnitId?: number;
+    unitName?: string;
+
+    productCategoryId?: number;
+    categoryName?: string;
+
+    productGroupId?: number;
+    groupName?: string;
+
+    productBrandId?: number;
+    brandName?: string;
+}

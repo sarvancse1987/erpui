@@ -1,75 +1,96 @@
 import React, { useEffect, useState } from "react";
-import { DataTable, DataTableRowEditEvent } from "primereact/datatable";
+import {
+  DataTable,
+  DataTableRowEditCompleteEvent,
+  DataTableRowEditEvent,
+} from "primereact/datatable";
 import { Column } from "primereact/column";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
 import { Checkbox } from "primereact/checkbox";
 import { Button } from "primereact/button";
-import { InputNumber } from "primereact/inputnumber";
-import { RadioButton } from "primereact/radiobutton";
 import { classNames } from "primereact/utils";
+import { InputNumber } from "primereact/inputnumber";
+import { TTypeDatatableProps } from "../models/component/TTypedDatatableProps";
 import { ColumnMeta } from "../models/component/ColumnMeta";
-import { TTypedDatatableProps } from "../models/component/TTypedDatatableProps";
 import { FilterMatchMode } from "primereact/api";
-
-interface Product {
-  productId: number;
-  productName: string;
-  unitPrice: number;
-}
+import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 
 export function TTypedDatatable<T extends Record<string, any>>({
   columns,
   data,
   primaryKey,
-  onSave,
-  onDelete,
-  products = [] as Product[], // pass products as a prop
-}: TTypedDatatableProps<T> & { products?: Product[] }) {
-  const [tableData, setTableData] = useState<T[]>([]);
+  isNew,
+  isSave,
+  isDelete,
+  onEdit,
+  onDelete
+}: TTypeDatatableProps<T>) {
+  const [tableData, setTableData] = useState<T[]>(data);
   const [editingRows, setEditingRows] = useState<{ [key: string]: boolean }>({});
   const [errors, setErrors] = useState<{ [rowId: string]: { [field: string]: string } }>({});
-  const [selectedRows, setSelectedRows] = useState<any[]>([]);
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [filters, setFilters] = useState<any>({});
-
-  // For Product search per row
-  const [showTableMap, setShowTableMap] = useState<{ [key: string]: boolean }>({});
-  const [searchTextMap, setSearchTextMap] = useState<{ [key: string]: string }>({});
-
-  useEffect(() => {
-    setTableData(data.map((d) => ({ ...d })));
-  }, [data]);
+  const [editDialogVisible, setEditDialogVisible] = useState(false);
+  const [editingRowData, setEditingRowData] = useState<T | null>(null);
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
 
   useEffect(() => {
     const f: any = { global: { value: null, matchMode: FilterMatchMode.CONTAINS } };
-    columns.forEach((c) => f[c.field] = { value: null, matchMode: FilterMatchMode.CONTAINS });
+    columns.forEach((c) => {
+      f[c.field] = { value: null, matchMode: FilterMatchMode.CONTAINS };
+    });
     setFilters(f);
   }, [columns]);
 
+  const getNextPrimaryKey = (): string => {
+    const maxId = Math.max(
+      0,
+      ...tableData.map((item) => Number(item[primaryKey]) || 0)
+    );
+    return (maxId + 1).toString();
+  };
+
   const addRow = () => {
-    if (Object.keys(editingRows).length > 0) return;
-    const newRow = columns.reduce((acc, col) => {
-      acc[col.field as string] = col.type === "checkbox" ? false : "";
-      return acc;
-    }, {} as Record<string, any>) as T;
+    // ✅ Check if any row is already open for editing
+    if (Object.keys(editingRows).length > 0) {
+      return;
+    }
 
-    (newRow[primaryKey] as any) = 0;
-    (newRow as any)._tempKey = `temp-${Date.now()}-${Math.random()}`;
-    (newRow as any)._edited = true;
+    const newRow = {} as T;
+    columns.forEach((col) => {
+      if (col.type === "checkbox") (newRow[col.field] as any) = false;
+      else (newRow[col.field] as any) = "";
+    });
+    (newRow[primaryKey] as any) = getNextPrimaryKey();
 
-    setTableData((prev) => [{ ...newRow }, ...prev]);
-    setEditingRows((prev) => ({ ...prev, [newRow._tempKey]: true }));
+    const newData = [...tableData, newRow];
+    setTableData(newData);
+
+    const newKey = newRow[primaryKey] as string;
+    setEditingRows({ [newKey]: true }); // ✅ open only this row
   };
 
   const validateRow = (rowData: T) => {
     const rowErrors: { [key: string]: string } = {};
+
     columns.forEach((col) => {
-      if (col.required && (rowData[col.field] === "" || rowData[col.field] == null)) {
+      // Conditional required for GST fields
+      if (
+        (col.field === "cgstRate" || col.field === "sgstRate") &&
+        (rowData["isGSTIncludedInPrice"] as boolean) === true &&
+        (rowData[col.field] === "" || rowData[col.field] == null)
+      ) {
+        rowErrors[col.field as string] = `${col.header} is required`;
+      }
+
+      // Normal required check
+      else if (col.required && (rowData[col.field] === "" || rowData[col.field] == null)) {
         rowErrors[col.field as string] = `${col.header} is required`;
       }
     });
+
     return rowErrors;
   };
 
@@ -77,55 +98,70 @@ export function TTypedDatatable<T extends Record<string, any>>({
     let valid = true;
     const allErrors: typeof errors = {};
     const rowsToReopen: { [key: string]: boolean } = {};
-    const changedRows: T[] = [];
 
     tableData.forEach((row) => {
       const rowErrors = validateRow(row);
-      const key = (row as any)._tempKey || row[primaryKey];
-
       if (Object.keys(rowErrors).length > 0) {
+        const key = row[primaryKey] as string;
         allErrors[key] = rowErrors;
-        rowsToReopen[key] = true;
+        rowsToReopen[key] = true; // ✅ reopen invalid rows
         valid = false;
-      } else {
-        const isNew = row[primaryKey] === 0;
-        const isEdited = !!row._edited;
-        if (isNew || isEdited) changedRows.push({ ...row });
       }
     });
 
     if (!valid) {
       setErrors(allErrors);
-      setEditingRows(rowsToReopen);
+      setEditingRows(rowsToReopen); // ✅ keep those rows open
       return;
     }
 
+    console.log("✅ Saved Data:", tableData);
     setErrors({});
     setEditingRows({});
-    if (onSave && changedRows.length > 0) onSave(changedRows);
   };
+  const handleValueChange = (value: any, options: any, col: ColumnMeta<T>) => {
+    const field = (options?.column?.field || options?.field) as keyof T;
 
-  const markRowEdited = (updatedRow: T) => {
-    const key = (updatedRow as any)._tempKey || updatedRow[primaryKey];
-    setTableData((prev) =>
-      prev.map((r) =>
-        (r._tempKey || r[primaryKey]) === key ? { ...r, ...updatedRow, _edited: true } : r
-      )
-    );
+    if (!field) {
+      console.warn("⚠️ Missing field in handleValueChange", options);
+      return;
+    }
+
+    const rowData = options.rowData as T;
+
+    const updatedTable = tableData.map((r) => {
+      if ((r as any).id === (rowData as any).id) {
+        let updatedRow = { ...r, [field]: value };
+
+        // ✅ Run custom logic (e.g., recalculate GST)
+        if (col.onValueChange) {
+          col.onValueChange(updatedRow, value, tableData, (newTable) => {
+            // if the custom handler wants to override the whole table
+            setTableData(newTable);
+          });
+        }
+
+        return updatedRow;
+      }
+      return r;
+    });
+
+    // ✅ Update React state with the newly computed row
+    setTableData(updatedTable);
+
+    // ✅ Sync PrimeReact’s internal value
+    if (options.editorCallback) {
+      options.editorCallback(value);
+    }
   };
 
   const cellEditor = (options: any, col: ColumnMeta<T>) => {
-    const key = options.rowData._tempKey || options.rowData[primaryKey];
-    const fieldError = errors[key]?.[col.field as string];
+    const rowId = options.rowData[primaryKey] as string;
+    const fieldError = errors[rowId]?.[col.field as string];
+
     const commonProps = {
       className: classNames({ "p-invalid border-red-500": !!fieldError }),
       style: { width: "100%" },
-    };
-
-    const updateValue = (value: any) => {
-      const updatedRow = { ...options.rowData, [col.field]: value };
-      options.editorCallback(value);
-      markRowEdited(updatedRow);
     };
 
     switch (col.type) {
@@ -137,214 +173,282 @@ export function TTypedDatatable<T extends Record<string, any>>({
               options={col.options || []}
               optionLabel="label"
               optionValue="value"
-              onChange={(e) => updateValue(e.value)}
+              onChange={(e) => options.editorCallback(e.value)}
               {...commonProps}
             />
-            {fieldError && <small className="p-error text-xs mt-1">{fieldError}</small>}
+            {fieldError && (
+              <small className="p-error text-xs mt-1">{fieldError}</small>
+            )}
           </div>
         );
+
       case "date":
         return (
           <div className="flex flex-col">
             <Calendar
               value={options.value ? new Date(options.value) : null}
-              onChange={(e) => updateValue(e.value)}
-              dateFormat="dd-mm-yy"
+              onChange={(e) => options.editorCallback(e.value)}
+              dateFormat="yy-mm-dd"
               {...commonProps}
             />
-            {fieldError && <small className="p-error text-xs mt-1">{fieldError}</small>}
+            {fieldError && (
+              <small className="p-error text-xs mt-1">{fieldError}</small>
+            )}
           </div>
         );
+
       case "checkbox":
         return (
           <div className="flex justify-center items-center h-full">
-            <Checkbox checked={!!options.value} onChange={(e) => updateValue(e.checked)} />
+            <Checkbox
+              checked={!!options.value}
+              onChange={(e) => options.editorCallback(e.checked)}
+            />
           </div>
         );
+
       case "number":
-      case "decimal":
-      case "gst":
-      // return (
-      //   <div className="flex flex-col">
-      //     <InputNumber
-      //       value={options.value}
-      //       onValueChange={(e) => updateValue(e.value)}
-      //       mode={col.type === "decimal" ? "decimal" : "currency"}
-      //       currency={col.type === "gst" ? "INR" : undefined}
-      //       locale="en-IN"
-      //       minFractionDigits={col.type === "decimal" ? 0 : undefined}
-      //       maxFractionDigits={col.type === "decimal" ? 2 : undefined}
-      //       style={{ width: "80%" }}
-      //     />
-      //     {fieldError && <small className="p-error text-xs mt-1">{fieldError}</small>}
-      //   </div>
-      // );
-      case "currency":
-        let inputMode: "decimal" | "currency" = "decimal";
-        let inputCurrency: string | undefined = undefined;
-        let minFrac: number | undefined = undefined;
-        let maxFrac: number | undefined = undefined;
-
-        if (col.type === "currency") {
-          inputMode = "currency";
-          inputCurrency = "INR";
-        } else if (col.type === "decimal" || col.type === "gst") {
-          inputMode = "decimal";
-          minFrac = 0;
-          maxFrac = 2;
-        } else {
-          inputMode = "decimal"; // number
-        }
-
         return (
           <div className="flex flex-col">
             <InputNumber
               value={options.value}
-              onValueChange={(e) => updateValue(e.value)}
-              mode={inputMode}
-              currency={inputCurrency}
+              onValueChange={(e) => options.editorCallback(e.value)}
+              mode="currency"
+              currency="INR"
               locale="en-IN"
-              minFractionDigits={minFrac}
-              maxFractionDigits={maxFrac}
+              style={{ width: "40%" }}
+            />
+            {fieldError && <small className="p-error">{fieldError}</small>}
+          </div>
+        );
+
+      case "decimal":
+        return (
+          <div className="flex flex-col">
+            <InputNumber
+              value={options.value}
+              onValueChange={(e) => options.editorCallback(e.value)}
+              mode="decimal"  // ✅ plain number
+              minFractionDigits={0}
+              maxFractionDigits={2}
+              style={{ width: "40%" }}
+            />
+            {fieldError && <small className="p-error">{fieldError}</small>}
+          </div>
+        );
+
+      case "gst":
+        return (
+          <div className="flex flex-col">
+            <InputNumber
+              value={options.value}
+              onValueChange={(e) =>
+                handleValueChange(e.value, { ...options, field: col.field }, col)
+              }
+              mode="decimal"           // ✅ ensures number mode
+              minFractionDigits={0}    // ✅ optional
+              maxFractionDigits={2}    // ✅ up to 2 decimal places
+              useGrouping={false}      // ✅ avoids commas (e.g., 1,000)
               style={{ width: "80%" }}
             />
-            {fieldError && <small className="p-error text-xs mt-1">{fieldError}</small>}
+            {fieldError && <small className="p-error">{fieldError}</small>}
           </div>
-        );
-      case "productSearch":
-        const filteredProducts = products.filter((p) =>
-          p.productName.toLowerCase().includes((searchTextMap[key] || "").toLowerCase())
-        );
-        return (
-          <div className="relative w-full">
-            <InputText
-              className="w-full"
-              value={options.value?.productName || ""}
-              placeholder="Search Item"
-              onChange={(e) => {
-                const val = e.target.value;
-                setSearchTextMap((prev) => ({ ...prev, [key]: val }));
-                setShowTableMap((prev) => ({ ...prev, [key]: val.trim() !== "" }));
-              }}
-              onFocus={() => setShowTableMap((prev) => ({ ...prev, [key]: true }))}
-            />
-            {showTableMap[key] && (
-              <>
-                <div className="fixed inset-0 bg-black opacity-20" onClick={() => setShowTableMap((prev) => ({ ...prev, [key]: false }))} />
-                <div className="absolute z-30 w-full max-h-64 overflow-auto bg-white border shadow-lg">
-                  <DataTable
-                    value={filteredProducts}
-                    size="small"
-                    responsiveLayout="scroll"
-                    showHeaders
-                    scrollable
-                  >
-                    <Column header="Select" body={(row) => (
-                      <RadioButton
-                        value={row.productId}
-                        onChange={() => {
-                          options.editorCallback(row);
-                          markRowEdited({ ...options.rowData, productId: row.productId, productName: row.productName });
-                          setShowTableMap((prev) => ({ ...prev, [key]: false }));
-                        }}
-                        checked={options.value?.productId === row.productId}
-                      />
-                    )} style={{ width: "60px" }} />
-                    <Column field="productName" header="Item Name" style={{ minWidth: "200px" }} />
-                    <Column field="unitPrice" header="Rate" style={{ minWidth: "120px" }} />
-                  </DataTable>
-                </div>
-              </>
-            )}
-          </div>
-        );
+        )
+
       default:
         return (
           <div className="flex flex-col">
             <InputText
               value={options.value || ""}
-              onChange={(e) => updateValue(e.target.value)}
+              onChange={(e) => options.editorCallback(e.target.value)}
               {...commonProps}
             />
-            {fieldError && <small className="p-error text-xs mt-1">{fieldError}</small>}
+            {fieldError && (
+              <small className="p-error text-xs mt-1">{fieldError}</small>
+            )}
           </div>
         );
     }
   };
 
-  const deleteSelected = () => {
-    if (!selectedRows.length) return;
-    const selectedIds = selectedRows.map((r) => r[primaryKey]);
-    const remaining = tableData.filter((r) => !selectedIds.includes(r[primaryKey]));
-    setTableData(remaining);
-    setSelectedRows([]);
-    if (onDelete) onDelete(selectedRows);
+  const rowEditorValidator = (rowData: T) => {
+    const rowErrors = validateRow(rowData);
+    const key = (rowData[primaryKey] as string) ?? "";
+
+    if (Object.keys(rowErrors).length > 0) {
+      // Keep row open
+      setErrors((prev) => ({ ...prev, [key]: rowErrors }));
+      setEditingRows((prev) => ({ ...prev, [key]: true }));
+      return false; // ❌ row not saved
+    }
+
+    // ✅ row valid, remove errors
+    setErrors((prev) => {
+      const copy = { ...prev };
+      delete copy[key];
+      return copy;
+    });
+
+    // Update tableData
+    setTableData((prev) =>
+      prev.map((item) => ((item[primaryKey] as string) === key ? rowData : item))
+    );
+
+    // Close the editing row
+    setEditingRows((prev) => {
+      const copy = { ...prev };
+      delete copy[key];
+      return copy;
+    });
+
+    return true;
   };
 
-  const isSaveEnabled = tableData.some((r) => r[primaryKey] === 0 || !!r._edited);
+  const updateGSTPrice = (rowData: any) => {
+    if (rowData["isGSTIncludedInPrice"]) {
+      const purchase = Number(rowData["purchasePrice"] || 0);
+      const cgst = Number(rowData["cgstRate"] || 0);
+      const sgst = Number(rowData["sgstRate"] || 0);
+
+      // GST calculation
+      rowData["gstPrice"] = purchase + (purchase * (cgst + sgst)) / 100;
+    } else {
+      rowData["gstPrice"] = Number(rowData["purchasePrice"] || 0);
+    }
+  };
+
+  const openEditDialog = (rowData: T) => {
+    setEditingRowData({ ...rowData });
+    setEditDialogVisible(true);
+  };
+
+  const actionBodyTemplate = (rowData: T) => (
+    <Button
+      icon="pi pi-pencil"
+      className="p-button-sm p-button-rounded p-button-outlined p-button-info"
+      style={{ width: '25px', height: '25px', padding: '0' }}
+      onClick={() => onEdit?.(rowData)}
+    />
+  );
+
+  const handleDelete = () => {
+    if (selectedRows.length === 0) return;
+
+    confirmDialog({
+      message: "Are you sure you want to delete the selected record(s)?",
+      header: "Confirm Delete",
+      icon: "pi pi-exclamation-triangle",
+      acceptLabel: "Yes",
+      rejectLabel: "No",
+      acceptClassName: "p-button-danger p-button-sm",
+      rejectClassName: "p-button-secondary p-button-sm",
+
+      accept: () => {
+        const remainingRows = tableData.filter(
+          (row) => !selectedRows.some((sel) => sel[primaryKey] === row[primaryKey])
+        );
+
+        // send deleted rows to parent
+        if (onDelete) {
+          onDelete(selectedRows);
+        }
+
+        setTableData(remainingRows);
+      }
+    });
+  };
+
 
   return (
     <div className="card p-3 h-[calc(100vh-100px)] overflow-auto">
+
       <div className="flex justify-between items-center mb-3">
-        <div className="flex gap-2 mb-3 flex-none">
-          <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} />
-          <Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll} disabled={!isSaveEnabled} />
-          <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={deleteSelected} disabled={!selectedRows.length} />
+        <div className="flex gap-2">
+          {isNew && <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} />}
+          {isSave && <Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll} />}
+          {isDelete && selectedRows.length > 0 && (
+            <Button
+              label="Delete"
+              icon="pi pi-trash"
+              severity="danger"
+              outlined
+              onClick={() => handleDelete()}
+            />
+          )}
         </div>
+
         <div className="ml-auto">
           <span className="p-input-icon-left relative w-64">
+            {/* Search Icon */}
             <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+
+            {/* Input Text */}
             <InputText
               value={globalFilter}
               onChange={(e) => {
                 setGlobalFilter(e.target.value);
-                setFilters((prev: any) => ({ ...prev, global: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS } }));
+                setFilters((prev: any) => ({
+                  ...prev,
+                  global: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
+                }));
               }}
               placeholder="Search..."
-              className="pl-10 w-full"
+              className="pl-10 w-full" // padding-left to leave space for icon + some buffer
             />
           </span>
         </div>
       </div>
 
-      <div className="flex-1 min-h-0">
-        <DataTable
-          value={tableData}
-          paginator
-          rows={10}
-          rowsPerPageOptions={[5, 10, 25, 50]}
-          dataKey={(rowData) => rowData._tempKey || rowData[primaryKey]}
-          editMode="row"
-          editingRows={editingRows}
-          onRowEditChange={(e: DataTableRowEditEvent) => setEditingRows(e.data)}
-          filters={filters}
-          globalFilterFields={columns.map((c) => c.field as string)}
-          size="small"
-          scrollable
-          selection={selectedRows}
-          onSelectionChange={(e) => setSelectedRows(e.value)}
-          rowClassName={(options) => (options.index % 2 === 0 ? "bg-gray-50" : "bg-white")}
-          emptyMessage="No records found."
-          scrollHeight="100%"
-        >
-          <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
-          <Column header="Sr. No." body={(_, options) => options.rowIndex + 1} style={{ width: "70px", minWidth: "70px" }} />
-          {columns.filter((col) => !col.hidden).map((col) => (
-            <Column
-              key={String(col.field)}
-              field={col.field as string}
-              header={<>{col.header}{col.required && <span className="text-red-500">*</span>}</>}
-              filter
-              showFilterMenu={false}
-              filterPlaceholder={`Search ${col.header}`}
-              editor={col.editable ? (options) => cellEditor(options, col) : undefined}
-              body={col.body ? (r: T) => col.body!(r) : undefined}
-              style={{ width: col.width || "auto", minWidth: col.width || "120px" }}
-            />
-          ))}
-          <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} />
-        </DataTable>
-      </div>
-    </div>
+      <ConfirmDialog />
+
+      <DataTable
+        value={tableData}
+        dataKey={primaryKey as string}
+        selection={selectedRows}
+        onSelectionChange={(e) => setSelectedRows(e.value)}
+        editMode="row"
+        editingRows={editingRows}
+        onRowEditChange={(e: DataTableRowEditEvent) => setEditingRows(e.data)}
+        rowEditValidator={rowEditorValidator}
+        size="small"
+        scrollable
+        style={{ width: "100%" }}
+        rowClassName={(rowData, rowIndex: any) =>
+          rowIndex % 2 === 0 ? "bg-gray-50" : "bg-white"
+        }
+        filters={filters}
+        globalFilterFields={columns.map((c) => c.field as string)}
+        paginator
+        rows={10} // rows per page
+        rowsPerPageOptions={[5, 10, 25, 50]}
+      >
+        <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
+        <Column
+          header="Sr. No."
+          body={(_, options) => options.rowIndex + 1}
+          style={{ width: "70px", minWidth: "70px" }}
+        />
+        {columns.filter(col => !col.hidden).map((col) => (
+          <Column
+            key={String(col.field)}
+            field={col.field as string}
+            header={
+              <>
+                {col.header} {col.required && <span className="required-asterisk">*</span>}
+              </>
+            }
+            editor={col.editable ? (options) => cellEditor(options, col) : undefined}
+            body={col.body ? (rowData: T) => col.body!(rowData) : undefined}
+            style={{
+              width: col.width || "auto",
+              minWidth: col.width || "120px",
+            }}
+            frozen={col.frozen}
+          />
+        ))}
+
+        <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} />
+      </DataTable>
+    </div >
   );
 }

@@ -1,13 +1,13 @@
 export interface PurchaseItemModel {
     purchaseItemId: number;
-    purchaseId?: number;       // Optional for new items
+    purchaseId?: number;
     productId: number;
     productName: string;
     quantity: number;
-    unitId: number;
     unitPrice: number;
     gstRate: number;
     gstAmount: number;
     total: number;
-    hsnCode?: string;
+    grandTotal: number;
+    isNew: boolean;
 }
