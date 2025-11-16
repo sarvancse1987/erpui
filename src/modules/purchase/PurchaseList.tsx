@@ -37,8 +37,11 @@ export default function PurchaseList() {
     const createEmptyPurchase = (): PurchaseModel => ({
         purchaseId: 0,
         supplierId: 0,
+        supplierName: "",
         purchaseDate: new Date().toISOString(),
         invoiceDate: new Date().toISOString(),
+        invoiceAmount: 0,
+        invoiceNumber: "",
         totalAmount: 0,
         gstAmount: 0,
         grandTotal: 0,

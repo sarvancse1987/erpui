@@ -13,6 +13,7 @@ import { TTypedDatatableProps } from "../models/component/TTypedDatatableProps";
 import { FilterMatchMode } from "primereact/api";
 import { Sidebar } from "primereact/sidebar";
 import { ProductModel, ProductSearchModel } from "../models/product/ProductModel";
+import { Paginator } from "primereact/paginator";
 
 export function TTypedSideBarDatatable<T extends Record<string, any>>({
   columns,
@@ -38,6 +39,8 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
   const [sidebarRowKey, setSidebarRowKey] = useState<string | number | null>(null);
   const [sidebarSelectedProducts, setSidebarSelectedProducts] = useState<ProductModel[]>([]);
   const [sidebarSearchText, setSidebarSearchText] = useState("");
+  const [first, setFirst] = useState(0);
+  const [rows, setRows] = useState(10);
 
   useEffect(() => {
     setTableData(data.map((d) => ({ ...d })));
@@ -337,31 +340,6 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
     }
   };
 
-  const onCellEditComplete = (e: any) => {
-    const { rowData, field, newValue } = e;
-    const updatedRow = { ...rowData, [field]: newValue };
-
-    // Auto-calculate total if unitPrice or quantity changes
-    if (field === "unitPrice" || field === "quantity") {
-      const unitPrice = parseFloat(updatedRow.unitPrice) || 0;
-      const quantity = parseFloat(updatedRow.quantity) || 0;
-      updatedRow.total = parseFloat((unitPrice * quantity).toFixed(2));
-
-      const gstRate = parseFloat(updatedRow.gstRate) || 0;
-      updatedRow.gstAmount = parseFloat(((updatedRow.total * gstRate) / 100).toFixed(2));
-    }
-
-    // Auto-calculate GST if gstRate changes
-    if (field === "gstRate") {
-      const total = parseFloat(updatedRow.total) || 0;
-      const gstRate = parseFloat(updatedRow.gstRate) || 0;
-      updatedRow.gstAmount = parseFloat(((total * gstRate) / 100).toFixed(2));
-    }
-
-    markRowEdited(updatedRow);
-    e.editorCallback(newValue); // pass only the value
-  };
-
   const deleteSelected = () => {
     if (!selectedRows.length) return;
     const selectedIds = selectedRows.map((r) => r[primaryKey]);
@@ -400,7 +378,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
       <div className="flex-1 min-h-0">
         <DataTable
           value={tableData}
-          paginator
+          paginator={false}
           rows={10}
           rowsPerPageOptions={[5, 10, 25, 50]}
           dataKey={(rowData) => rowData._tempKey || rowData[primaryKey]}
@@ -417,11 +395,53 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
           emptyMessage="No records found."
           scrollHeight="100%"
           footer={
-            <div className="w-full flex justify-end gap-6 pr-4">
-              <div>Total Amount: ₹{tableData.reduce((acc, r) => acc + (r.total || 0), 0).toFixed(2)}</div>
-              <div>GST Amount: ₹{tableData.reduce((acc, r) => acc + (r.gstAmount || 0), 0).toFixed(2)}</div>
-              <div>Grand Total: ₹{tableData.reduce((acc, r) => acc + (r.grandTotal || 0), 0).toFixed(2)}</div>
+            <div className="custom-footer flex gap-4">
+              {/* Total Amount */}
+              <div
+                className="flex items-center justify-center px-4 py-2 text-base font-semibold"
+                style={{
+                  background: "#0CA678",   // Modern Emerald Green
+                  color: "white",
+                  borderRadius: "0px",
+                  minWidth: "180px",
+                  textAlign: "center"
+                }}
+              >
+                Total Amount: ₹
+                {tableData.reduce((a, r) => a + (r.total || 0), 0).toFixed(2)}
+              </div>
+
+              {/* GST Amount */}
+              <div
+                className="flex items-center justify-center px-4 py-2 text-base font-semibold"
+                style={{
+                  background: "#F4B400",   // Modern Yellow
+                  color: "black",
+                  borderRadius: "0px",
+                  minWidth: "180px",
+                  textAlign: "center"
+                }}
+              >
+                GST Amount: ₹
+                {tableData.reduce((a, r) => a + (r.gstAmount || 0), 0).toFixed(2)}
+              </div>
+
+              {/* Grand Total */}
+              <div
+                className="flex items-center justify-center px-4 py-2 text-base font-semibold"
+                style={{
+                  background: "#3B82F6",   // Nice Blue
+                  color: "white",
+                  borderRadius: "0px",
+                  minWidth: "180px",
+                  textAlign: "center"
+                }}
+              >
+                Grand Total: ₹
+                {tableData.reduce((a, r) => a + (r.grandTotal || 0), 0).toFixed(2)}
+              </div>
             </div>
+
           }
         >
           <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
@@ -441,6 +461,18 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
           ))}
           <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} />
         </DataTable>
+
+        <Paginator
+          first={first}
+          rows={rows}
+          totalRecords={tableData.length}
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          onPageChange={(e) => {
+            setFirst(e.first);
+            setRows(e.rows);
+          }}
+          className="mt-3"
+        />
 
         <Sidebar
           visible={productSidebarVisible}

@@ -138,7 +138,8 @@ code {
 }
 
 .mandatory-error {
-  color: #d9534f; /* Red color */
+  color: #d9534f;
+  /* Red color */
   font-size: 0.75rem;
   margin-top: 2px;
   display: block;
@@ -151,7 +152,16 @@ code {
 /* Asterisk styling */
 .mandatory-asterisk {
   color: #d9534f;
-  font-size: 0.85em; /* slightly smaller than label */
-  vertical-align: super; /* aligns nicely with text */
-  margin-left: 2px; /* small spacing from label */
+  font-size: 0.85em;
+  /* slightly smaller than label */
+  vertical-align: super;
+  /* aligns nicely with text */
+  margin-left: 2px;
+  /* small spacing from label */
+}
+
+.p-datatable-footer {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: flex-end !important;
 }
