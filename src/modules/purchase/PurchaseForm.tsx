@@ -81,7 +81,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     },
     { field: "unitPrice", header: "Rate", editable: true, type: "currency", required: true },
     { field: "quantity", header: "Qty", editable: true, type: "decimal", required: true },
-    { field: "gstRate", header: "GST %", editable: true, type: "gst", required: true },
+    { field: "gstRate", header: "GST %", editable: true, type: "decimal", required: true },
     {
       field: "total",
       header: "Amount",

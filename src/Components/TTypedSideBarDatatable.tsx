@@ -146,6 +146,10 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
       style: { width: "100%" },
     };
 
+    const showError =
+      (col.required && (options.value === null || options.value === "")) ||
+      !!errors[key]?.[col.field as string];
+
     const updateValue = (value: any) => {
       const updatedRow = { ...options.rowData, [col.field]: value };
       options.editorCallback(value);
@@ -155,25 +159,28 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
     switch (col.type) {
       case "inputdisabled":
         return (
-          <div className={classNames("flex flex-col", { "mandatory-border": !!fieldError })}>
-            <InputText
-              value={options.value || ""} disabled
-              {...commonProps}
-            />
-          </div>
+
+          <InputText
+            value={options.value || ""} disabled
+
+            className={classNames({ "p-invalid": showError })}
+            style={{ width: "100%" }}
+          />
+
         );
       case "select":
         return (
-          <div className={classNames("flex flex-col", { "mandatory-border": !!fieldError })}>
-            <Dropdown
-              value={options.value}
-              options={col.options || []}
-              optionLabel="label"
-              optionValue="value"
-              onChange={(e) => updateValue(e.value)}
-              {...commonProps}
-            />
-          </div>
+
+          <Dropdown
+            value={options.value}
+            options={col.options || []}
+            optionLabel="label"
+            optionValue="value"
+            onChange={(e) => updateValue(e.value)}
+            className={classNames({ "p-invalid": showError })}
+            style={{ width: "100%" }}
+          />
+
         );
       case "selectsearch":
         return (
@@ -226,50 +233,46 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
         }
 
         return (
-          <div className={classNames("flex flex-col", { "mandatory-border": !!fieldError })}>
-            <InputNumber
-              value={options.value}
-              onValueChange={(e) => {
-                const updatedRow = { ...options.rowData, [col.field]: e.value };
+          <InputNumber
+            value={options.value}
+            onValueChange={(e) => {
+              const updatedRow = { ...options.rowData, [col.field]: e.value };
 
-                // Auto-calculate total if unitPrice or quantity changes
-                if (col.field === "unitPrice" || col.field === "quantity") {
-                  const unitPrice = parseFloat(updatedRow.unitPrice) || 0;
-                  const quantity = parseFloat(updatedRow.quantity) || 0;
-                  updatedRow.total = parseFloat((unitPrice * quantity).toFixed(2));
+              // Auto-calculate total if unitPrice or quantity changes
+              if (col.field === "unitPrice" || col.field === "quantity") {
+                const unitPrice = parseFloat(updatedRow.unitPrice) || 0;
+                const quantity = parseFloat(updatedRow.quantity) || 0;
+                updatedRow.total = parseFloat((unitPrice * quantity).toFixed(2));
 
-                  const gstRate = parseFloat(updatedRow.gstRate) || 0;
-                  updatedRow.gstAmount = parseFloat(((updatedRow.total * gstRate) / 100).toFixed(2));
-                }
+                const gstRate = parseFloat(updatedRow.gstRate) || 0;
+                updatedRow.gstAmount = parseFloat(((updatedRow.total * gstRate) / 100).toFixed(2));
+              }
 
-                // Auto-calculate GST if gstRate changes
-                if (col.field === "gstRate") {
-                  const total = parseFloat(updatedRow.total) || 0;
-                  const gstRate = parseFloat(updatedRow.gstRate) || 0;
-                  updatedRow.gstAmount = parseFloat(((total * gstRate) / 100).toFixed(2));
-                }
+              // Auto-calculate GST if gstRate changes
+              if (col.field === "gstRate") {
+                const unitPrice = parseFloat(updatedRow.unitPrice) || 0;
+                const quantity = parseFloat(updatedRow.quantity) || 0;
+                const total = parseFloat((unitPrice * quantity).toFixed(2));
+                const gstRate = parseFloat(updatedRow.gstRate) || 0;
+                updatedRow.gstAmount = parseFloat(((total * gstRate) / 100).toFixed(2));
+              }
 
-                options.editorCallback(e.value);
-                markRowEdited(updatedRow);
-              }}
-              mode={inputMode}
-              currency={inputCurrency}
-              locale="en-IN"
-              minFractionDigits={minFrac}
-              maxFractionDigits={maxFrac}
-              style={{ width: "80%" }}
-            />
-            {errors[options.rowData._tempKey || options.rowData[primaryKey]]?.[col.field as string] && (
-              <small className="p-error text-xs mt-1">
-                {errors[options.rowData._tempKey || options.rowData[primaryKey]][col.field as string]}
-              </small>
-            )}
-          </div>
+              options.editorCallback(e.value);
+              markRowEdited(updatedRow);
+            }}
+            mode={inputMode}
+            currency={inputCurrency}
+            locale="en-IN"
+            minFractionDigits={minFrac}
+            maxFractionDigits={maxFrac}
+            className={classNames({ "p-invalid": showError })}
+            style={{ width: "100%" }}
+          />
+
         );
       case "gst":
         return (
           <InputText
-            className={classNames("flex flex-col", { "mandatory-border": !!fieldError })}
             value={options.value || ""}
             onChange={(e) => {
               const val = e.target.value;
@@ -286,6 +289,8 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                 markRowEdited(updatedRow);
               }
             }}
+            className={classNames({ "p-invalid": showError })}
+            style={{ width: "100%" }}
           />
         );
       case "productSearch":
@@ -401,7 +406,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
               <div
                 className="flex items-center justify-center px-4 py-2 text-base font-semibold"
                 style={{
-                  background: "#0CA678",   // Modern Emerald Green
+                  background: "#2ecc71",   // Modern Emerald Green
                   color: "white",
                   borderRadius: "0px",
                   minWidth: "180px",
@@ -416,7 +421,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
               <div
                 className="flex items-center justify-center px-4 py-2 text-base font-semibold"
                 style={{
-                  background: "#F4B400",   // Modern Yellow
+                  background: "#f1c40f",   // Modern Yellow
                   color: "black",
                   borderRadius: "0px",
                   minWidth: "180px",
@@ -431,7 +436,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
               <div
                 className="flex items-center justify-center px-4 py-2 text-base font-semibold"
                 style={{
-                  background: "#3B82F6",   // Nice Blue
+                  background: "#3498db",   // Nice Blue
                   color: "white",
                   borderRadius: "0px",
                   minWidth: "180px",
