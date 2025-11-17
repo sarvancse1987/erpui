@@ -372,7 +372,7 @@ export default function ProductList() {
           position="right"
           onHide={() => setSidebarVisible(false)}
           header="Edit Product"
-          style={{ width: '68rem', height: '100%' }}
+          style={{ width: '75rem', height: '100%' }}
         >
           {selectedProduct ? (
             <div className="p-4 overflow-y-auto max-h-[80vh]"> {/* scrollable for longer forms */}

@@ -26,6 +26,8 @@ export default function PurchaseList() {
     >({});
     const [triggerValidation, setTriggerValidation] = useState(0);
     const [viewType, setViewType] = useState<"simple" | "detailed">("simple");
+    const [editParentRow, setEditParentRow] = useState<PurchaseModel | null>(null);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const loadAllData = async () => {
         setLoading(true);
@@ -33,7 +35,7 @@ export default function PurchaseList() {
             const res = await apiService.get(`/Purchase/purchasedetails`);
             const mapped = res.purchase.map((p: any) => ({
                 ...p,
-                items: res.items.filter((i: any) => i.purchaseId === p.purchaseId),
+                purchaseItems: res.items.filter((i: any) => i.purchaseId === p.purchaseId),
             }));
             setPurchases(mapped ?? []);
         } catch (err) {
@@ -46,6 +48,11 @@ export default function PurchaseList() {
     useEffect(() => {
         loadAllData();
     }, []);
+
+    const handleParentEdit = (row: PurchaseModel) => {
+        setEditParentRow(row);       // set the row data to edit
+        setIsSidebarOpen(true);      // open sidebar/modal for editing
+    };
 
     const createEmptyPurchase = (): PurchaseModel => ({
         purchaseId: 0,
@@ -382,9 +389,10 @@ export default function PurchaseList() {
                                 parentData={purchases}
                                 parentColumns={parentColumns as ColumnMeta<PurchaseModel>[]}
                                 childColumns={childColumns as ColumnMeta<PurchaseItemModel>[]}
-                                childField={"items" as keyof PurchaseModel}
+                                childField={"purchaseItems" as keyof PurchaseModel}
                                 rowKey={"purchaseId" as keyof PurchaseModel}
                                 expandAllInitially={false}
+                                onEdit={handleParentEdit}
                             />
                         </div>
                     )}
@@ -422,7 +430,11 @@ export default function PurchaseList() {
                 </TabPanel>
             </TabView>
 
-            <Sidebar visible={sidebarVisible} position="right" onHide={() => setSidebarVisible(false)} header="Edit Purchase" style={{ width: '60rem' }}>
+            <Sidebar visible={sidebarVisible}
+                position="right"
+                onHide={() => setSidebarVisible(false)}
+                header="Edit Purchase"
+                style={{ width: '70rem' }}>
                 {selectedPurchase ? (
                     <PurchaseForm
                         key={selectedPurchase.purchaseId || "edit"}
@@ -436,6 +448,38 @@ export default function PurchaseList() {
                     />
                 ) : <p className="p-4 text-gray-500 text-center">Select a purchase to edit.</p>}
             </Sidebar>
+
+            {isSidebarOpen && editParentRow && (
+                <Sidebar
+                    position="right"
+                    visible={isSidebarOpen}
+                    onHide={() => setIsSidebarOpen(false)}
+                    header="Edit Purchase"
+                    style={{ width: '70rem' }}
+                >
+                    <PurchaseForm
+                        key={editParentRow.purchaseId || "edit"}
+                        purchase={editParentRow}
+                        newPurchase={editParentRow}
+                        validationErrors={validationErrors}
+                        onSave={(updated) => {
+                            // update purchases state
+                            setPurchases((prev) =>
+                                prev.map((p) => (p.purchaseId === updated.purchaseId ? updated : p))
+                            );
+                            setIsSidebarOpen(false);
+                            setEditParentRow(null);
+                            showSuccess("Purchase updated successfully!");
+                        }}
+                        onCancel={() => {
+                            setIsSidebarOpen(false);
+                            setEditParentRow(null);
+                        }}
+                        isEditSidebar={true}
+                        triggerValidation={triggerValidation}
+                    />
+                </Sidebar>
+            )}
         </div>
     );
 }

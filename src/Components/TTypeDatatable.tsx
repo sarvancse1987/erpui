@@ -426,8 +426,8 @@ export function TTypeDatatable<T extends Record<string, any>>({
           />
         ))}
 
-        {/* <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} /> */}
-        <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} />
+        <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} />
+        {/* <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} /> */}
       </DataTable>
     </div >
   );

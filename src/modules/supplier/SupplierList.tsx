@@ -205,7 +205,7 @@ export default function SupplierList() {
                 position="right"
                 onHide={() => setSidebarVisible(false)}
                 header="Edit Supplier"
-                style={{ width: "60rem" }}
+                style={{ width: "70rem" }}
             >
                 {selectedSupplier ? (
                     <SupplierForm

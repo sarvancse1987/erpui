@@ -7,14 +7,14 @@ export interface PurchaseModel {
     supplierName?: string;
     invoiceNumber: string;
     invoiceAmount: number;
-    invoiceDate: string;
-    purchaseDate: string;
+    invoiceDate: string | Date | null;
+    purchaseDate: string | Date | null;
     totalAmount: number;
     totalGST: number;
     grandTotal: number;
     purchaseTypeId: number;
     paidAmount: number;
-    purchaseRefNo?:string;
+    purchaseRefNo?: string;
     remarks?: string;
     isActive: boolean;
     purchaseItems: PurchaseItemModel[];

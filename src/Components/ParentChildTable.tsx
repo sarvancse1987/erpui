@@ -21,6 +21,7 @@ interface ParentChildTableProps<ParentType, ChildType> {
     childField: keyof ParentType; // the property in parent that holds child array
     rowKey: keyof ParentType;
     expandAllInitially?: boolean;
+    onEdit?: (row: ParentType) => void;
 }
 
 export function ParentChildTable<ParentType extends Record<string, any>, ChildType extends Record<string, any>>({
@@ -30,6 +31,7 @@ export function ParentChildTable<ParentType extends Record<string, any>, ChildTy
     childField,
     rowKey,
     expandAllInitially = false,
+    onEdit,
 }: ParentChildTableProps<ParentType, ChildType>) {
     const [expandedRows, setExpandedRows] = useState<any>(
         expandAllInitially
@@ -113,6 +115,23 @@ export function ParentChildTable<ParentType extends Record<string, any>, ChildTy
                 {parentColumns.map((col, idx) => (
                     <Column key={idx} field={col.field as string} header={col.header} body={col.body} style={{ width: col.width }} />
                 ))}
+                {onEdit && (
+                    <Column
+                        key="edit"
+                        header=""
+                        body={(rowData: ParentType) => (
+                            <Button
+                                icon="pi pi-pencil"
+                                className="p-button-sm p-button-rounded p-button-outlined p-button-info"
+                                style={{ width: '25px', height: '25px', padding: '0' }}
+                                onClick={() => onEdit(rowData)}
+                            />
+                        )}
+                        style={{ width: "3rem", textAlign: "center" }}
+                        frozen={false} // optional: can make it frozen if needed
+                    />
+                )}
+
             </DataTable>
         </div>
     );
