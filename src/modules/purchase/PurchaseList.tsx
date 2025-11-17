@@ -8,6 +8,10 @@ import apiService from "../../services/apiService";
 import { PurchaseForm } from "./PurchaseForm";
 import { TTypeDatatable } from "../../components/TTypeDatatable";
 import { ColumnMeta } from "../../models/component/ColumnMeta";
+import { Tag } from "primereact/tag";
+import { RadioButton } from "primereact/radiobutton";
+import { ParentChildTable } from "../../components/ParentChildTable";
+import { PurchaseItemModel } from "../../models/purchase/PurchaseItemModel";
 
 export default function PurchaseList() {
     const [purchases, setPurchases] = useState<PurchaseModel[]>([]);
@@ -21,13 +25,18 @@ export default function PurchaseList() {
         Record<number, Record<string, string>>
     >({});
     const [triggerValidation, setTriggerValidation] = useState(0);
+    const [viewType, setViewType] = useState<"simple" | "detailed">("simple");
 
     // Load all data
     const loadAllData = async () => {
         setLoading(true);
         try {
-            const purchasesRes = await apiService.get("/Purchase");
-            setPurchases(purchasesRes ?? []);
+            const res = await apiService.get(`/Purchase/purchasedetails`);
+            const mapped = res.purchase.map((p: any) => ({
+                ...p,
+                items: res.items.filter((i: any) => i.purchaseId === p.purchaseId),
+            }));
+            setPurchases(mapped ?? []);
         } catch (err) {
             console.error(err);
         } finally {
@@ -52,6 +61,8 @@ export default function PurchaseList() {
         totalGST: 0,
         grandTotal: 0,
         isActive: true,
+        purchaseTypeId: 0,
+        paidAmount: 0,
         purchaseItems: [],
     });
 
@@ -119,18 +130,192 @@ export default function PurchaseList() {
         }
     };
 
+    const handleDeletePurchase = async (rows: PurchaseModel[]) => {
+        try {
+            // Extract IDs only
+            const ids = rows.map(r => r.purchaseId);
+
+            // Call API (bulk delete)
+            await apiService.post("/purchase/bulk-delete", ids);
+
+            showSuccess("Purchase(s) deleted successfully!");
+
+            // Reload table
+            //await loadSuppliers();
+        } catch (err) {
+            console.error(err);
+            showError("Error deleting suppliers");
+        }
+    };
+
     const columns: ColumnMeta<PurchaseModel>[] = [
         { field: "purchaseId", header: "ID", width: "80px", editable: false, hidden: true },
-        { field: "purchaseName", header: "Name", width: "220px" },
-        { field: "invoiceNumber", header: "Invoice Number", width: "180px" },
-        { field: "invoiceAmount", header: "Invoice Amount", width: "160px" },
-        { field: "invoiceDate", header: "Invoice Date", width: "140px" },
-        { field: "purchaseDate", header: "Purchase Date", width: "140px" },
-        { field: "totalAmount", header: "Total Amount", width: "220px" },
-        { field: "totalGST", header: "Gst Amount", width: "220px" },
-        { field: "grandTotal", header: "Grant Amount", width: "220px" },
-        { field: "isActive", header: "Active", width: "100px", body: (row) => (row.isActive ? "✅" : "❌"), editable: false, hidden: true },
+        { field: "supplierId", header: "ID", width: "80px", editable: false, hidden: true },
+        { field: "supplierName", header: "Supplier Name", width: "220px" },
+        { field: "invoiceNumber", header: "Invoice Number", width: "130px" },
+        { field: "purchaseRefNo", header: "Ref No", width: "170px" },
+        { field: "purchaseDate", header: "Purchase Date", width: "130px" },
+        {
+            field: "invoiceAmount",
+            header: "Invoice Amount",
+            width: "130px",
+            body: (row) =>
+                row.invoiceAmount != null
+                    ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.invoiceAmount)
+                    : "",
+        },
+        {
+            field: "paidAmount",
+            header: "Paid Amount",
+            width: "130px",
+            body: (row) => {
+                if (row.paidAmount == null) return "";
+
+                const isPaidFull = row.paidAmount === row.invoiceAmount;
+
+                return (
+                    <Tag
+                        value={new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.paidAmount)}
+                        severity={isPaidFull ? "success" : "danger"} // green for full, red otherwise
+                        rounded
+                        className="px-2 py-1 text-sm"
+                    />
+                );
+            },
+        },
+        {
+            field: "totalAmount",
+            header: "Total Amount",
+            width: "130px",
+            body: (row) =>
+                row.totalAmount != null
+                    ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.totalAmount)
+                    : "",
+        },
+        {
+            field: "totalGST",
+            header: "Gst Amount",
+            width: "110px",
+            body: (row) =>
+                row.totalGST != null
+                    ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.totalGST)
+                    : "",
+        },
+        {
+            field: "grandTotal",
+            header: "Grand Total",
+            width: "130px",
+            body: (row) =>
+                row.grandTotal != null
+                    ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.grandTotal)
+                    : "",
+        },
+        { field: "invoiceDate", header: "Invoice Date", width: "130px" },
     ];
+
+    const parentColumns = [
+        { field: "supplierName", header: "Supplier" },
+        { field: "invoiceNumber", header: "Invoice No" },
+        { field: "purchaseRefNo", header: "Ref No", width: "170px" },
+        { field: "purchaseDate", header: "Purchase Date", width: "130px" },
+        {
+            field: "invoiceAmount",
+            header: "Invoice Amount",
+            body: (row: PurchaseModel) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.invoiceAmount)
+        },
+        {
+            field: "paidAmount",
+            header: "Paid Amount",
+            body: (row: PurchaseModel) => (
+                <Tag
+                    value={new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.paidAmount)}
+                    severity={row.paidAmount === row.invoiceAmount ? "success" : "danger"}
+                    rounded
+                />
+            )
+        },
+        {
+            field: "grandTotal",
+            header: "Grand Total",
+            body: (row: PurchaseModel) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.grandTotal)
+        }
+    ];
+
+    const childColumns: ColumnMeta<PurchaseItemModel>[] = [
+        { field: "productName", header: "Product Name" },
+        {
+            field: "unitPrice", header: "Rate",
+            body: (row: PurchaseItemModel) =>
+                new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.unitPrice)
+        },
+        {
+            field: "quantity",
+            header: "Qty",
+            body: (row: PurchaseItemModel) => row.quantity.toFixed(2)
+        },
+        { field: "gstPercent", header: "GST %", editable: true, type: "decimal", required: true },
+        {
+            field: "amount",
+            header: "Amount",
+            editable: false,
+            body: (row: PurchaseItemModel) => (
+                <div
+                    className="flex items-center justify-center py-2 px-2 text-sm font-semibold"
+                    style={{
+                        background: "#2ecc71",
+                        color: "white",
+                        borderRadius: "0px",
+                        minWidth: "90px",
+                        textAlign: "center",
+                        height: "100%",
+                    }}
+                >
+                    ₹{(row.amount ?? 0).toFixed(2)}
+                </div>
+            ),
+        },
+        {
+            field: "gstAmount",
+            header: "GST Amount",
+            editable: false,
+            body: (row: PurchaseItemModel) => (
+                <div
+                    className="flex items-center justify-center py-2 px-2 text-sm font-semibold"
+                    style={{
+                        background: "#f1c40f",
+                        color: "black",
+                        borderRadius: "0px",
+                        minWidth: "90px",
+                        textAlign: "center",
+                        height: "100%",
+                    }}
+                >
+                    ₹{(row.gstAmount ?? 0).toFixed(2)}
+                </div>
+            ),
+        },
+        {
+            field: "totalAmount",
+            header: "Grand Total",
+            editable: false,
+            body: (row: PurchaseItemModel) => (
+                <div
+                    className="flex items-center justify-center py-2 px-2 text-sm font-semibold"
+                    style={{
+                        background: "#3498db",
+                        color: "white",
+                        borderRadius: "0px",
+                        minWidth: "90px",
+                        textAlign: "center",
+                        height: "100%",
+                    }}
+                >
+                    ₹{(row.totalAmount ?? 0).toFixed(2)}
+                </div>
+            ),
+        },
+    ];
+
 
     if (loading) return <p>Loading purchases...</p>;
 
@@ -140,17 +325,53 @@ export default function PurchaseList() {
 
             <TabView>
                 <TabPanel header="Purchases">
-                    {purchases.length === 0 ? <p>No purchases found.</p> : (
+
+                    <div className="flex gap-4 mb-3">
+                        <div className="flex items-center gap-1">
+                            <RadioButton
+                                inputId="simpleView"
+                                name="viewType"
+                                value="simple"
+                                onChange={(e) => setViewType(e.value)}
+                                checked={viewType === "simple"}
+                            />
+                            <label htmlFor="simpleView" className="text-sm">Simple View</label>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <RadioButton
+                                inputId="detailedView"
+                                name="viewType"
+                                value="detailed"
+                                onChange={(e) => setViewType(e.value)}
+                                checked={viewType === "detailed"}
+                            />
+                            <label htmlFor="detailedView" className="text-sm">Detailed View</label>
+                        </div>
+                    </div>
+
+                    {purchases.length === 0 ? (
+                        <p>No purchases found.</p>
+                    ) : viewType === "simple" ? (
+                        <TTypeDatatable<PurchaseModel>
+                            data={purchases}
+                            columns={columns}
+                            primaryKey="purchaseId"
+                            onEdit={handleOpenEdit}
+                            isDelete={true}
+                            onDelete={handleDeletePurchase}
+                            isNew={false}
+                            isSave={false}
+                        />
+                    ) : (
+                        // Detailed view: parent-child
                         <div className="space-y-2">
-                            <TTypeDatatable<PurchaseModel>
-                                data={purchases}
-                                columns={columns}
-                                primaryKey="supplierId"
-                                onEdit={handleOpenEdit}
-                                isDelete={true}
-                                //onDelete={handleDeleteSuppliers}
-                                isNew={true}
-                                isSave={true}
+                            <ParentChildTable<PurchaseModel, PurchaseItemModel>
+                                parentData={purchases}
+                                parentColumns={parentColumns as ColumnMeta<PurchaseModel>[]}
+                                childColumns={childColumns as ColumnMeta<PurchaseItemModel>[]}
+                                childField={"items" as keyof PurchaseModel}  // cast as keyof
+                                rowKey={"purchaseId" as keyof PurchaseModel}        // cast as keyof
+                                expandAllInitially={false}
                             />
                         </div>
                     )}

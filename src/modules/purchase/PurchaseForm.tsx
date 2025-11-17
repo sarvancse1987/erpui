@@ -10,6 +10,8 @@ import { useToast } from "../../components/ToastService";
 import apiService from "../../services/apiService";
 import { TTypedSideBarDatatable } from "../../components/TTypedSideBarDatatable";
 import { InputNumber } from "primereact/inputnumber";
+import { Dropdown } from "primereact/dropdown";
+import { PurchaseTypeModel } from "../../models/purchase/purchaseTypemodel";
 
 interface PurchaseFormProps {
   newPurchase: PurchaseModel;
@@ -49,6 +51,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
   const { showSuccess, showError } = useToast();
   const [suppliers, setSuppliers] = useState<SupplierModel[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [purchaseTypes, setPurchaseTypes] = useState<{ label: string; value: number }[]>([]);
   const [itemErrors, setItemErrors] = useState<Record<string, Record<string, string>>>({});
   const [saveTrigger, setSaveTrigger] = useState(0);
 
@@ -62,6 +65,18 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
 
       const productsRes = await apiService.get("/Product");
       setProducts(productsRes ?? []);
+
+      const purchaseTypesRes = await apiService.get("/PurchaseType") as PurchaseTypeModel[];
+      const purchaseTypeOptions = (purchaseTypesRes ?? []).map(pt => ({
+        label: pt.purchaseTypeName,
+        value: pt.purchaseTypeId
+      }));
+      setPurchaseTypes(purchaseTypeOptions);
+
+      const cashOption = purchaseTypeOptions.find(pt => pt.label.toLowerCase() === "cash");
+      if (cashOption) {
+        setFormData((prev) => ({ ...prev, purchaseTypeId: cashOption.value }));
+      }
 
     } catch (err) {
       console.error(err);
@@ -206,6 +221,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
       errors.invoiceAmount = "Invoice Amount is required";
     if (!formData.invoiceDate) errors.invoiceDate = "Invoice Date is required";
     if (!formData.purchaseDate) errors.purchaseDate = "Purchase Date is required";
+    if (!formData.purchaseTypeId) errors.purchaseTypeId = "Purchase Type is required";
 
     const itemErrs = validateItems(formData.purchaseItems);
     setItemErrors(itemErrs);
@@ -226,7 +242,6 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     e.preventDefault();
 
     if (!runLocalValidation()) {
-      showError("Please fix validation errors.");
       return;
     }
 
@@ -235,12 +250,12 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
 
 
   return (
-    <form onSubmit={handleSubmit} className="border border-gray-200 rounded-md p-2">
+    <form onSubmit={handleSubmit} className="border border-gray-200 rounded-md p-1">
       {/* Supplier & Dates */}
-      <div className="flex flex-wrap gap-4 mb-2">
+      <div className="flex flex-wrap gap-2 mb-1 items-end">
         {/* Supplier */}
-        <div className="flex-1 min-w-[200px]">
-          <strong>
+        <div className="flex-1 min-w-[140px]">
+          <strong className="text-sm">
             Supplier <span className="mandatory-asterisk">*</span>
           </strong>
           <SupplierSelector
@@ -250,48 +265,87 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             isValid={!!validationErrors?.supplierId}
           />
           {validationErrors?.supplierId && (
-            <span className="mandatory-error">{validationErrors.supplierId}</span>
+            <span className="mandatory-error text-xs">{validationErrors.supplierId}</span>
           )}
         </div>
 
         {/* Invoice Number */}
-        <div className="flex-1 min-w-[200px]">
-          <strong>
+        <div className="flex-1 min-w-[120px]">
+          <strong className="text-sm">
             Invoice Number <span className="mandatory-asterisk">*</span>
           </strong>
           <InputText
-            value={formData.invoiceNumber} placeholder="Invoice Number"
+            value={formData.invoiceNumber}
+            placeholder="Invoice Number"
             onChange={(e) => handleChange("invoiceNumber", e.target.value)}
-            className={`w-full mt-1 ${validationErrors?.invoiceNumber ? "p-invalid" : ""}`}
+            className={`w-full mt-1 text-sm ${validationErrors?.invoiceNumber ? "p-invalid" : ""}`}
           />
           {validationErrors?.invoiceNumber && (
-            <span className="mandatory-error">{validationErrors.invoiceNumber}</span>
+            <span className="mandatory-error text-xs">{validationErrors.invoiceNumber}</span>
           )}
         </div>
 
-        {/* Invoice Number */}
-        <div className="flex-1 min-w-[200px]">
-          <strong>
+        {/* Invoice Amount */}
+        <div className="flex-1 min-w-[100px]">
+          <strong className="text-sm">
             Invoice Amount <span className="mandatory-asterisk">*</span>
           </strong>
           <InputNumber
-            className={`w-full mt-1 ${validationErrors?.invoiceAmount ? "p-invalid" : ""}`}
-            value={formData.invoiceAmount} placeholder="Invoice Amount"
+            className={`w-full mt-1 text-sm ${validationErrors?.invoiceAmount ? "p-invalid" : ""}`}
+            value={formData.invoiceAmount}
+            placeholder="Invoice Amount"
             mode="currency"
-            currency={"INR"}
+            currency="INR"
             locale="en-IN"
             minFractionDigits={0}
             maxFractionDigits={2}
             onChange={(e) => handleChange("invoiceAmount", e.value)}
           />
           {validationErrors?.invoiceAmount && (
-            <span className="mandatory-error">{validationErrors.invoiceAmount}</span>
+            <span className="mandatory-error text-xs">{validationErrors.invoiceAmount}</span>
+          )}
+        </div>
+
+        {/* Paid Amount */}
+        <div className="flex-1 min-w-[100px]">
+          <strong className="text-sm">
+            Paid Amount
+          </strong>
+          <InputNumber
+            className="w-full mt-1 text-sm"
+            value={formData.paidAmount}
+            placeholder="Paid Amount"
+            mode="currency"
+            currency="INR"
+            locale="en-IN"
+            minFractionDigits={0}
+            maxFractionDigits={2}
+            onChange={(e) => handleChange("paidAmount", e.value)}
+          />
+        </div>
+
+        {/* Purchase Type */}
+        <div className="flex-1 min-w-[120px]">
+          <strong className="text-sm">
+            Purchase Type <span className="mandatory-asterisk">*</span>
+          </strong>
+          <Dropdown
+            className={`w-full mt-1 text-sm ${validationErrors?.purchaseTypeId ? "p-invalid" : ""}`}
+            value={formData.purchaseTypeId}
+            options={purchaseTypes}
+            onChange={(e) => handleChange("purchaseTypeId", e.value)}
+            showClear
+            filter
+            placeholder="Select Type"
+          />
+          {validationErrors?.purchaseTypeId && (
+            <span className="mandatory-error text-xs">{validationErrors.purchaseTypeId}</span>
           )}
         </div>
 
         {/* Invoice Date */}
-        <div className="flex-1 min-w-[200px]">
-          <strong>
+        <div className="flex-1 min-w-[120px]">
+          <strong className="text-sm">
             Invoice Date <span className="mandatory-asterisk">*</span>
           </strong>
           <Calendar
@@ -301,35 +355,27 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             dateFormat="dd-mm-yy"
             showIcon
             showButtonBar
-            inline={false}
-            className={`w-full h-8 text-sm p-1 ${validationErrors?.invoiceDate ? "p-invalid" : ""}`}
+            className="w-full h-8 text-sm p-1"
           />
-          {validationErrors?.invoiceDate && (
-            <span className="mandatory-error">{validationErrors.invoiceDate}</span>
-          )}
         </div>
 
         {/* Purchase Date */}
-        <div className="flex-1 min-w-[200px]">
-          <strong>
+        <div className="flex-1 min-w-[120px]">
+          <strong className="text-sm">
             Purchase Date <span className="mandatory-asterisk">*</span>
           </strong>
           <Calendar
             value={formData.purchaseDate ? new Date(formData.purchaseDate) : null}
             onChange={(e) => handleChange("purchaseDate", e.value)}
-            className={`w-full h-8 text-sm p-1 ${validationErrors?.purchaseDate ? "p-invalid" : ""}`}
             placeholder="Select Date"
             dateFormat="dd-mm-yy"
             showIcon
-            inline={false}
             showButtonBar
+            className="w-full h-8 text-sm p-1"
           />
-
-          {validationErrors?.purchaseDate && (
-            <span className="mandatory-error">{validationErrors.purchaseDate}</span>
-          )}
         </div>
       </div>
+
 
       {/* Purchase Items Grid */}
 

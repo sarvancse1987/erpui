@@ -12,6 +12,9 @@ export interface PurchaseModel {
     totalAmount: number;
     totalGST: number;
     grandTotal: number;
+    purchaseTypeId: number;
+    paidAmount: number;
+    purchaseRefNo?:string;
     remarks?: string;
     isActive: boolean;
     purchaseItems: PurchaseItemModel[];

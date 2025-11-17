@@ -152,7 +152,6 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
     switch (col.type) {
       case "inputdisabled":
         return (
-
           <InputText
             value={options.value || ""} disabled
             className={classNames({ "p-invalid": showError })}

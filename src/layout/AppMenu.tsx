@@ -12,12 +12,6 @@ const AppMenu: React.FC = () => {
       label: "Home",
       items: [
         { label: "Dashboard", icon: "pi pi-fw pi-home", to: "/" },
-        { label: "Profile", icon: "pi pi-fw pi-user", to: "/Profile" },
-        {
-          label: "Testimonial",
-          icon: "pi pi-fw pi-id-card",
-          to: "/testimonial",
-        },
       ],
     },
     {
@@ -65,23 +59,7 @@ const AppMenu: React.FC = () => {
           label: "Suppliers",
           icon: "pi pi-fw pi-globe",
           to: "/suppliers",
-        },
-        {
-          label: "Auth",
-          icon: "pi pi-fw pi-user",
-          items: [
-            {
-              label: "Login",
-              icon: "pi pi-fw pi-sign-in",
-              to: "/testimonial",
-            },
-            {
-              label: "Error",
-              icon: "pi pi-fw pi-times-circle",
-              to: "/Myprofile",
-            },
-          ],
-        },
+        }
       ],
     },
     {

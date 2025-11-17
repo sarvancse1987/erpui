@@ -183,8 +183,10 @@ code {
 
 .p-dropdown.mandatory-border .p-dropdown-label {
   border: 1px solid #d9534f !important;
-  border-radius: 4px; /* optional, match your style */
-  background-color: white; /* optional */
+  border-radius: 4px;
+  /* optional, match your style */
+  background-color: white;
+  /* optional */
 }
 
 .p-inputnumber.mandatory-border input {
@@ -193,4 +195,22 @@ code {
 
 .p-calendar.mandatory-border input {
   border: 1px solid #d9534f !important;
+}
+
+.expanded-parent-row {
+  background-color: #e8f3ff !important;
+}
+
+.supplier-dropdown {
+    position: absolute;
+    top: 44px;
+    left: 0;
+    z-index: 999;
+    width: 650px;          /* 👈 set your expected minimum width */
+    min-width: 650px;      /* 👈 ensures table doesn’t shrink */
+    max-height: 300px;
+    overflow: auto;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
 }

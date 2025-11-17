@@ -10,6 +10,8 @@ import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
 import { Checkbox } from "primereact/checkbox";
 import { Button } from "primereact/button";
+import { IconField } from 'primereact/iconfield';
+import { InputIcon } from 'primereact/inputicon';
 import { classNames } from "primereact/utils";
 import { InputNumber } from "primereact/inputnumber";
 import { TTypeDatatableProps } from "../models/component/TTypedDatatableProps";
@@ -119,7 +121,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
     setErrors({});
     setEditingRows({});
   };
-  
+
   const handleValueChange = (value: any, options: any, col: ColumnMeta<T>) => {
     const field = (options?.column?.field || options?.field) as keyof T;
 
@@ -380,22 +382,16 @@ export function TTypeDatatable<T extends Record<string, any>>({
 
         <div className="ml-auto">
           <span className="p-input-icon-left relative w-64">
-            {/* Search Icon */}
-            <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-
-            {/* Input Text */}
-            <InputText
-              value={globalFilter}
-              onChange={(e) => {
+            <IconField iconPosition="left">
+              <InputIcon className="pi pi-search" />
+              <InputText value={globalFilter} onChange={(e) => {
                 setGlobalFilter(e.target.value);
                 setFilters((prev: any) => ({
                   ...prev,
                   global: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
                 }));
-              }}
-              placeholder="Search..."
-              className="pl-10 w-full" // padding-left to leave space for icon + some buffer
-            />
+              }} placeholder="Search" />
+            </IconField>
           </span>
         </div>
       </div>

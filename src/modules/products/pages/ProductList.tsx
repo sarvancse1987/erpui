@@ -178,19 +178,18 @@ export default function ProductList() {
   };
 
 
-
   // helper to render labels in columns
   const getLabel = (options: OptionModel[], value: string | number) =>
     options.find((opt) => opt.value === value)?.label || "";
 
   const columns: ColumnMeta<ProductModel>[] = [
-    { field: "productId", header: "ID", width: "80px" },
+    { field: "productId", header: "ID", width: "80px", hidden: true },
     {
       field: "productName",
       header: "Product Name",
       editable: true,
       required: true,
-      width: "220px",
+      width: "200px",
       frozen: true, // if you want sticky/frozen (depends on DataTable support)
     },
     {
@@ -200,7 +199,7 @@ export default function ProductList() {
       type: "select",
       options: categories,
       required: true,
-      width: "160px",
+      width: "140px",
     },
     {
       field: "groupName",
@@ -216,7 +215,7 @@ export default function ProductList() {
       editable: true,
       type: "select",
       required: true,
-      width: "160px",
+      width: "140px",
     },
     {
       field: "primaryUnitId",
@@ -225,15 +224,17 @@ export default function ProductList() {
       type: "select",
       options: units,
       body: (row) => getLabel(units, row.primaryUnitId),
-      width: "160px",
+      width: "60px",
     },
     {
       field: "purchasePrice",
       header: "Pur. Price",
       editable: true,
       type: "number",
-      width: "130px",
+      width: "100px",
       required: true,
+      body: (row: any) =>
+        new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.purchasePrice),
       onValueChange: (value: any, row: any) => {
         row.purchasePrice = value;
         updateGSTPrice(row);
@@ -245,21 +246,26 @@ export default function ProductList() {
       header: "GST Price",
       editable: false,
       type: "number",
-      width: "130px",
+      width: "90px",
+      body: (row: any) =>
+        new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.gstPrice),
     },
     {
       field: "isGSTIncludedInPrice",
       header: "Incl. GST",
       editable: true,
       type: "checkbox",
-      width: "100px",
+      width: "80px",
       onValueChange: (value, row) => {
         row.isGSTIncludedInPrice = value;
         updateGSTPrice(row);
         setProducts([...products]);
       },
       body: (row) => (
-        <i className={`pi ${row.isGSTIncludedInPrice ? "pi-check-circle text-green-500" : "pi-times-circle text-red-500"}`} />
+        <i
+          className={`pi ${row.isGSTIncludedInPrice ? "pi-check-circle" : "pi-times-circle"}`}
+          style={{ color: row.isGSTIncludedInPrice ? "green" : "red", fontSize: "1.2rem" }}
+        />
       ),
     },
     {
@@ -267,15 +273,17 @@ export default function ProductList() {
       header: "Sale Price",
       editable: true,
       type: "number",
-      width: "130px",
+      width: "110px",
       required: true,
+      body: (row: any) =>
+        new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.salePrice),
     },
     {
       field: "cgstRate",
       header: "CGST %",
       editable: true,
       type: "decimal",
-      width: "100px",
+      width: "80px",
       onValueChange: (value, row) => {
         row.cgstRate = value;
         updateGSTPrice(row);
@@ -287,25 +295,25 @@ export default function ProductList() {
       header: "SGST %",
       editable: true,
       type: "decimal",
-      width: "100px",
+      width: "70px",
       onValueChange: (value, row) => {
         row.sgstRate = value;
         updateGSTPrice(row);
         setProducts([...products]);
       },
     },
-    {
-      field: "igstRate",
-      header: "IGST %",
-      editable: true,
-      type: "decimal",
-      width: "100px",
-      onValueChange: (value, row) => {
-        row.igstRate = value;
-        updateGSTPrice(row);
-        setProducts([...products]);
-      },
-    },
+    // {
+    //   field: "igstRate",
+    //   header: "IGST %",
+    //   editable: true,
+    //   type: "decimal",
+    //   width: "100px",
+    //   onValueChange: (value, row) => {
+    //     row.igstRate = value;
+    //     updateGSTPrice(row);
+    //     setProducts([...products]);
+    //   },
+    // },
   ];
 
   if (loading) return <p>Loading data...</p>;
@@ -326,7 +334,6 @@ export default function ProductList() {
                   data={products}
                   columns={columns}
                   primaryKey="productId"
-                  // provide an onEdit so child can notify parent to open sidebar
                   onEdit={(row: ProductModel) => handleOpenEdit(row)}
                   isNew={true}
                   isSave={true}
@@ -336,7 +343,6 @@ export default function ProductList() {
             )}
           </TabPanel>
 
-          {/* Add / Edit Products (new unsaved products) */}
           <TabPanel header="Add / Edit Products">
             <div className="flex gap-2 mb-4">
               <Button label="Add New" icon="pi pi-plus" outlined severity="success" onClick={addNewProduct} />

@@ -114,8 +114,6 @@ export const SupplierSelector: React.FC<SupplierSelectorProps> = ({
                 </>
             )}
 
-
-
         </div>
     );
 };
