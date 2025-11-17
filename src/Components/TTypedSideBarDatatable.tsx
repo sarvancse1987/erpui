@@ -14,6 +14,8 @@ import { FilterMatchMode } from "primereact/api";
 import { Sidebar } from "primereact/sidebar";
 import { ProductModel, ProductSearchModel } from "../models/product/ProductModel";
 import { Paginator } from "primereact/paginator";
+import { IconField } from "primereact/iconfield";
+import { InputIcon } from "primereact/inputicon";
 
 export function TTypedSideBarDatatable<T extends Record<string, any>>({
   columns,
@@ -181,9 +183,9 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
             optionLabel="label"
             optionValue="value"
             onChange={(e) => updateValue(e.value)}
-            filter                  // <-- enables search
-            filterBy="label"        // <-- search based on label field
-            showClear               // <-- optional, allow clearing selection
+            filter
+            filterBy="label"
+            showClear
             className={classNames("p-dropdown-sm", { "p-invalid": showError })}
           />
         );
@@ -226,7 +228,6 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
             onValueChange={(e) => {
               const updatedRow = { ...options.rowData, [col.field]: e.value };
 
-              // Auto-calculate total if unitPrice or quantity changes
               if (col.field === "unitPrice" || col.field === "quantity") {
                 const unitPrice = parseFloat(updatedRow.unitPrice) || 0;
                 const quantity = parseFloat(updatedRow.quantity) || 0;
@@ -236,7 +237,6 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                 updatedRow.gstAmount = parseFloat(((updatedRow.amount * gstPercent) / 100).toFixed(2));
               }
 
-              // Auto-calculate GST if gstRate changes
               if (col.field === "gstPercent") {
                 const unitPrice = parseFloat(updatedRow.unitPrice) || 0;
                 const quantity = parseFloat(updatedRow.quantity) || 0;
@@ -268,7 +268,6 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
               if (val === "" || /^[0-9]*\.?[0-9]{0,3}$/.test(val)) {
                 const updatedRow = { ...options.rowData, gstPercent: val };
 
-                // calculate GST Amount
                 const amount = parseFloat(updatedRow.amount) || 0;
                 const gstPercent = parseFloat(val) || 0;
                 updatedRow.gstAmount = parseFloat(((amount * gstPercent) / 100).toFixed(2));
@@ -360,16 +359,16 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
         </div>
         <div className="ml-auto">
           <span className="p-input-icon-left relative w-64">
-            <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <InputText
-              value={globalFilter}
-              onChange={(e) => {
+            <IconField iconPosition="left">
+              <InputIcon className="pi pi-search" />
+              <InputText value={globalFilter} onChange={(e) => {
                 setGlobalFilter(e.target.value);
-                setFilters((prev: any) => ({ ...prev, global: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS } }));
-              }}
-              placeholder="Search..."
-              className="pl-10 w-full"
-            />
+                setFilters((prev: any) => ({
+                  ...prev,
+                  global: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
+                }));
+              }} placeholder="Search" />
+            </IconField>
           </span>
         </div>
       </div>
@@ -395,11 +394,10 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
           scrollHeight="100%"
           footer={
             <div className="custom-footer flex gap-4">
-              {/* Total Amount */}
               <div
                 className="flex items-center justify-center px-4 py-1 text-base font-semibold"
                 style={{
-                  background: "#2ecc71",   // Modern Emerald Green
+                  background: "#2ecc71",
                   color: "white",
                   borderRadius: "0px",
                   minWidth: "180px",
@@ -410,11 +408,10 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                 {tableData.reduce((a, r) => a + (r.amount || 0), 0).toFixed(2)}
               </div>
 
-              {/* GST Amount */}
               <div
                 className="flex items-center justify-center px-4 py-1 text-base font-semibold"
                 style={{
-                  background: "#f1c40f",   // Modern Yellow
+                  background: "#f1c40f", 
                   color: "black",
                   borderRadius: "0px",
                   minWidth: "180px",
@@ -425,11 +422,10 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                 {tableData.reduce((a, r) => a + (r.gstAmount || 0), 0).toFixed(2)}
               </div>
 
-              {/* Grand Total */}
               <div
                 className="flex items-center justify-center px-4 py-1 text-base font-semibold"
                 style={{
-                  background: "#3498db",   // Nice Blue
+                  background: "#3498db",
                   color: "white",
                   borderRadius: "0px",
                   minWidth: "180px",

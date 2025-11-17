@@ -21,8 +21,8 @@ export default function SupplierList() {
     const loadSuppliers = async () => {
         setLoading(true);
         try {
-            const res = await apiService.get("/Supplier");
-            setSuppliers(res ?? []);
+            const res = await apiService.get("/Supplier/getallsupplier");
+            setSuppliers(res.suppliers ?? []);
         } catch (err) {
             console.error("Error loading suppliers:", err);
         } finally {
@@ -131,9 +131,9 @@ export default function SupplierList() {
         { field: "supplierName", header: "Name", width: "220px" },
         { field: "contactPerson", header: "Contact", width: "180px" },
         { field: "phone", header: "Phone", width: "160px" },
-        { field: "gstNumber", header: "GST", width: "140px" },
+        { field: "gstNumber", header: "GST", width: "120px" },
         { field: "city", header: "City", width: "140px" },
-        { field: "stateName", header: "State", width: "220px" },
+        { field: "districtName", header: "District", width: "150px" },
         { field: "isActive", header: "Active", width: "100px", body: (row) => (row.isActive ? "✅" : "❌"), editable: false, hidden: true },
     ];
 
@@ -178,8 +178,8 @@ export default function SupplierList() {
 
                 <TabPanel header="Add / Edit Suppliers">
                     <div className="flex gap-2 mb-4">
-                        <Button label="Add New" icon="pi pi-plus" outlined severity="success" onClick={addNewSupplier} />
-                        <Button label="Save All" icon="pi pi-save" onClick={handleSaveSuppliers} disabled={!newSuppliers.length} />
+                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewSupplier} />
+                        <Button label="Save" icon="pi pi-save" onClick={handleSaveSuppliers} disabled={!newSuppliers.length} />
                     </div>
 
                     {newSuppliers.length === 0 ? (

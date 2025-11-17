@@ -114,18 +114,17 @@ export function TTypedDatatable<T extends Record<string, any>>({
       if (Object.keys(rowErrors).length > 0) {
         const key = row[primaryKey] as string;
         allErrors[key] = rowErrors;
-        rowsToReopen[key] = true; // ✅ reopen invalid rows
+        rowsToReopen[key] = true;
         valid = false;
       }
     });
 
     if (!valid) {
       setErrors(allErrors);
-      setEditingRows(rowsToReopen); // ✅ keep those rows open
+      setEditingRows(rowsToReopen);
       return;
     }
 
-    console.log("✅ Saved Data:", tableData);
     setErrors({});
     setEditingRows({});
 
@@ -233,7 +232,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
           <InputNumber
             value={options.value}
             onValueChange={(e) => options.editorCallback(e.value)}
-            mode="decimal"  // ✅ plain number
+            mode="decimal"
             minFractionDigits={0}
             maxFractionDigits={2}
             {...commonProps}
@@ -247,9 +246,9 @@ export function TTypedDatatable<T extends Record<string, any>>({
             onValueChange={(e) =>
               handleValueChange(e.value, { ...options, field: col.field }, col)
             }
-            mode="decimal"           // ✅ ensures number mode
-            minFractionDigits={0}    // ✅ optional
-            maxFractionDigits={2}    // ✅ up to 2 decimal places
+            mode="decimal"
+            minFractionDigits={0}
+            maxFractionDigits={2}
             useGrouping={false}
             {...commonProps}
           />
@@ -271,27 +270,23 @@ export function TTypedDatatable<T extends Record<string, any>>({
     const key = (rowData as any)._tempKey || (rowData[primaryKey] as string);
 
     if (Object.keys(rowErrors).length > 0) {
-      // Keep row open
       setErrors((prev) => ({ ...prev, [key]: rowErrors }));
       setEditingRows((prev) => ({ ...prev, [key]: true }));
-      return false; // ❌ row not saved
+      return false;
     }
 
-    // ✅ row valid, remove errors
     setErrors((prev) => {
       const copy = { ...prev };
       delete copy[key];
       return copy;
     });
 
-    // Update tableData
     setTableData((prev) =>
       prev.map((item) =>
         ((item as any)._tempKey || item[primaryKey]) === key ? rowData : item
       )
     );
 
-    // Close the editing row
     setEditingRows((prev) => {
       const copy = { ...prev };
       delete copy[key];
@@ -346,7 +341,6 @@ export function TTypedDatatable<T extends Record<string, any>>({
           (row) => !selectedRows.some((sel) => sel[primaryKey] === row[primaryKey])
         );
 
-        // send deleted rows to parent
         if (onDelete) {
           onDelete(selectedRows);
         }
@@ -356,21 +350,22 @@ export function TTypedDatatable<T extends Record<string, any>>({
     });
   };
 
+  const isSaveEnabled = tableData.some((r) => r[primaryKey] === 0 || !!r._edited);
 
   return (
     <div className="card p-3 h-[calc(100vh-100px)] overflow-auto">
 
       <div className="flex justify-between items-center mb-3">
         <div className="flex gap-2">
-          {isNew && <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} />}
-          {isSave && <Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll} />}
+          {isNew && <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} size="small" />}
+          {isSave && <Button label="Save" icon="pi pi-save" onClick={saveAll} disabled={!isSaveEnabled} size="small" />}
           {isDelete && selectedRows.length > 0 && (
             <Button
               label="Delete"
               icon="pi pi-trash"
               severity="danger"
-              outlined
               onClick={() => handleDelete()}
+              size="small"
             />
           )}
         </div>

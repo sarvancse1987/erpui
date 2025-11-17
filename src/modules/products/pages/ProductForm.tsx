@@ -62,9 +62,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
   const onClearError = (fieldKey: string) => {
     setLocalValidationErrors((prevErrors) => {
-      if (!prevErrors[fieldKey]) return prevErrors; // No change needed
+      if (!prevErrors[fieldKey]) return prevErrors;
       const newErrors = { ...prevErrors };
-      delete newErrors[fieldKey]; // ✅ remove the key completely
+      delete newErrors[fieldKey];
       return newErrors;
     });
   };
@@ -154,7 +154,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
         {/* Row 1 */}
         <div className="flex flex-wrap gap-3 p-1">
-          {/* Product Name */}
           <div className="flex-1 min-w-[140px]">
             <strong>
               Name <span className="mandatory-asterisk">*</span>
@@ -167,7 +166,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             {getErrorMessage("productName") && <span className="mandatory-error">{getErrorMessage("productName")}</span>}
           </div>
 
-          {/* Category */}
           <div className="flex-1 min-w-[140px]">
             <strong>
               Category <span className="mandatory-asterisk">*</span>
@@ -178,7 +176,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               options={categories}
               optionLabel="label"
               optionValue="value"
-              //onChange={(e) => handleCategoryChange(e.value)}
               onChange={(e) => handleChange("productCategoryId", e.value)}
               filter
               showClear
@@ -198,7 +195,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               options={filteredGroups}
               optionLabel="label"
               optionValue="value"
-              //onChange={(e) => handleGroupChange(e.value)}
               onChange={(e) => handleChange("productGroupId", e.value)}
               filter
               showClear
@@ -207,7 +203,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             {getErrorMessage("productGroupId") && <span className="mandatory-error">{getErrorMessage("productGroupId")}</span>}
           </div>
 
-          {/* Brand */}
           <div className="flex-1 min-w-[140px]">
             <strong>
               Brand <span className="mandatory-asterisk">*</span>
@@ -226,7 +221,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             {getErrorMessage("productBrandId") && <span className="mandatory-error">{getErrorMessage("productBrandId")}</span>}
           </div>
 
-          {/* Unit */}
           <div className="flex-1 min-w-[140px]">
             <strong>Unit</strong>
             <Dropdown
@@ -246,7 +240,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
         {/* Row 2 */}
         <div className="flex flex-wrap gap-3 p-1">
-          {/* Purchase Price */}
           <div className="flex-1 min-w-[140px]">
             <strong>Purchase Price <span className="mandatory-asterisk">*</span></strong>
             <InputNumber
@@ -260,7 +253,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             {getErrorMessage("purchasePrice") && <span className="mandatory-error">{getErrorMessage("purchasePrice")}</span>}
           </div>
 
-          {/* Sale Price */}
           <div className="flex-1 min-w-[140px]">
             <strong>Sale Price <span className="mandatory-asterisk">*</span></strong>
             <InputNumber
@@ -274,13 +266,11 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             {getErrorMessage("salePrice") && <span className="mandatory-error">{getErrorMessage("salePrice")}</span>}
           </div>
 
-          {/* GST Price */}
           <div className="flex-1 min-w-[140px]">
             <strong>GST Price</strong>
-            <InputNumber value={formData.gstPrice} mode="currency" currency="INR" locale="en-IN" disabled className="w-full mt-1"/>
+            <InputNumber value={formData.gstPrice} mode="currency" currency="INR" locale="en-IN" disabled className="w-full mt-1" />
           </div>
 
-          {/* CGST */}
           <div className="flex-1 min-w-[140px]">
             <strong>CGST %</strong>
             <InputNumber
@@ -293,7 +283,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             />
           </div>
 
-          {/* SGST */}
           <div className="flex-1 min-w-[140px]">
             <strong>SGST %</strong>
             <InputNumber
@@ -309,7 +298,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
         {/* Row 3 */}
         <div className="flex flex-wrap gap-3 p-1">
-          {/* IGST */}
           <div className="flex-1 min-w-[140px]">
             <strong>IGST %</strong>
             <InputNumber
@@ -322,7 +310,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             />
           </div>
 
-          {/* HSN */}
           <div className="flex-1 min-w-[140px]">
             <strong>HSN Code <span className="mandatory-asterisk">*</span></strong>
             <InputText
@@ -333,7 +320,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             {getErrorMessage("hsnCode") && <span className="mandatory-error">{getErrorMessage("hsnCode")}</span>}
           </div>
 
-          {/* GST Include */}
           <div className="flex items-center gap-2">
             <strong>GST Include</strong>
             <Checkbox
@@ -343,7 +329,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           </div>
         </div>
 
-        {/* Buttons */}
         <div className="flex justify-end gap-2 mt-4">
           {onCancel && <Button type="button" label="Cancel" icon="pi pi-times" outlined onClick={onCancel} />}
           {isEditSidebar && (

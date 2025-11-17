@@ -18,9 +18,9 @@ export default function ProductList() {
   const [allBrands, setAllBrands] = useState<BrandModel[]>([]);
   const [categories, setCategories] = useState<OptionModel[]>([]);
   const [units, setUnits] = useState<OptionModel[]>([]);
-  const [products, setProducts] = useState<ProductModel[]>([]); // existing / saved products
-  const [newProducts, setNewProducts] = useState<ProductModel[]>([]); // unsaved products in Add tab
-  const [addedProducts, setAddedProducts] = useState<ProductModel[]>([]); // optional saved copy
+  const [products, setProducts] = useState<ProductModel[]>([]);
+  const [newProducts, setNewProducts] = useState<ProductModel[]>([]);
+  const [addedProducts, setAddedProducts] = useState<ProductModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
@@ -94,9 +94,6 @@ export default function ProductList() {
       : +(product.purchasePrice + (product.purchasePrice * totalGST) / 100).toFixed(2);
   };
 
-  // --------------------
-  // New-products (Add tab) helpers
-  // --------------------
   const addNewProduct = () => {
     setNewProducts((prev) => [createEmptyProduct(), ...prev]);
   };
@@ -126,10 +123,10 @@ export default function ProductList() {
       if (!p.hsnCode.trim()) errors[`product-${idx}-hsnCode`] = "HSN Code is required";
     });
 
-    setValidationErrors(errors); // ✅ Trigger re-render with errors
+    setValidationErrors(errors);
 
     if (Object.keys(errors).length > 0) {
-      return; // stop saving if errors exist
+      return;
     }
 
     try {
@@ -144,11 +141,8 @@ export default function ProductList() {
     }
   };
 
-  // --------------------
-  // Edit existing product (sidebar)
-  // --------------------
   const handleOpenEdit = (product: ProductModel) => {
-    setSelectedProduct({ ...product }); // copy to avoid direct mutation
+    setSelectedProduct({ ...product });
     setSidebarVisible(true);
   };
 
@@ -177,8 +171,6 @@ export default function ProductList() {
     }
   };
 
-
-  // helper to render labels in columns
   const getLabel = (options: OptionModel[], value: string | number) =>
     options.find((opt) => opt.value === value)?.label || "";
 
@@ -190,7 +182,7 @@ export default function ProductList() {
       editable: true,
       required: true,
       width: "200px",
-      frozen: true, // if you want sticky/frozen (depends on DataTable support)
+      frozen: true,
     },
     {
       field: "categoryName",
@@ -324,7 +316,6 @@ export default function ProductList() {
         <h2 className="text-lg font-semibold mb-4">🛒 Product Management</h2>
 
         <TabView>
-          {/* Existing Products */}
           <TabPanel header="Products">
             {products.length === 0 ? (
               <p>No products added yet.</p>

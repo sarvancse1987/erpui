@@ -362,20 +362,22 @@ export function TTypeDatatable<T extends Record<string, any>>({
   };
 
 
+  const isSaveEnabled = tableData.some((r) => r[primaryKey] === 0 || !!r._edited);
+
   return (
     <div className="card p-3 h-[calc(100vh-100px)] overflow-auto">
 
       <div className="flex justify-between items-center mb-3">
         <div className="flex gap-2">
-          {isNew && <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} />}
-          {isSave && <Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll} />}
+          {isNew && <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} size="small" />}
+          {isSave && <Button label="Save" icon="pi pi-save" onClick={saveAll} disabled={!isSaveEnabled} size="small" />}
           {isDelete && selectedRows.length > 0 && (
             <Button
               label="Delete"
               icon="pi pi-trash"
               severity="danger"
-              outlined
               onClick={() => handleDelete()}
+              size="small"
             />
           )}
         </div>

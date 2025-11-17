@@ -27,7 +27,6 @@ export default function PurchaseList() {
     const [triggerValidation, setTriggerValidation] = useState(0);
     const [viewType, setViewType] = useState<"simple" | "detailed">("simple");
 
-    // Load all data
     const loadAllData = async () => {
         setLoading(true);
         try {
@@ -48,7 +47,6 @@ export default function PurchaseList() {
         loadAllData();
     }, []);
 
-    // Create empty purchase
     const createEmptyPurchase = (): PurchaseModel => ({
         purchaseId: 0,
         supplierId: 0,
@@ -66,7 +64,6 @@ export default function PurchaseList() {
         purchaseItems: [],
     });
 
-    // Add new purchase
     const addNewPurchase = () => {
         setNewPurchases((prev) => [createEmptyPurchase(), ...prev]);
     };
@@ -159,10 +156,16 @@ export default function PurchaseList() {
             field: "invoiceAmount",
             header: "Invoice Amount",
             width: "130px",
-            body: (row) =>
-                row.invoiceAmount != null
-                    ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.invoiceAmount)
-                    : "",
+            body: (row: PurchaseModel) => (
+                <Tag
+                    value={new Intl.NumberFormat("en-IN", {
+                        style: "currency",
+                        currency: "INR"
+                    }).format(row.invoiceAmount)}
+                    severity="success"
+                    className="amount-tag"
+                />
+            )
         },
         {
             field: "paidAmount",
@@ -170,15 +173,12 @@ export default function PurchaseList() {
             width: "130px",
             body: (row) => {
                 if (row.paidAmount == null) return "";
-
                 const isPaidFull = row.paidAmount === row.invoiceAmount;
-
                 return (
                     <Tag
                         value={new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.paidAmount)}
-                        severity={isPaidFull ? "success" : "danger"} // green for full, red otherwise
-                        rounded
-                        className="px-2 py-1 text-sm"
+                        severity={isPaidFull ? "success" : "danger"}
+                        className="amount-tag"
                     />
                 );
             },
@@ -221,16 +221,30 @@ export default function PurchaseList() {
         {
             field: "invoiceAmount",
             header: "Invoice Amount",
-            body: (row: PurchaseModel) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.invoiceAmount)
+            width: "130px",
+            body: (row: PurchaseModel) => (
+                <Tag
+                    value={new Intl.NumberFormat("en-IN", {
+                        style: "currency",
+                        currency: "INR"
+                    }).format(row.invoiceAmount)}
+                    severity="success"
+                    className="amount-tag"
+                />
+            )
         },
         {
             field: "paidAmount",
             header: "Paid Amount",
+            width: "130px",
             body: (row: PurchaseModel) => (
                 <Tag
-                    value={new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.paidAmount)}
+                    value={new Intl.NumberFormat("en-IN", {
+                        style: "currency",
+                        currency: "INR"
+                    }).format(row.paidAmount)}
                     severity={row.paidAmount === row.invoiceAmount ? "success" : "danger"}
-                    rounded
+                    className="amount-tag"
                 />
             )
         },
@@ -335,7 +349,7 @@ export default function PurchaseList() {
                                 onChange={(e) => setViewType(e.value)}
                                 checked={viewType === "simple"}
                             />
-                            <label htmlFor="simpleView" className="text-sm">Simple View</label>
+                            <label htmlFor="simpleView" className="text-sm">Basic View</label>
                         </div>
                         <div className="flex items-center gap-1">
                             <RadioButton
@@ -363,14 +377,13 @@ export default function PurchaseList() {
                             isSave={false}
                         />
                     ) : (
-                        // Detailed view: parent-child
                         <div className="space-y-2">
                             <ParentChildTable<PurchaseModel, PurchaseItemModel>
                                 parentData={purchases}
                                 parentColumns={parentColumns as ColumnMeta<PurchaseModel>[]}
                                 childColumns={childColumns as ColumnMeta<PurchaseItemModel>[]}
-                                childField={"items" as keyof PurchaseModel}  // cast as keyof
-                                rowKey={"purchaseId" as keyof PurchaseModel}        // cast as keyof
+                                childField={"items" as keyof PurchaseModel}
+                                rowKey={"purchaseId" as keyof PurchaseModel}
                                 expandAllInitially={false}
                             />
                         </div>
@@ -379,8 +392,8 @@ export default function PurchaseList() {
 
                 <TabPanel header="Add / Edit Purchases">
                     <div className="flex gap-2 mb-2">
-                        <Button label="Add New" icon="pi pi-plus" outlined severity="success" onClick={addNewPurchase} />
-                        <Button label="Save All" icon="pi pi-save" onClick={handleSavePurchases} disabled={!newPurchases.length} />
+                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewPurchase} />
+                        <Button label="Save" icon="pi pi-save" onClick={handleSavePurchases} disabled={!newPurchases.length} />
                     </div>
 
                     <div className="space-y-4">
