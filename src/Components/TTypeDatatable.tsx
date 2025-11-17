@@ -162,42 +162,36 @@ export function TTypeDatatable<T extends Record<string, any>>({
     const rowId = options.rowData[primaryKey] as string;
     const fieldError = errors[rowId]?.[col.field as string];
 
+    const showError =
+      (col.required && (options.value === null || options.value === "")) ||
+      !!errors[rowId]?.[col.field as string];
+
     const commonProps = {
-      className: classNames({ "p-invalid border-red-500": !!fieldError }),
+      className: classNames({ "p-invalid": showError }),
       style: { width: "100%" },
     };
 
     switch (col.type) {
       case "select":
         return (
-          <div className="flex flex-col">
-            <Dropdown
-              value={options.value}
-              options={col.options || []}
-              optionLabel="label"
-              optionValue="value"
-              onChange={(e) => options.editorCallback(e.value)}
-              {...commonProps}
-            />
-            {fieldError && (
-              <small className="p-error text-xs mt-1">{fieldError}</small>
-            )}
-          </div>
+          <Dropdown
+            value={options.value}
+            options={col.options || []}
+            optionLabel="label"
+            optionValue="value"
+            onChange={(e) => options.editorCallback(e.value)}
+            {...commonProps}
+          />
         );
 
       case "date":
         return (
-          <div className="flex flex-col">
-            <Calendar
-              value={options.value ? new Date(options.value) : null}
-              onChange={(e) => options.editorCallback(e.value)}
-              dateFormat="yy-mm-dd"
-              {...commonProps}
-            />
-            {fieldError && (
-              <small className="p-error text-xs mt-1">{fieldError}</small>
-            )}
-          </div>
+          <Calendar
+            value={options.value ? new Date(options.value) : null}
+            onChange={(e) => options.editorCallback(e.value)}
+            dateFormat="yy-mm-dd"
+            {...commonProps}
+          />
         );
 
       case "checkbox":
@@ -212,64 +206,50 @@ export function TTypeDatatable<T extends Record<string, any>>({
 
       case "number":
         return (
-          <div className="flex flex-col">
-            <InputNumber
-              value={options.value}
-              onValueChange={(e) => options.editorCallback(e.value)}
-              mode="currency"
-              currency="INR"
-              locale="en-IN"
-              style={{ width: "40%" }}
-            />
-            {fieldError && <small className="p-error">{fieldError}</small>}
-          </div>
+          <InputNumber
+            value={options.value}
+            onValueChange={(e) => options.editorCallback(e.value)}
+            mode="currency"
+            currency="INR"
+            locale="en-IN"
+            {...commonProps}
+          />
         );
 
       case "decimal":
         return (
-          <div className="flex flex-col">
-            <InputNumber
-              value={options.value}
-              onValueChange={(e) => options.editorCallback(e.value)}
-              mode="decimal"  // ✅ plain number
-              minFractionDigits={0}
-              maxFractionDigits={2}
-              style={{ width: "40%" }}
-            />
-            {fieldError && <small className="p-error">{fieldError}</small>}
-          </div>
+          <InputNumber
+            value={options.value}
+            onValueChange={(e) => options.editorCallback(e.value)}
+            mode="decimal"  // ✅ plain number
+            minFractionDigits={0}
+            maxFractionDigits={2}
+            {...commonProps}
+          />
         );
 
       case "gst":
         return (
-          <div className="flex flex-col">
-            <InputNumber
-              value={options.value}
-              onValueChange={(e) =>
-                handleValueChange(e.value, { ...options, field: col.field }, col)
-              }
-              mode="decimal"           // ✅ ensures number mode
-              minFractionDigits={0}    // ✅ optional
-              maxFractionDigits={2}    // ✅ up to 2 decimal places
-              useGrouping={false}      // ✅ avoids commas (e.g., 1,000)
-              style={{ width: "80%" }}
-            />
-            {fieldError && <small className="p-error">{fieldError}</small>}
-          </div>
+          <InputNumber
+            value={options.value}
+            onValueChange={(e) =>
+              handleValueChange(e.value, { ...options, field: col.field }, col)
+            }
+            mode="decimal"           // ✅ ensures number mode
+            minFractionDigits={0}    // ✅ optional
+            maxFractionDigits={2}    // ✅ up to 2 decimal places
+            useGrouping={false}      // ✅ avoids commas (e.g., 1,000)
+            style={{ width: "80%" }}
+          />
         )
 
       default:
         return (
-          <div className="flex flex-col">
-            <InputText
-              value={options.value || ""}
-              onChange={(e) => options.editorCallback(e.target.value)}
-              {...commonProps}
-            />
-            {fieldError && (
-              <small className="p-error text-xs mt-1">{fieldError}</small>
-            )}
-          </div>
+          <InputText
+            value={options.value || ""}
+            onChange={(e) => options.editorCallback(e.target.value)}
+            {...commonProps}
+          />
         );
     }
   };
@@ -446,7 +426,8 @@ export function TTypeDatatable<T extends Record<string, any>>({
           />
         ))}
 
-        <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} />
+        {/* <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} /> */}
+        <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} />
       </DataTable>
     </div >
   );

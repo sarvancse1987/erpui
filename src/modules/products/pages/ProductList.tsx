@@ -276,6 +276,7 @@ export default function ProductList() {
       editable: true,
       type: "decimal",
       width: "80px",
+      required: true,
       onValueChange: (value, row) => {
         row.cgstRate = value;
         updateGSTPrice(row);
@@ -288,6 +289,7 @@ export default function ProductList() {
       editable: true,
       type: "decimal",
       width: "70px",
+      required: true,
       onValueChange: (value, row) => {
         row.sgstRate = value;
         updateGSTPrice(row);
