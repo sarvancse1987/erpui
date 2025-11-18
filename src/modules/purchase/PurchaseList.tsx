@@ -199,8 +199,18 @@ export default function PurchaseList() {
                         style: "currency",
                         currency: "INR"
                     }).format(row.invoiceAmount)}
-                    severity="success"
                     className="amount-tag"
+                    style={{
+                        backgroundColor: "#3498db",
+                        color: "white",
+                        fontWeight: "500",
+                        fontSize: "0.85rem",
+                        padding: "0.25rem 0.5rem",
+                        borderRadius: "0.25rem",
+                        display: "inline-block",
+                        textAlign: "center",
+                        width: "90px"
+                    }}
                 />
             )
         },
@@ -216,6 +226,7 @@ export default function PurchaseList() {
                         value={new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.paidAmount)}
                         severity={isPaidFull ? "success" : "danger"}
                         className="amount-tag"
+                        style={{ width: "90px" }}
                     />
                 );
             },
@@ -352,8 +363,18 @@ export default function PurchaseList() {
                         style: "currency",
                         currency: "INR"
                     }).format(row.invoiceAmount)}
-                    severity="success"
                     className="amount-tag"
+                    style={{
+                        backgroundColor: "#3498db",
+                        color: "white",
+                        fontWeight: "500",
+                        fontSize: "0.85rem",
+                        padding: "0.25rem 0.5rem",
+                        borderRadius: "0.25rem",
+                        display: "inline-block",
+                        textAlign: "center",
+                        width: "90px"
+                    }}
                 />
             )
         },
@@ -369,6 +390,7 @@ export default function PurchaseList() {
                     }).format(row.paidAmount)}
                     severity={row.paidAmount === row.invoiceAmount ? "success" : "danger"}
                     className="amount-tag"
+                    style={{ width: "90px" }}
                 />
             )
         },
