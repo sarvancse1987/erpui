@@ -112,16 +112,18 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     return new Date(year, month, day);
   };
   // ---------------- TABLE COLUMNS ----------------
-  const columns: ColumnMeta<PurchaseItemModel>[] = [
+  const newEntrycolumns: ColumnMeta<PurchaseItemModel>[] = [
     {
       field: "productId",
       header: "Item Name",
       editable: false,
       type: "textdisabled",
       required: true,
+      width: "200px",
+      frozen: true,
       body: (row: PurchaseItemModel) => row.productName || "",
     },
-    { field: "unitPrice", header: "Rate", editable: true, type: "currency", required: true },
+    { field: "unitPrice", header: "Rate", editable: true, type: "currency", required: true, width: "110px" },
     { field: "quantity", header: "Qty", editable: true, type: "decimal", required: true },
     { field: "gstPercent", header: "GST %", editable: true, type: "decimal", required: true },
     {
@@ -321,7 +323,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
       {/* Purchase Items Table */}
       <div className={`${isEditSidebar ? "max-w-[800px]" : "w-full"}`}>
         <TTypedSideBarDatatable<PurchaseItemModel>
-          columns={columns}
+          columns={newEntrycolumns}
           data={formData.purchaseItems}
           primaryKey="purchaseItemId"
           products={products}

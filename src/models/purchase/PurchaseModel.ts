@@ -17,5 +17,8 @@ export interface PurchaseModel {
     purchaseRefNo?: string;
     remarks?: string;
     isActive: boolean;
+    purchaseTypeName?: string;
+    balanceAmount?: number;
+    runningBalance?: number;
     purchaseItems: PurchaseItemModel[];
 }

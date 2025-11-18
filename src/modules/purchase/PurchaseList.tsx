@@ -155,14 +155,44 @@ export default function PurchaseList() {
     const columns: ColumnMeta<PurchaseModel>[] = [
         { field: "purchaseId", header: "ID", width: "80px", editable: false, hidden: true },
         { field: "supplierId", header: "ID", width: "80px", editable: false, hidden: true },
-        { field: "supplierName", header: "Supplier Name", width: "220px" },
-        { field: "invoiceNumber", header: "Invoice Number", width: "130px" },
-        { field: "purchaseRefNo", header: "Ref No", width: "170px" },
-        { field: "purchaseDate", header: "Purchase Date", width: "130px" },
+        { field: "supplierName", header: "Supplier Name", width: "220px", frozen: true },
+        { field: "invoiceNumber", header: "Invoice No", width: "130px" },
+        { field: "purchaseRefNo", header: "Pur Ref No", width: "160px" },
+        { field: "purchaseDate", header: "Pur Date", width: "100px" },
+        {
+            field: "purchaseTypeName",
+            header: "Pur Type",
+            width: "110px",
+            body: (row: PurchaseModel) => {
+                let severity: "success" | "warning" | "info" | "danger" = "info";
+
+                switch (row.purchaseTypeName) {
+                    case "Cash":
+                        severity = "success"; // green
+                        break;
+                    case "Credit":
+                        severity = "danger"; // yellow
+                        break;
+                    case "Partially Paid":
+                        severity = "warning"; // red
+                        break;
+                    default:
+                        severity = "info"; // blue/neutral
+                }
+
+                return (
+                    <Tag
+                        value={row.purchaseTypeName}
+                        severity={severity}
+                        className="purchase-type-tag"
+                    />
+                );
+            },
+        },
         {
             field: "invoiceAmount",
-            header: "Invoice Amount",
-            width: "130px",
+            header: "Invoice Amt",
+            width: "110px",
             body: (row: PurchaseModel) => (
                 <Tag
                     value={new Intl.NumberFormat("en-IN", {
@@ -176,8 +206,8 @@ export default function PurchaseList() {
         },
         {
             field: "paidAmount",
-            header: "Paid Amount",
-            width: "130px",
+            header: "Paid Amt",
+            width: "110px",
             body: (row) => {
                 if (row.paidAmount == null) return "";
                 const isPaidFull = row.paidAmount === row.invoiceAmount;
@@ -191,9 +221,66 @@ export default function PurchaseList() {
             },
         },
         {
+            field: "balanceAmount",
+            header: "Bal Amt",
+            width: "120px",
+            body: (row: PurchaseModel) => {
+                const paid = row.paidAmount ?? 0;
+                let balance = row.invoiceAmount - paid;
+
+                let severity: "success" | "warning" | "danger" = "warning";
+                let displayValue: any = balance;
+
+                if (balance === 0) {
+                    severity = "success";
+                } else if (balance < 0) {
+                    severity = "danger";
+                    displayValue = -balance;
+                    displayValue = `${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(displayValue)}`;
+                    return <Tag value={displayValue} severity={severity} className="amount-tag" />;
+                } else {
+                    severity = "warning";
+                }
+
+                return (
+                    <Tag
+                        value={new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(displayValue)}
+                        severity={severity}
+                        className="amount-tag"
+                    />
+                );
+            },
+        },
+        {
+            field: "runningBalance",
+            header: "Run Amt",
+            width: "120px",
+            body: (row: PurchaseModel) => {
+                const balance = row.runningBalance ?? 0; // cumulative/current balance
+
+                let severity: "success" | "warning" | "danger";
+                let displayValue: string;
+
+                if (balance === 0) {
+                    severity = "warning"; // fully settled
+                    displayValue = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(balance);
+                } else if (balance < 0) {
+                    // We need to pay buyer → red
+                    severity = "success";
+                    displayValue = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(-balance);
+                } else {
+                    // Buyer needs to pay us → green
+                    severity = "danger";
+                    displayValue = `${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(balance)}`;
+                }
+
+                return <Tag value={displayValue} severity={severity} className="amount-tag" />;
+            },
+        },
+        {
             field: "totalAmount",
-            header: "Total Amount",
-            width: "130px",
+            header: "Total Amt",
+            width: "110px",
             body: (row) =>
                 row.totalAmount != null
                     ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.totalAmount)
@@ -201,7 +288,7 @@ export default function PurchaseList() {
         },
         {
             field: "totalGST",
-            header: "Gst Amount",
+            header: "Gst Amt",
             width: "110px",
             body: (row) =>
                 row.totalGST != null
@@ -211,13 +298,13 @@ export default function PurchaseList() {
         {
             field: "grandTotal",
             header: "Grand Total",
-            width: "130px",
+            width: "110px",
             body: (row) =>
                 row.grandTotal != null
                     ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.grandTotal)
                     : "",
         },
-        { field: "invoiceDate", header: "Invoice Date", width: "130px" },
+        { field: "invoiceDate", header: "Invoice Date", width: "110px" },
     ];
 
     const parentColumns = [
@@ -226,8 +313,38 @@ export default function PurchaseList() {
         { field: "purchaseRefNo", header: "Ref No", width: "170px" },
         { field: "purchaseDate", header: "Purchase Date", width: "130px" },
         {
+            field: "purchaseTypeName",
+            header: "Pur Type",
+            width: "110px",
+            body: (row: PurchaseModel) => {
+                let severity: "success" | "warning" | "info" | "danger" = "info";
+
+                switch (row.purchaseTypeName) {
+                    case "Cash":
+                        severity = "success"; // green
+                        break;
+                    case "Credit":
+                        severity = "danger"; // yellow
+                        break;
+                    case "Partially Paid":
+                        severity = "warning"; // red
+                        break;
+                    default:
+                        severity = "info"; // blue/neutral
+                }
+
+                return (
+                    <Tag
+                        value={row.purchaseTypeName}
+                        severity={severity}
+                        className="purchase-type-tag"
+                    />
+                );
+            },
+        },
+        {
             field: "invoiceAmount",
-            header: "Invoice Amount",
+            header: "Invoice Amt",
             width: "130px",
             body: (row: PurchaseModel) => (
                 <Tag
@@ -242,7 +359,7 @@ export default function PurchaseList() {
         },
         {
             field: "paidAmount",
-            header: "Paid Amount",
+            header: "Paid Amt",
             width: "130px",
             body: (row: PurchaseModel) => (
                 <Tag
@@ -254,6 +371,63 @@ export default function PurchaseList() {
                     className="amount-tag"
                 />
             )
+        },
+        {
+            field: "balanceAmount",
+            header: "Bal Amt",
+            width: "120px",
+            body: (row: PurchaseModel) => {
+                const paid = row.paidAmount ?? 0;
+                let balance = row.invoiceAmount - paid;
+
+                let severity: "success" | "warning" | "danger" = "warning";
+                let displayValue: any = balance;
+
+                if (balance === 0) {
+                    severity = "success";
+                } else if (balance < 0) {
+                    severity = "danger";
+                    displayValue = -balance;
+                    displayValue = `${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(displayValue)}`;
+                    return <Tag value={displayValue} severity={severity} className="amount-tag" />;
+                } else {
+                    severity = "warning";
+                }
+
+                return (
+                    <Tag
+                        value={new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(displayValue)}
+                        severity={severity}
+                        className="amount-tag"
+                    />
+                );
+            },
+        },
+        {
+            field: "runningBalance",
+            header: "Run Amt",
+            width: "120px",
+            body: (row: PurchaseModel) => {
+                const balance = row.runningBalance ?? 0; // cumulative/current balance
+
+                let severity: "success" | "warning" | "danger";
+                let displayValue: string;
+
+                if (balance === 0) {
+                    severity = "warning"; // fully settled
+                    displayValue = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(balance);
+                } else if (balance < 0) {
+                    // We need to pay buyer → red
+                    severity = "success";
+                    displayValue = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(-balance);
+                } else {
+                    // Buyer needs to pay us → green
+                    severity = "danger";
+                    displayValue = `${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(balance)}`;
+                }
+
+                return <Tag value={displayValue} severity={severity} className="amount-tag" />;
+            },
         },
         {
             field: "grandTotal",
