@@ -51,6 +51,18 @@ const AppMenu: React.FC = () => {
       ],
     },
     {
+      label: "Customers",
+      icon: "pi pi-fw pi-briefcase",
+      to: "/customers",
+      items: [
+        {
+          label: "Customers",
+          icon: "pi pi-fw pi-globe",
+          to: "/customers",
+        }
+      ],
+    },
+    {
       label: "Suppliers",
       icon: "pi pi-fw pi-briefcase",
       to: "/suppliers",

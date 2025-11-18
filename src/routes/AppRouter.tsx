@@ -9,6 +9,7 @@ import Brand from "../modules/products/pages/BrandPage";
 import Unit from "../modules/products/pages/Unit";
 import SupplierList from "../modules/supplier/SupplierList";
 import PurchaseList from "../modules/purchase/PurchaseList";
+import CustomerList from "../modules/customer/CustomerList";
 
 const Dashboard = React.lazy(() => import("../modules/dashboard/Dashboard"));
 const ProductList = React.lazy(() => import("../modules/products/pages/ProductList"));
@@ -53,6 +54,11 @@ export default function AppRouter() {
                 {/* Supplier Module */}
                 <Route path="suppliers">
                     <Route index element={<SupplierList />} />
+                </Route>
+
+                 {/* Supplier Module */}
+                <Route path="customers">
+                    <Route index element={<CustomerList />} />
                 </Route>
 
                 {/* Inventory Module */}
