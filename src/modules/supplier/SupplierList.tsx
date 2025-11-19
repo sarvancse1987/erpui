@@ -8,6 +8,7 @@ import { useToast } from "../../components/ToastService";
 import apiService from "../../services/apiService";
 import { ColumnMeta } from "../../models/component/ColumnMeta";
 import { TTypeDatatable } from "../../components/TTypeDatatable";
+import { TTypedDatatable } from "../../components/TTypedDatatable";
 
 export default function SupplierList() {
     const [suppliers, setSuppliers] = useState<SupplierModel[]>([]);
@@ -159,27 +160,37 @@ export default function SupplierList() {
 
 
     return (
-        <div className="p-3 h-[calc(100vh-100px)] overflow-auto">
-            <h2 className="text-lg font-semibold mb-4">🏢 Supplier Management</h2>
+        <div className="p-2 h-[calc(100vh-100px)] overflow-auto">
+            <h2 className="text-lg font-semibold mb-1">🏢 Supplier Management</h2>
 
             <TabView>
-                <TabPanel header="Suppliers">
-                    <TTypeDatatable<SupplierModel>
+                <TabPanel header={
+                    <div className="flex items-center gap-2 text-blue-600 font-semibold">
+                        <i className="pi pi-building" />
+                        <span>Suppliers</span>
+                    </div>
+                }>
+                    <TTypedDatatable<SupplierModel>
                         data={suppliers}
                         columns={columns}
                         primaryKey="supplierId"
                         onEdit={handleOpenEdit}
                         isDelete={true}
                         onDelete={handleDeleteSuppliers}
-                        isNew={true}
-                        isSave={true}
+                        isNew={false}
+                        isSave={false}
                     />
                 </TabPanel>
 
-                <TabPanel header="Add / Edit Suppliers">
+                <TabPanel header={
+                    <div className="flex items-center gap-2" style={{ color: 'green' }}>
+                        <i className="pi pi-plus-circle" />
+                        <span>Add New</span>
+                    </div>
+                }>
                     <div className="flex gap-2 mb-4">
-                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewSupplier} />
-                        <Button label="Save" icon="pi pi-save" onClick={handleSaveSuppliers} disabled={!newSuppliers.length} />
+                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewSupplier} className="p-button-sm custom-xs"/>
+                        <Button label="Save" icon="pi pi-save" onClick={handleSaveSuppliers} disabled={!newSuppliers.length} className="p-button-sm custom-xs"/>
                     </div>
 
                     {newSuppliers.length === 0 ? (

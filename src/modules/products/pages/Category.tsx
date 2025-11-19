@@ -5,6 +5,7 @@ import { TTypedDatatable } from "../../../components/TTypedDatatable";
 import apiService from "../../../services/apiService";
 import { CategoryModel } from "../../../models/product/CategoryModel";
 import { useToast } from "../../../components/ToastService";
+import { TTypeDatatable } from "../../../components/TTypeDatatable";
 
 export default function Category() {
     const [categories, setCategories] = useState<CategoryModel[]>([]);
@@ -90,7 +91,7 @@ export default function Category() {
                         <i className="pi pi-check-circle" />
                         <span>Active</span>
                     </div>}>
-                    <TTypedDatatable<CategoryModel>
+                    <TTypeDatatable<CategoryModel>
                         columns={activeColumns}
                         data={activeCategories.map(c => ({ ...c, isActive: true }))}
                         primaryKey="categoryId"
@@ -107,7 +108,7 @@ export default function Category() {
                     <i className="pi pi-times-circle" />
                     <span>Inactive</span>
                 </div>}>
-                    <TTypedDatatable<CategoryModel>
+                    <TTypeDatatable<CategoryModel>
                         columns={inactiveColumns}
                         data={inactiveCategories}
                         primaryKey="categoryId"

@@ -8,6 +8,7 @@ import apiService from "../../services/apiService";
 import { ColumnMeta } from "../../models/component/ColumnMeta";
 import { TTypeDatatable } from "../../components/TTypeDatatable";
 import { CustomerModel } from "../../models/customer/CustomerModel";
+import { TTypedDatatable } from "../../components/TTypedDatatable";
 
 export default function CustomerList() {
     const [customers, setCustomers] = useState<CustomerModel[]>([]);
@@ -140,27 +141,37 @@ export default function CustomerList() {
     if (loading) return <p>Loading customers...</p>;
 
     return (
-        <div className="p-3 h-[calc(100vh-100px)] overflow-auto">
-            <h2 className="text-lg font-semibold mb-4">👤 Customer Management</h2>
+        <div className="p-2 h-[calc(100vh-100px)] overflow-auto">
+            <h2 className="text-lg font-semibold mb-1">👤 Customer Management</h2>
 
             <TabView>
-                <TabPanel header="Customers">
-                    <TTypeDatatable<CustomerModel>
+                <TabPanel header={
+                    <div className="flex items-center gap-2 text-blue-600 font-semibold">
+                        <i className="pi pi-users" />
+                        <span>Customers</span>
+                    </div>
+                }>
+                    <TTypedDatatable<CustomerModel>
                         data={customers}
                         columns={columns}
                         primaryKey="customerId"
                         onEdit={handleOpenEdit}
                         isDelete={true}
                         onDelete={handleDeleteCustomers}
-                        isNew={true}
-                        isSave={true}
+                        isNew={false}
+                        isSave={false}
                     />
                 </TabPanel>
 
-                <TabPanel header="Add / Edit Customers">
+                <TabPanel header={
+                    <div className="flex items-center gap-2" style={{ color: 'green' }}>
+                        <i className="pi pi-plus-circle" />
+                        <span>Add New</span>
+                    </div>
+                }>
                     <div className="flex gap-2 mb-4">
-                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewCustomer} />
-                        <Button label="Save" icon="pi pi-save" onClick={handleSaveCustomers} disabled={!newCustomers.length} />
+                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewCustomer} className="p-button-sm custom-xs"/>
+                        <Button label="Save" icon="pi pi-save" onClick={handleSaveCustomers} disabled={!newCustomers.length} className="p-button-sm custom-xs"/>
                     </div>
 
                     {newCustomers.length === 0 ? (

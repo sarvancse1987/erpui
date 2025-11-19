@@ -177,7 +177,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
     // ---------------------------------------------------
     return (
         <form onSubmit={handleSubmit}>
-            <fieldset className="border border-gray-300 rounded-md p-4 bg-white mb-4">
+            <fieldset className="border border-gray-300 rounded-md p-2 bg-white mb-2">
                 <legend className="text-sm font-semibold px-2 text-gray-700">
                     {formData.supplierId ? "Edit Supplier" : "Add Supplier"}
                 </legend>
@@ -334,10 +334,11 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                 {/* Buttons */}
                 <div className="flex justify-end gap-2 mt-4">
                     {onCancel && (
-                        <Button type="button" label="Cancel" icon="pi pi-times" outlined onClick={onCancel} />
+                        <Button type="button" label="Cancel" icon="pi pi-times-circle" style={{ color: 'red' }}
+                            outlined onClick={onCancel} className="p-button-sm custom-xs" />
                     )}
                     {isEditSidebar && (
-                        <Button type="submit" label="Save" icon="pi pi-save" severity="success" />
+                        <Button type="submit" label="Save" icon="pi pi-save" severity="success" className="p-button-sm custom-xs"/>
                     )}
                 </div>
             </fieldset>

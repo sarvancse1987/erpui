@@ -161,7 +161,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit}>
-      <fieldset className="border border-gray-300 rounded-md p-4 bg-white mb-4">
+      <fieldset className="border border-gray-300 rounded-md p-2 bg-white mb-1">
         <legend className="text-sm font-semibold px-2 text-gray-700">
           {formData.productId ? "Edit Product" : "Add Product"}
         </legend>
@@ -334,7 +334,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             {getErrorMessage("hsnCode") && <span className="mandatory-error">{getErrorMessage("hsnCode")}</span>}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mt-5">
             <strong>GST Include</strong>
             <Checkbox
               checked={formData.isGSTIncludedInPrice}
@@ -344,13 +344,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         </div>
 
         <div className="flex justify-end gap-2 mt-4">
-          {onCancel && <Button type="button" label="Cancel" icon="pi pi-times" outlined onClick={onCancel} />}
+          {onCancel && <Button type="button" label="Cancel" icon="pi pi-times-circle" style={{ color: 'red' }} outlined onClick={onCancel} className="p-button-sm custom-xs"/>}
           {isEditSidebar && (
             <Button
               type="submit"
               label={formData.productId ? "Update" : "Save"}
               icon="pi pi-save"
               severity="success"
+              className="p-button-sm custom-xs"
             />
           )}
         </div>

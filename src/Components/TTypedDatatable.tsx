@@ -395,8 +395,8 @@ export function TTypedDatatable<T extends Record<string, any>>({
 
       <div className="flex justify-between items-center mb-1">
         <div className="flex gap-2">
-          {isNew && <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} size="small" />}
-          {isSave && <Button label="Save" icon="pi pi-save" onClick={saveAll} disabled={!isSaveEnabled} size="small" />}
+          {isNew && <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} size="small" className="p-button-sm custom-xs" />}
+          {isSave && <Button label="Save" icon="pi pi-save" onClick={saveAll} disabled={!isSaveEnabled} size="small" className="p-button-sm custom-xs" />}
           {isDelete && selectedRows.length > 0 && (
             <Button
               label="Delete"
@@ -404,6 +404,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
               severity="danger"
               onClick={() => handleDelete()}
               size="small"
+              className="p-button-sm custom-xs"
             />
           )}
         </div>
@@ -474,8 +475,8 @@ export function TTypedDatatable<T extends Record<string, any>>({
           />
         ))}
 
-        {/* <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} /> */}
-        <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} frozen={true} />
+        <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} frozen={true} />
+        {/* <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} frozen={true} /> */}
       </DataTable>
     </div >
   );

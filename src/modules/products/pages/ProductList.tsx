@@ -13,6 +13,7 @@ import { ProductForm } from "./ProductForm";
 import { Sidebar } from "primereact/sidebar";
 import { useToast } from "../../../components/ToastService";
 import { Dropdown } from "primereact/dropdown";
+import { TTypedDatatable } from "../../../components/TTypedDatatable";
 
 export default function ProductList() {
   const [allGroups, setAllGroups] = useState<GroupModel[]>([]);
@@ -355,13 +356,13 @@ export default function ProductList() {
               <p>No products added yet.</p>
             ) : (
               <div className="space-y-2">
-                <TTypeDatatable<ProductModel>
+                <TTypedDatatable<ProductModel>
                   data={products}
                   columns={columns}
                   primaryKey="productId"
                   onEdit={(row: ProductModel) => handleOpenEdit(row)}
-                  isNew={true}
-                  isSave={true}
+                  isNew={false}
+                  isSave={false}
                   isDelete={true}
                 />
               </div>
@@ -375,8 +376,8 @@ export default function ProductList() {
             </div>
           }>
             <div className="flex gap-2 mb-4">
-              <Button label="Add" icon="pi pi-plus" outlined onClick={addNewProduct} size="small" />
-              <Button label="Save" icon="pi pi-save" onClick={handleSaveProducts} disabled={!newProducts.length} size="small" />
+              <Button label="Add" icon="pi pi-plus" outlined onClick={addNewProduct} size="small" className="p-button-sm custom-xs"/>
+              <Button label="Save" icon="pi pi-save" onClick={handleSaveProducts} disabled={!newProducts.length} size="small" className="p-button-sm custom-xs"/>
             </div>
 
             <div className="space-y-4">

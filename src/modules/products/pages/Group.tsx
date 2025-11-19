@@ -8,6 +8,7 @@ import { GroupModel } from "../../../models/product/GroupModel";
 import { CategoryModel } from "../../../models/product/CategoryModel";
 import apiService from "../../../services/apiService";
 import { useToast } from "../../../components/ToastService";
+import { TTypeDatatable } from "../../../components/TTypeDatatable";
 
 
 export default function GroupPage() {
@@ -119,7 +120,7 @@ export default function GroupPage() {
 
         return (
             <div className="p-3 bg-gray-50 border-l-4 border-indigo-400 rounded-md mt-2">
-                <TTypedDatatable<GroupModel>
+                <TTypeDatatable<GroupModel>
                     columns={columns}
                     data={categoryGroups.length > 0 ? categoryGroups : []}
                     primaryKey="groupId"

@@ -537,11 +537,16 @@ export default function PurchaseList() {
     if (loading) return <p>Loading purchases...</p>;
 
     return (
-        <div className="p-3 h-[calc(100vh-100px)] overflow-auto">
-            <h2 className="text-lg font-semibold mb-4">🧾 Purchase Management</h2>
+        <div className="p-2 h-[calc(100vh-100px)] overflow-auto">
+            <h2 className="text-lg font-semibold mb-1">🧾 Purchase Management</h2>
 
             <TabView>
-                <TabPanel header="Purchases">
+                <TabPanel header={
+                    <div className="flex items-center gap-2 text-blue-600 font-semibold">
+                        <i className="pi pi-shopping-cart" />
+                        <span>Purchases</span>
+                    </div>
+                }>
 
                     <div className="flex gap-4 mb-3">
                         <div className="flex items-center gap-1">
@@ -594,10 +599,15 @@ export default function PurchaseList() {
                     )}
                 </TabPanel>
 
-                <TabPanel header="Add / Edit Purchases">
+                <TabPanel header={
+                    <div className="flex items-center gap-2" style={{ color: 'green' }}>
+                        <i className="pi pi-plus-circle" />
+                        <span>Add New</span>
+                    </div>
+                }>
                     <div className="flex gap-2 mb-2">
-                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewPurchase} />
-                        <Button label="Save" icon="pi pi-save" onClick={handleSavePurchases} disabled={!newPurchases.length} />
+                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewPurchase} className="p-button-sm custom-xs"/>
+                        <Button label="Save" icon="pi pi-save" onClick={handleSavePurchases} disabled={!newPurchases.length} className="p-button-sm custom-xs"/>
                     </div>
 
                     <div className="space-y-4">

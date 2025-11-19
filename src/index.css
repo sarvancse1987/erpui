@@ -202,65 +202,70 @@ code {
 }
 
 .supplier-dropdown {
-    position: absolute;
-    top: 44px;
-    left: 0;
-    z-index: 999;
-    width: 650px;          /* 👈 set your expected minimum width */
-    min-width: 650px;      /* 👈 ensures table doesn’t shrink */
-    max-height: 300px;
-    overflow: auto;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+  position: absolute;
+  top: 44px;
+  left: 0;
+  z-index: 999;
+  width: 650px;
+  /* 👈 set your expected minimum width */
+  min-width: 650px;
+  /* 👈 ensures table doesn’t shrink */
+  max-height: 300px;
+  overflow: auto;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 6px;
 }
 
 
 /* Main menu heading text */
-.layout-root-menuitem > .layout-menuitem-root-text {
-    color: #ffffff;              /* Main menu heading color */
-    background-color: #8e6ae2;   /* Main menu background */
-    font-weight: bold;
-    padding: 12px 20px;
-    font-size: 1rem;
-    border-bottom: 1px solid #8e6ae2;
+.layout-root-menuitem>.layout-menuitem-root-text {
+  color: #ffffff;
+  /* Main menu heading color */
+  background-color: #8e6ae2;
+  /* Main menu background */
+  font-weight: bold;
+  padding: 12px 20px;
+  font-size: 1rem;
+  border-bottom: 1px solid #8e6ae2;
 }
 
 
 /* Active route highlight */
 .active-route {
-    background-color: #8e6ae2;
-    color: #ffffff !important;
+  background-color: #8e6ae2;
+  color: #ffffff !important;
 }
 
 /* Submenu toggler icon */
 .layout-submenu-toggler {
-    margin-left: auto;
+  margin-left: auto;
 }
 
 /* Optional: smooth submenu animation */
 .layout-submenu-enter {
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
 }
 
 .layout-submenu-enter-active {
-    max-height: 500px; /* adjust as needed */
-    opacity: 1;
-    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+  max-height: 500px;
+  /* adjust as needed */
+  opacity: 1;
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
 }
 
 .layout-submenu-exit {
-    max-height: 500px;
-    opacity: 1;
-    overflow: hidden;
+  max-height: 500px;
+  opacity: 1;
+  overflow: hidden;
 }
 
 .layout-submenu-exit-active {
-    max-height: 0;
-    opacity: 0;
-    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
 }
 
 .text-green {
@@ -271,3 +276,13 @@ code {
   color: red;
 }
 
+.custom-xs {
+  padding: 4px 8px !important;
+  font-size: 0.80rem !important;
+  height: 27px !important;
+}
+
+.fixed-table-wrapper {
+  height: 400px;
+  /* or any height you want */
+}
