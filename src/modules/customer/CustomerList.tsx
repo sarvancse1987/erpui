@@ -151,7 +151,7 @@ export default function CustomerList() {
                         <span>Customers</span>
                     </div>
                 }>
-                    <TTypedDatatable<CustomerModel>
+                    <TTypeDatatable<CustomerModel>
                         data={customers}
                         columns={columns}
                         primaryKey="customerId"

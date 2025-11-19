@@ -91,7 +91,7 @@ export default function Category() {
                         <i className="pi pi-check-circle" />
                         <span>Active</span>
                     </div>}>
-                    <TTypeDatatable<CategoryModel>
+                    <TTypedDatatable<CategoryModel>
                         columns={activeColumns}
                         data={activeCategories.map(c => ({ ...c, isActive: true }))}
                         primaryKey="categoryId"

@@ -120,7 +120,7 @@ export default function GroupPage() {
 
         return (
             <div className="p-3 bg-gray-50 border-l-4 border-indigo-400 rounded-md mt-2">
-                <TTypeDatatable<GroupModel>
+                <TTypedDatatable<GroupModel>
                     columns={columns}
                     data={categoryGroups.length > 0 ? categoryGroups : []}
                     primaryKey="groupId"

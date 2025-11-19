@@ -557,6 +557,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
               label="Add Selected"
               icon="pi pi-check"
               severity="success"
+              className="p-button-sm custom-xs"
               onClick={() => {
                 const newRows = sidebarSelectedProducts.map((p: ProductSearchModel) => {
                   const rowKey = `temp-${Date.now()}-${Math.random()}`;
@@ -582,7 +583,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                 setProductSidebarVisible(false);
               }}
             />
-            <Button label="Cancel" icon="pi pi-times" outlined onClick={() => setProductSidebarVisible(false)} />
+            <Button label="Cancel" outlined onClick={() => setProductSidebarVisible(false)} icon="pi pi-times-circle" style={{ color: 'red' }} className="p-button-sm custom-xs"/>
           </div>
         </Sidebar>
       </div>

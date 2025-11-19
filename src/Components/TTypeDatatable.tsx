@@ -45,6 +45,10 @@ export function TTypeDatatable<T extends Record<string, any>>({
     setFilters(f);
   }, [columns]);
 
+  useEffect(() => {
+    setTableData(data.map((d) => ({ ...d }))); // clone initial data
+  }, [data]);
+
   const getNextPrimaryKey = (): string => {
     const maxId = Math.max(
       0,
@@ -355,10 +359,10 @@ export function TTypeDatatable<T extends Record<string, any>>({
       <div className="flex justify-between items-center mb-3">
         <div className="flex gap-2">
           {isNew && (
-            <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} size="small" className="p-button-sm custom-xs"/>
+            <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} size="small" className="p-button-sm custom-xs" />
           )}
           {isSave && (
-            <Button label="Save" icon="pi pi-save" onClick={saveAll} size="small" className="p-button-sm custom-xs"/>
+            <Button label="Save" icon="pi pi-save" onClick={saveAll} size="small" className="p-button-sm custom-xs" />
           )}
           {isDelete && selectedRows.length > 0 && (
             <Button
@@ -440,7 +444,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
             />
           ))}
 
-        <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} frozen={true} />
+        <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} frozen={true} />
       </DataTable>
     </div>
   );

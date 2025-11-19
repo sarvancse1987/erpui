@@ -170,7 +170,7 @@ export default function SupplierList() {
                         <span>Suppliers</span>
                     </div>
                 }>
-                    <TTypedDatatable<SupplierModel>
+                    <TTypeDatatable<SupplierModel>
                         data={suppliers}
                         columns={columns}
                         primaryKey="supplierId"
