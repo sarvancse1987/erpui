@@ -134,36 +134,35 @@ export function TTypedDatatable<T extends Record<string, any>>({
   };
 
   const handleValueChange = (value: any, options: any, col: ColumnMeta<T>) => {
-    const field = (options?.column?.field || options?.field) as keyof T;
-
-    if (!field) {
-      console.warn("⚠️ Missing field in handleValueChange", options);
-      return;
-    }
-
+    const field = col.field as keyof T;
     const rowData = options.rowData as T;
 
-    const updatedTable = tableData.map((r) => {
-      if ((r as any).id === (rowData as any).id) {
-        let updatedRow = { ...r, [field]: value };
+    setTableData((prev) =>
+      prev.map((r) => {
+        const isTempRow = (rowData as any)._tempKey !== undefined;
+        const isMatchingRow = isTempRow
+          ? (r as any)._tempKey === (rowData as any)._tempKey
+          : r[primaryKey] === rowData[primaryKey];
 
-        // ✅ Run custom logic (e.g., recalculate GST)
-        if (col.onValueChange) {
-          col.onValueChange(updatedRow, value, tableData, (newTable) => {
-            // if the custom handler wants to override the whole table
-            setTableData(newTable);
-          });
+        if (isMatchingRow) {
+          const updatedRow = { ...r, [field]: value };
+
+          // Mark the row as edited
+          (updatedRow as any)._edited = true;
+
+          // Call custom column-level handler if defined
+          if (col.onValueChange) {
+            col.onValueChange(updatedRow, value, prev, (newTable) => setTableData(newTable));
+          }
+
+          return updatedRow;
         }
 
-        return updatedRow;
-      }
-      return r;
-    });
+        return r;
+      })
+    );
 
-    // ✅ Update React state with the newly computed row
-    setTableData(updatedTable);
-
-    // ✅ Sync PrimeReact’s internal value
+    // Sync PrimeReact editor state
     if (options.editorCallback) {
       options.editorCallback(value);
     }
@@ -210,7 +209,14 @@ export function TTypedDatatable<T extends Record<string, any>>({
           <div className="flex justify-center items-center h-full">
             <Checkbox
               checked={!!options.value}
-              onChange={(e) => options.editorCallback(e.checked)}
+              onChange={(e) => {
+                // Ensure rowData and column info are passed
+                handleValueChange(
+                  e.checked,
+                  { rowData: options.rowData, field: col.field, editorCallback: options.editorCallback },
+                  col
+                );
+              }}
             />
           </div>
         );
@@ -275,6 +281,12 @@ export function TTypedDatatable<T extends Record<string, any>>({
       return false;
     }
 
+    // ✅ preserve _edited flag for existing rows
+    const updatedRow = {
+      ...rowData,
+      _edited: true // mark as edited when value was changed
+    };
+
     setErrors((prev) => {
       const copy = { ...prev };
       delete copy[key];
@@ -283,7 +295,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
 
     setTableData((prev) =>
       prev.map((item) =>
-        ((item as any)._tempKey || item[primaryKey]) === key ? rowData : item
+        ((item as any)._tempKey || item[primaryKey]) === key ? updatedRow : item
       )
     );
 
@@ -352,10 +364,38 @@ export function TTypedDatatable<T extends Record<string, any>>({
 
   const isSaveEnabled = tableData.some((r) => r[primaryKey] === 0 || !!r._edited);
 
-  return (
-    <div className="card p-3 h-[calc(100vh-100px)] overflow-auto">
+  // -----------------------------
+  // Discard a row (cancel editing)
+  const discardRow = (rowData: any) => {
+    const key = (rowData as any)._tempKey || rowData[primaryKey];
 
-      <div className="flex justify-between items-center mb-3">
+    // Remove new rows completely
+    if ((rowData as any)._tempKey || (rowData as any)._edited) {
+      setTableData((prev) =>
+        prev.filter((r) => (r as any)._tempKey !== (rowData as any)._tempKey)
+      );
+    }
+
+    // Remove from editingRows
+    setEditingRows((prev) => {
+      const copy = { ...prev };
+      delete copy[key];
+      return copy;
+    });
+
+    // Remove errors if any
+    setErrors((prev) => {
+      const copy = { ...prev };
+      delete copy[key];
+      return copy;
+    });
+  };
+
+
+  return (
+    <div className="card p-2 h-[calc(100vh-100px)] overflow-auto">
+
+      <div className="flex justify-between items-center mb-1">
         <div className="flex gap-2">
           {isNew && <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} size="small" />}
           {isSave && <Button label="Save" icon="pi pi-save" onClick={saveAll} disabled={!isSaveEnabled} size="small" />}
@@ -396,6 +436,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
         editMode="row"
         editingRows={editingRows}
         onRowEditChange={(e: DataTableRowEditEvent) => setEditingRows(e.data)}
+        selectionMode="checkbox"
         rowEditValidator={rowEditorValidator}
         size="small"
         scrollable
@@ -408,6 +449,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
         paginator
         rows={10} // rows per page
         rowsPerPageOptions={[5, 10, 25, 50]}
+        onRowEditCancel={(e: DataTableRowEditEvent) => discardRow(e.data)}
       >
         <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
         <Column
@@ -435,7 +477,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
         ))}
 
         {/* <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} /> */}
-        <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} frozen={true}/>
+        <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} frozen={true} />
       </DataTable>
     </div >
   );

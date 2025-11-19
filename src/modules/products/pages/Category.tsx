@@ -81,8 +81,8 @@ export default function Category() {
     }
 
     return (
-        <div className="p-3">
-            <h2 className="mb-4 text-lg font-semibold">🧩 Category Management</h2>
+        <div className="p-1">
+            <h2 className="mb-1 text-lg font-semibold">🧩 Category Management</h2>
 
             <TabView>
                 <TabPanel header={<div className="flex items-center gap-2"><i className="pi pi-check-circle text-green-500" />Active</div>}>
