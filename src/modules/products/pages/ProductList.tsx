@@ -183,8 +183,8 @@ export default function ProductList() {
         options={options.column.props.options}
         onChange={(e) => options.editorCallback(e.value)}
         placeholder="Select"
-        filter            // 🔥 Enables search
-        showClear         // Optional clear button
+        filter
+        showClear
         className="w-full"
         style={{ minWidth: "140px" }}
       />
@@ -198,7 +198,7 @@ export default function ProductList() {
       header: "Product Name",
       editable: true,
       required: true,
-      width: "200px",
+      width: "170px",
       frozen: true,
     },
     {
@@ -208,7 +208,7 @@ export default function ProductList() {
       type: "selectsearch",
       options: categories,
       required: true,
-      width: "140px",
+      width: "130px",
       editor: (options) => searchDropdownEditor(options, "categoryName")
     },
     {
@@ -227,7 +227,7 @@ export default function ProductList() {
       editable: true,
       type: "selectsearch",
       required: true,
-      width: "140px",
+      width: "110px",
       options: allBrands.map(b => ({ label: b.brandName, value: b.brandId })),
       editor: (options) => searchDropdownEditor(options, "brandName")
     },
@@ -300,7 +300,7 @@ export default function ProductList() {
       type: "decimal",
       width: "85px",
       required: true,
-      onValueChange: (row,value) => {
+      onValueChange: (row, value) => {
         if (row != null) {
           row.cgstRate = value;
           updateGSTPrice(row);
@@ -315,7 +315,7 @@ export default function ProductList() {
       type: "decimal",
       width: "85px",
       required: true,
-      onValueChange: (row,value) => {
+      onValueChange: (row, value) => {
         if (row != null) {
           row.sgstRate = value;
           updateGSTPrice(row);
@@ -341,11 +341,16 @@ export default function ProductList() {
 
   return (
     <>
-      <div className="p-3 h-[calc(100vh-100px)] overflow-auto">
-        <h2 className="text-lg font-semibold mb-4">🛒 Product Management</h2>
+      <div className="p-2 h-[calc(100vh-100px)] overflow-auto">
+        <h2 className="text-lg font-semibold mb-1">🛒 Product Management</h2>
 
         <TabView>
-          <TabPanel header="Products">
+          <TabPanel header={
+            <div className="flex items-center gap-2" style={{ color: 'green' }}>
+              <i className="pi pi-check-circle" />
+              <span>Active</span>
+            </div>
+          }>
             {products.length === 0 ? (
               <p>No products added yet.</p>
             ) : (
@@ -363,7 +368,12 @@ export default function ProductList() {
             )}
           </TabPanel>
 
-          <TabPanel header="Add / Edit Products">
+          <TabPanel header={
+            <div className="flex items-center gap-2" style={{ color: 'green' }}>
+              <i className="pi pi-plus-circle" />
+              <span>Add New</span>
+            </div>
+          }>
             <div className="flex gap-2 mb-4">
               <Button label="Add" icon="pi pi-plus" outlined onClick={addNewProduct} size="small" />
               <Button label="Save" icon="pi pi-save" onClick={handleSaveProducts} disabled={!newProducts.length} size="small" />

@@ -10,118 +10,47 @@ const AppMenu: React.FC = () => {
   const model: AppMenuItem[] = [
     {
       label: "Home",
-      items: [
-        { label: "Dashboard", icon: "pi pi-fw pi-home", to: "/" },
-      ],
+      items: [{ label: "Dashboard", icon: "pi pi-fw pi-home", to: "/" }],
     },
     {
       label: "Master",
       items: [
         {
           label: "Products",
-          icon: "pi pi-fw pi-user",
+          icon: "pi pi-fw pi-box",
           items: [
-            {
-              label: "Categories",
-              icon: "pi pi-fw pi-sign-in",
-              to: "/products/category",
-            },
-            {
-              label: "Groups",
-              icon: "pi pi-fw pi-times-circle",
-              to: "/products/group",
-            },
-            {
-              label: "Brands",
-              icon: "pi pi-fw pi-times-circle",
-              to: "/products/brand",
-            },
-            {
-              label: "Products",
-              icon: "pi pi-fw pi-times-circle",
-              to: "/products",
-            },
-            {
-              label: "Units",
-              icon: "pi pi-fw pi-times-circle",
-              to: "/products/unit",
-            },
+            { label: "Categories", icon: "pi pi-fw pi-tags", to: "/products/category" },
+            { label: "Groups", icon: "pi pi-fw pi-list", to: "/products/group" },
+            { label: "Brands", icon: "pi pi-fw pi-briefcase", to: "/products/brand" },
+            { label: "Products", icon: "pi pi-fw pi-box", to: "/products" },
+            { label: "Units", icon: "pi pi-fw pi-cog", to: "/products/unit" },
           ],
         },
       ],
     },
     {
       label: "Customers",
-      icon: "pi pi-fw pi-briefcase",
+      icon: "pi pi-fw pi-user",
       to: "/customers",
-      items: [
-        {
-          label: "Customers",
-          icon: "pi pi-fw pi-globe",
-          to: "/customers",
-        }
-      ],
+      items: [{ label: "Customers", icon: "pi pi-fw pi-user", to: "/customers" }],
     },
     {
       label: "Suppliers",
-      icon: "pi pi-fw pi-briefcase",
+      icon: "pi pi-fw pi-building",
       to: "/suppliers",
-      items: [
-        {
-          label: "Suppliers",
-          icon: "pi pi-fw pi-globe",
-          to: "/suppliers",
-        }
-      ],
+      items: [{ label: "Suppliers", icon: "pi pi-fw pi-building", to: "/suppliers" }],
     },
     {
       label: "Purchase",
-      icon: "pi pi-fw pi-briefcase",
+      icon: "pi pi-fw pi-shopping-cart",
       to: "/purchase",
-      items: [
-        {
-          label: "Purchase",
-          icon: "pi pi-fw pi-globe",
-          to: "/purchase",
-        }
-      ],
+      items: [{ label: "Purchase", icon: "pi pi-fw pi-shopping-cart", to: "/purchase" }],
     },
     {
       label: "Sales",
-      icon: "pi pi-fw pi-briefcase",
+      icon: "pi pi-fw pi-wallet",
       to: "/sales",
-      items: [
-        {
-          label: "Sales",
-          icon: "pi pi-fw pi-globe",
-          to: "/sales",
-        }
-      ],
-    },
-    {
-      label: "Companys",
-      items: [
-        {
-          label: "Submenu 1",
-          icon: "pi pi-fw pi-bookmark",
-          items: [
-            {
-              label: "Submenu 1.1",
-              icon: "pi pi-fw pi-bookmark",
-              items: [
-                { label: "Submenu 1.1.1", icon: "pi pi-fw pi-bookmark" },
-                { label: "Submenu 1.1.2", icon: "pi pi-fw pi-bookmark" },
-                { label: "Submenu 1.1.3", icon: "pi pi-fw pi-bookmark" },
-              ],
-            },
-            {
-              label: "Submenu 1.2",
-              icon: "pi pi-fw pi-bookmark",
-              items: [{ label: "Submenu 1.2.1", icon: "pi pi-fw pi-bookmark" }],
-            },
-          ],
-        }
-      ],
+      items: [{ label: "Sales", icon: "pi pi-fw pi-wallet", to: "/sales" }],
     },
   ];
 

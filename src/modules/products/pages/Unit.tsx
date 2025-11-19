@@ -77,11 +77,15 @@ export default function Unit() {
     }
 
     return (
-        <div className="p-3">
-            <h2 className="mb-4 text-lg font-semibold">🧩 Unit Management</h2>
+        <div className="p-2">
+            <h2 className="mb-1 text-lg font-semibold">🧩 Unit Management</h2>
 
             <TabView>
-                <TabPanel header={<div className="flex items-center gap-2"><i className="pi pi-check-circle text-green-500" />Active</div>}>
+                <TabPanel header={
+                    <div className="flex items-center gap-2" style={{ color: 'green' }}>
+                        <i className="pi pi-check-circle" />
+                        <span>Active</span>
+                    </div>}>
                     <TTypedDatatable<UnitModel>
                         columns={activeColumns}
                         data={activeUnits.map(c => ({ ...c, isActive: true }))}
@@ -94,7 +98,11 @@ export default function Unit() {
                     />
                 </TabPanel>
 
-                <TabPanel header={<div className="flex items-center gap-2"><i className="pi pi-times-circle text-red-500" />Inactive</div>}>
+                <TabPanel header={
+                    <div className="flex items-center gap-2" style={{ color: 'red' }}>
+                        <i className="pi pi-times-circle" />
+                        <span>Inactive</span>
+                    </div>}>
                     <TTypedDatatable<UnitModel>
                         columns={inactiveColumns}
                         data={inactiveUnits}

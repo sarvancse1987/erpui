@@ -57,30 +57,30 @@ code {
 
 /* Compact DataTable Rows */
 .p-datatable .p-datatable-tbody>tr>td {
-  padding: 0.4rem 0.5rem !important;
+  padding: 0.3rem 0.4rem !important;
   /* vertical horizontal */
   line-height: 1.0 !important;
 }
 
 .p-datatable .p-datatable-thead>tr>th {
-  padding: 0.45rem 0.5rem !important;
+  padding: 0.1rem 0.1rem !important;
 }
 
 .p-datatable-wrapper::-webkit-scrollbar {
-  height: 4px;
+  height: 3px;
   /* horizontal scrollbar height */
-  width: 4px;
+  width: 2px;
   /* vertical scrollbar width */
 }
 
 .p-datatable-wrapper::-webkit-scrollbar-track {
   background: #f1f1f1;
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
 .p-datatable-wrapper::-webkit-scrollbar-thumb {
   background-color: #c1c1c1;
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
 .p-datatable-wrapper::-webkit-scrollbar-thumb:hover {
@@ -214,3 +214,60 @@ code {
     border: 1px solid #ccc;
     border-radius: 6px;
 }
+
+
+/* Main menu heading text */
+.layout-root-menuitem > .layout-menuitem-root-text {
+    color: #ffffff;              /* Main menu heading color */
+    background-color: #8e6ae2;   /* Main menu background */
+    font-weight: bold;
+    padding: 12px 20px;
+    font-size: 1rem;
+    border-bottom: 1px solid #8e6ae2;
+}
+
+
+/* Active route highlight */
+.active-route {
+    background-color: #8e6ae2;
+    color: #ffffff !important;
+}
+
+/* Submenu toggler icon */
+.layout-submenu-toggler {
+    margin-left: auto;
+}
+
+/* Optional: smooth submenu animation */
+.layout-submenu-enter {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+}
+
+.layout-submenu-enter-active {
+    max-height: 500px; /* adjust as needed */
+    opacity: 1;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.layout-submenu-exit {
+    max-height: 500px;
+    opacity: 1;
+    overflow: hidden;
+}
+
+.layout-submenu-exit-active {
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.text-green {
+  color: green;
+}
+
+.text-red {
+  color: red;
+}
+

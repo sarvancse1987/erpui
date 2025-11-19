@@ -207,31 +207,29 @@ export default function BrandPage() {
     };
 
     return (
-        <div className="p-3">
-            <h2 className="mb-4 text-lg font-semibold">
+        <div className="p-2">
+            <h2 className="mb-1 text-lg font-semibold">
                 🏗️ Product Hierarchy (Category → Group → Brand)
             </h2>
 
             <TabView>
                 <TabPanel
                     header={
-                        <div className="flex items-center gap-2">
-                            <i className="pi pi-check-circle text-green-500" />
-                            <span className="font-medium">Active</span>
+                        <div className="flex items-center gap-2" style={{ color: 'green' }}>
+                            <i className="pi pi-check-circle" />
+                            <span>Active</span>
                         </div>
-                    }
-                >
+                    }>
                     {renderTable(true)}
                 </TabPanel>
 
                 <TabPanel
                     header={
-                        <div className="flex items-center gap-2">
-                            <i className="pi pi-times-circle text-red-500" />
-                            <span className="font-medium">Inactive</span>
+                        <div className="flex items-center gap-2" style={{ color: 'red' }}>
+                            <i className="pi pi-times-circle" />
+                            <span>Inactive</span>
                         </div>
-                    }
-                >
+                    }>
                     {renderTable(false)}
                 </TabPanel>
             </TabView>

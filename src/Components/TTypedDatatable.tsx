@@ -75,7 +75,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
     (newRow as any)._tempKey = `temp-${Date.now()}-${Math.random()}`; // unique temp key
 
     // Add row to table
-    setTableData((prev) => [...prev, newRow]);
+    setTableData(prev => [newRow, ...prev]);
 
     // Open this row in edit mode immediately using tempKey
     setEditingRows({ [(newRow as any)._tempKey]: true });
@@ -364,8 +364,6 @@ export function TTypedDatatable<T extends Record<string, any>>({
 
   const isSaveEnabled = tableData.some((r) => r[primaryKey] === 0 || !!r._edited);
 
-  // -----------------------------
-  // Discard a row (cancel editing)
   const discardRow = (rowData: any) => {
     const key = (rowData as any)._tempKey || rowData[primaryKey];
 
@@ -453,7 +451,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
       >
         <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
         <Column
-          header="Sr. No."
+          header="No."
           body={(_, options) => options.rowIndex + 1}
           style={{ width: "70px", minWidth: "70px" }}
         />

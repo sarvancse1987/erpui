@@ -53,6 +53,23 @@ export function TTypeDatatable<T extends Record<string, any>>({
     return (maxId + 1).toString();
   };
 
+  // const addRow = () => {
+  //   if (Object.keys(editingRows).length > 0) return;
+
+  //   const newRow = {} as T;
+  //   columns.forEach((col) => {
+  //     if (col.type === "checkbox") (newRow[col.field] as any) = false;
+  //     else (newRow[col.field] as any) = "";
+  //   });
+  //   (newRow[primaryKey] as any) = getNextPrimaryKey();
+
+  //   const newData = [...tableData, newRow];
+  //   setTableData(newData);
+
+  //   const newKey = newRow[primaryKey] as string;
+  //   setEditingRows({ [newKey]: true });
+  // };
+
   const addRow = () => {
     if (Object.keys(editingRows).length > 0) return;
 
@@ -63,7 +80,8 @@ export function TTypeDatatable<T extends Record<string, any>>({
     });
     (newRow[primaryKey] as any) = getNextPrimaryKey();
 
-    const newData = [...tableData, newRow];
+    // Insert at the beginning
+    const newData = [newRow, ...tableData];
     setTableData(newData);
 
     const newKey = newRow[primaryKey] as string;
@@ -95,12 +113,15 @@ export function TTypeDatatable<T extends Record<string, any>>({
     const allErrors: typeof errors = {};
     const rowsToReopen: { [key: string]: boolean } = {};
 
-    tableData.forEach((row) => {
+    // Only iterate over editing rows
+    Object.keys(editingRows).forEach((key) => {
+      const row = tableData.find((r) => r[primaryKey] === key);
+      if (!row) return;
+
       const rowErrors = validateRow(row);
       if (Object.keys(rowErrors).length > 0) {
-        const key = row[primaryKey] as string;
         allErrors[key] = rowErrors;
-        rowsToReopen[key] = true;
+        rowsToReopen[key] = true; // Only reopen rows with errors that were being edited
         valid = false;
       }
     });
@@ -111,6 +132,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
       return;
     }
 
+    // Clear errors and editing rows after successful save
     setErrors({});
     setEditingRows({});
   };
@@ -300,6 +322,32 @@ export function TTypeDatatable<T extends Record<string, any>>({
     });
   };
 
+  const discardRow = (rowData: any) => {
+    const key = (rowData as any)._tempKey || rowData[primaryKey];
+
+    // Remove new rows completely
+    if ((rowData as any)._tempKey || (rowData as any)._edited) {
+      setTableData((prev) =>
+        prev.filter((r) => (r as any)._tempKey !== (rowData as any)._tempKey)
+      );
+    }
+
+    // Remove from editingRows
+    setEditingRows((prev) => {
+      const copy = { ...prev };
+      delete copy[key];
+      return copy;
+    });
+
+    // Remove errors if any
+    setErrors((prev) => {
+      const copy = { ...prev };
+      delete copy[key];
+      return copy;
+    });
+  };
+
+
   return (
     <div className="card p-3 h-[calc(100vh-100px)]">
       {/* Removed overflow-auto 🟢 */}
@@ -350,6 +398,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
         dataKey={primaryKey as string}
         selection={selectedRows}
         onSelectionChange={(e) => setSelectedRows(e.value)}
+        selectionMode="checkbox"
         editMode="row"
         editingRows={editingRows}
         onRowEditChange={(e) => setEditingRows(e.data)}
@@ -358,13 +407,14 @@ export function TTypeDatatable<T extends Record<string, any>>({
         scrollable
         scrollHeight="600px"
         frozenWidth="250px"
+        onRowEditCancel={(e: DataTableRowEditEvent) => discardRow(e.data)}
       >
         <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} frozen />
 
         <Column
-          header="Sr. No."
+          header="No."
           body={(_, options) => options.rowIndex + 1}
-          style={{ width: "70px", minWidth: "70px" }}
+          style={{ width: "40px", minWidth: "40px" }}
           frozen
         />
 
@@ -389,13 +439,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
             />
           ))}
 
-        <Column
-          body={actionBodyTemplate}
-          header="Actions"
-          style={{ width: "100px" }}
-          frozen
-          alignFrozen="right"
-        />
+        <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} frozen={true} />
       </DataTable>
     </div>
   );
