@@ -122,10 +122,11 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
       width: "200px",
       frozen: true,
       body: (row: PurchaseItemModel) => row.productName || "",
+      placeholder: "Product Name"
     },
-    { field: "unitPrice", header: "Rate", editable: true, type: "currency", required: true, width: "110px" },
-    { field: "quantity", header: "Qty", editable: true, type: "decimal", required: true },
-    { field: "gstPercent", header: "GST %", editable: true, type: "decimal", required: true },
+    { field: "unitPrice", header: "Rate", editable: true, type: "currency", required: true, width: "110px", placeholder: "Product Rate" },
+    { field: "quantity", header: "Qty", editable: true, type: "decimal", required: true, placeholder: "Quantity" },
+    { field: "gstPercent", header: "GST %", editable: true, type: "decimal", required: true, placeholder: "Total Gst" },
     {
       field: "amount",
       header: "Amount",
@@ -330,6 +331,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
           isSave={false}
           itemsSaveTrigger={saveTrigger}
           onChange={handleItemsChange}
+          isDelete={true}
         />
       </div>
     </form>

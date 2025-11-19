@@ -158,6 +158,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
             value={options.value || ""} disabled
             className={classNames({ "p-invalid": showError })}
             style={{ width: "100%" }} size="small"
+            placeholder={col.placeholder}
           />
 
         );
@@ -255,6 +256,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
             maxFractionDigits={maxFrac}
             className={classNames("p-inputnumber-sm", { "p-invalid": showError })}
             style={{ width: "60%" }}
+            placeholder={col.placeholder}
           />
 
         );
@@ -278,6 +280,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
             }}
             className={classNames("p-inputnumber-sm", { "p-invalid": showError })}
             style={{ width: "100%" }}
+            placeholder={col.placeholder}
           />
         );
       case "productSearch":
@@ -305,6 +308,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                 setShowTableMap((prev) => ({ ...prev, [key]: true }));
               }
             }}
+            
           />
         );
       case "textdisabled":
@@ -314,6 +318,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
             onChange={(e) => updateValue(e.target.value)}
             className={classNames("p-inputnumber-sm", { "p-invalid": showError })}
             readOnly={true}
+            placeholder={col.placeholder}
           />
         );
       default:
@@ -322,6 +327,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
             value={options.value || ""}
             onChange={(e) => updateValue(e.target.value)}
             className={classNames("p-inputnumber-sm", { "p-invalid": showError })}
+            placeholder={col.placeholder}
           />
         );
     }
@@ -367,9 +373,9 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
     <div className="card p-3 h-[calc(100vh-100px)] overflow-auto">
       <div className="flex justify-between items-center mb-1">
         <div className="flex gap-2 mb-1 flex-none">
-          <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} size="small" className="p-button-sm custom-xs"/>
-          {isSave && < Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll} disabled={!isSaveEnabled} size="small" className="p-button-sm custom-xs"/>}
-          {isDelete && tableData.length > 0 && <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={deleteSelected} disabled={!selectedRows.length} size="small" className="p-button-sm custom-xs"/>}
+          <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} size="small" className="p-button-sm custom-xs" />
+          {isSave && < Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll} disabled={!isSaveEnabled} size="small" className="p-button-sm custom-xs" />}
+          {isDelete && tableData.length > 0 && <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={deleteSelected} disabled={!selectedRows.length} size="small" className="p-button-sm custom-xs" />}
         </div>
         <div className="ml-auto">
           <span className="p-input-icon-left relative w-64">
@@ -502,7 +508,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
               style={{ width: col.width || "auto", minWidth: col.width || "120px" }}
             />
           ))}
-          <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} frozen={true}/>
+          <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} frozen={true} alignFrozen="right"/>
         </DataTable>
 
         <Paginator
@@ -583,7 +589,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                 setProductSidebarVisible(false);
               }}
             />
-            <Button label="Cancel" outlined onClick={() => setProductSidebarVisible(false)} icon="pi pi-times-circle" style={{ color: 'red' }} className="p-button-sm custom-xs"/>
+            <Button label="Cancel" outlined onClick={() => setProductSidebarVisible(false)} icon="pi pi-times-circle" style={{ color: 'red' }} className="p-button-sm custom-xs" />
           </div>
         </Sidebar>
       </div>

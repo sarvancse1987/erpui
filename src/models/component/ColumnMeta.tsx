@@ -19,4 +19,5 @@ export interface ColumnMeta<T> {
         editorCallback: (value: any) => void;
         column: ColumnMeta<T>;
     }) => React.ReactNode;
+    placeholder?: string;
 }
