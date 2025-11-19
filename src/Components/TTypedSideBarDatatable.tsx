@@ -502,7 +502,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
               style={{ width: col.width || "auto", minWidth: col.width || "120px" }}
             />
           ))}
-          <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} />
+          <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} frozen={true}/>
         </DataTable>
 
         <Paginator

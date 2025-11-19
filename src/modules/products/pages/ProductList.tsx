@@ -12,6 +12,7 @@ import { ColumnMeta } from "../../../models/component/ColumnMeta";
 import { ProductForm } from "./ProductForm";
 import { Sidebar } from "primereact/sidebar";
 import { useToast } from "../../../components/ToastService";
+import { Dropdown } from "primereact/dropdown";
 
 export default function ProductList() {
   const [allGroups, setAllGroups] = useState<GroupModel[]>([]);
@@ -120,6 +121,7 @@ export default function ProductList() {
       if (!p.productBrandId) errors[`product-${idx}-productBrandId`] = "Brand is required";
       if (!p.purchasePrice) errors[`product-${idx}-purchasePrice`] = "Purchase Price is required";
       if (!p.salePrice) errors[`product-${idx}-salePrice`] = "Sale Price is required";
+      if (!p.primaryUnitId) errors[`product-${idx}-primaryUnitId`] = "Unit is required";
       if (!p.hsnCode.trim()) errors[`product-${idx}-hsnCode`] = "HSN Code is required";
     });
 
@@ -174,6 +176,21 @@ export default function ProductList() {
   const getLabel = (options: OptionModel[], value: string | number) =>
     options.find((opt) => opt.value === value)?.label || "";
 
+  const searchDropdownEditor = (options: any, field: any) => {
+    return (
+      <Dropdown
+        value={options.value[field]}
+        options={options.column.props.options}
+        onChange={(e) => options.editorCallback(e.value)}
+        placeholder="Select"
+        filter            // 🔥 Enables search
+        showClear         // Optional clear button
+        className="w-full"
+        style={{ minWidth: "140px" }}
+      />
+    );
+  };
+
   const columns: ColumnMeta<ProductModel>[] = [
     { field: "productId", header: "ID", width: "80px", hidden: true },
     {
@@ -188,35 +205,41 @@ export default function ProductList() {
       field: "categoryName",
       header: "Category",
       editable: true,
-      type: "select",
+      type: "selectsearch",
       options: categories,
       required: true,
       width: "140px",
+      editor: (options) => searchDropdownEditor(options, "categoryName")
     },
     {
       field: "groupName",
       header: "Group",
       editable: true,
-      type: "select",
+      type: "selectsearch",
       required: true,
       width: "160px",
+      options: allGroups.map(g => ({ label: g.groupName, value: g.groupId })),
+      editor: (options) => searchDropdownEditor(options, "groupName")
     },
     {
       field: "brandName",
       header: "Brand",
       editable: true,
-      type: "select",
+      type: "selectsearch",
       required: true,
       width: "140px",
+      options: allBrands.map(b => ({ label: b.brandName, value: b.brandId })),
+      editor: (options) => searchDropdownEditor(options, "brandName")
     },
     {
       field: "primaryUnitId",
       header: "Unit",
       editable: true,
-      type: "select",
+      type: "selectsearch",
       options: units,
       body: (row) => getLabel(units, row.primaryUnitId),
       width: "60px",
+
     },
     {
       field: "purchasePrice",
@@ -275,12 +298,14 @@ export default function ProductList() {
       header: "CGST %",
       editable: true,
       type: "decimal",
-      width: "80px",
+      width: "85px",
       required: true,
-      onValueChange: (value, row) => {
-        row.cgstRate = value;
-        updateGSTPrice(row);
-        setProducts([...products]);
+      onValueChange: (row,value) => {
+        if (row != null) {
+          row.cgstRate = value;
+          updateGSTPrice(row);
+          setProducts([...products]);
+        }
       },
     },
     {
@@ -288,12 +313,14 @@ export default function ProductList() {
       header: "SGST %",
       editable: true,
       type: "decimal",
-      width: "70px",
+      width: "85px",
       required: true,
-      onValueChange: (value, row) => {
-        row.sgstRate = value;
-        updateGSTPrice(row);
-        setProducts([...products]);
+      onValueChange: (row,value) => {
+        if (row != null) {
+          row.sgstRate = value;
+          updateGSTPrice(row);
+          setProducts([...products]);
+        }
       },
     },
     // {
@@ -338,8 +365,8 @@ export default function ProductList() {
 
           <TabPanel header="Add / Edit Products">
             <div className="flex gap-2 mb-4">
-              <Button label="Add New" icon="pi pi-plus" outlined severity="success" onClick={addNewProduct} />
-              <Button label="Save All" icon="pi pi-save" onClick={handleSaveProducts} disabled={!newProducts.length} />
+              <Button label="Add" icon="pi pi-plus" outlined onClick={addNewProduct} size="small" />
+              <Button label="Save" icon="pi pi-save" onClick={handleSaveProducts} disabled={!newProducts.length} size="small" />
             </div>
 
             <div className="space-y-4">

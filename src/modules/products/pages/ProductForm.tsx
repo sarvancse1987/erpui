@@ -53,11 +53,24 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     }
   }, [formData.productCategoryId, formData.productGroupId, allGroups, allBrands]);
 
+  useEffect(() => {
+    setFormData({ ...product });
+
+    // Also reset groups & brands when starting a new product
+    if (!product.productCategoryId) setFilteredGroups([]);
+    if (!product.productGroupId) setFilteredBrands([]);
+
+    setLocalValidationErrors({});
+  }, [product]);
+
   const updateGSTPrice = (data: ProductModel) => {
     const totalGST = (data.cgstRate ?? 0) + (data.sgstRate ?? 0) + (data.igstRate ?? 0);
     data.gstPrice = data.isGSTIncludedInPrice
       ? data.purchasePrice
       : +(data.purchasePrice + (data.purchasePrice * totalGST) / 100).toFixed(2);
+    if (data.cgstRate > 0 || data.sgstRate > 0) {
+      data.isGSTIncludedInPrice = true;
+    }
   };
 
   const onClearError = (fieldKey: string) => {
@@ -128,6 +141,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     if (!formData.productBrandId) errors[getErrorKey("productBrandId")] = "Brand is required";
     if (!formData.purchasePrice || formData.purchasePrice <= 0) errors[getErrorKey("purchasePrice")] = "Purchase Price is required";
     if (!formData.salePrice || formData.salePrice <= 0) errors[getErrorKey("salePrice")] = "Sale Price is required";
+    if (!formData.primaryUnitId || formData.primaryUnitId <= 0) errors[getErrorKey("primaryUnitId")] = "Unit is required";
     if (!formData.hsnCode?.trim()) errors[getErrorKey("hsnCode")] = "HSN Code is required";
 
     if (Object.keys(errors).length > 0) {

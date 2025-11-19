@@ -12,4 +12,11 @@ export interface ColumnMeta<T> {
     onEdit?: (row: T) => void;
     hidden?: boolean;
     style?: React.CSSProperties;
+    editor?: (options: {
+        rowData: T;
+        value: any;
+        field: keyof T;
+        editorCallback: (value: any) => void;
+        column: ColumnMeta<T>;
+    }) => React.ReactNode;
 }
