@@ -68,6 +68,8 @@ export default function PurchaseList() {
         isActive: true,
         purchaseTypeId: 0,
         paidAmount: 0,
+        freightAmout: 0,
+        roundOff: 0,
         purchaseItems: [],
     });
 
@@ -319,9 +321,9 @@ export default function PurchaseList() {
     ];
 
     const parentColumns = [
-        { field: "supplierName", header: "Supplier" },
-        { field: "invoiceNumber", header: "Invoice No" },
-        { field: "purchaseRefNo", header: "Ref No", width: "170px" },
+        { field: "supplierName", header: "Supplier", width: "130px" },
+        { field: "invoiceNumber", header: "Invoice No", width: "130px" },
+        { field: "purchaseRefNo", header: "Ref No", width: "180px" },
         { field: "purchaseDate", header: "Purchase Date", width: "130px" },
         {
             field: "purchaseTypeName",
@@ -430,20 +432,18 @@ export default function PurchaseList() {
             header: "Run Amt",
             width: "120px",
             body: (row: PurchaseModel) => {
-                const balance = row.runningBalance ?? 0; // cumulative/current balance
+                const balance = row.runningBalance ?? 0;
 
                 let severity: "success" | "warning" | "danger";
                 let displayValue: string;
 
                 if (balance === 0) {
-                    severity = "warning"; // fully settled
+                    severity = "warning";
                     displayValue = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(balance);
                 } else if (balance < 0) {
-                    // We need to pay buyer → red
                     severity = "success";
                     displayValue = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(-balance);
                 } else {
-                    // Buyer needs to pay us → green
                     severity = "danger";
                     displayValue = `${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(balance)}`;
                 }
@@ -454,6 +454,7 @@ export default function PurchaseList() {
         {
             field: "grandTotal",
             header: "Grand Total",
+            width: "120px",
             body: (row: PurchaseModel) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.grandTotal)
         }
     ];
@@ -606,8 +607,8 @@ export default function PurchaseList() {
                     </div>
                 }>
                     <div className="flex gap-2 mb-2">
-                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewPurchase} className="p-button-sm custom-xs"/>
-                        <Button label="Save" icon="pi pi-save" onClick={handleSavePurchases} disabled={!newPurchases.length} className="p-button-sm custom-xs"/>
+                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewPurchase} className="p-button-sm custom-xs" />
+                        <Button label="Save" icon="pi pi-save" onClick={handleSavePurchases} disabled={!newPurchases.length} className="p-button-sm custom-xs" />
                     </div>
 
                     <div className="space-y-4">

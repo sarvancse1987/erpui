@@ -60,7 +60,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
 
   useEffect(() => {
     if (!itemsSaveTrigger) return;
-    saveAll(); // <-- RUN CHILD VALIDATION
+    saveAll();
   }, [itemsSaveTrigger]);
 
   const addRow = () => {
@@ -254,8 +254,8 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
             locale="en-IN"
             minFractionDigits={minFrac}
             maxFractionDigits={maxFrac}
-            className={classNames("p-inputnumber-sm", { "p-invalid": showError })}
-            style={{ width: "60%" }}
+            className={classNames("custom-width p-inputnumber-sm", { "p-invalid": showError })}
+            style={{ width: "30%" }}
             placeholder={col.placeholder}
           />
 
@@ -308,7 +308,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                 setShowTableMap((prev) => ({ ...prev, [key]: true }));
               }
             }}
-            
+
           />
         );
       case "textdisabled":
@@ -335,12 +335,19 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
 
   const deleteSelected = () => {
     if (!selectedRows.length) return;
-    const selectedIds = selectedRows.map(r => r[primaryKey]);
+
+    // ⭐ REQUIRED → For each row, use tempKey or actual primaryKey
+    const selectedKeys = selectedRows.map(r => r._tempKey || r[primaryKey]);
+
     setTableData(prev => {
-      const remaining = prev.filter(r => !selectedIds.includes(r[primaryKey]));
-      onChange?.(remaining); // <-- EMIT TO PARENT
+      const remaining = prev.filter(r =>
+        !selectedKeys.includes(r._tempKey || r[primaryKey])
+      );
+
+      onChange?.(remaining);
       return remaining;
     });
+
     setSelectedRows([]);
   };
 
@@ -356,7 +363,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
   );
 
   const adjustmentOptions = [
-    { label: "Freight Charge", value: "freight" },
+    { label: "Freight Charge", value: "freightAmount" },
     { label: "Round Off (+)", value: "roundOffAdd" },
     { label: "Round Off (-)", value: "roundOffSub" },
   ];
@@ -364,7 +371,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
   const [selectedAdjustment, setSelectedAdjustment] = useState<string | null>(null);
   const [adjustmentValue, setAdjustmentValue] = useState<number>(0);
   const [adjustments, setAdjustments] = useState({
-    freight: 0,
+    freightAmount: 0,
     roundOffAdd: 0,
     roundOffSub: 0,
   });
@@ -415,7 +422,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
           footer={
             <div className="custom-footer flex justify-between items-center gap-1 flex-wrap px-2 py-1">
               {/* Left: Dropdown + Input + Button */}
-              <div className="flex items-center gap-1 min-w-[200px]">
+              <div className="flex items-center gap-1 min-w-[200px] adjustment-section">
                 <Dropdown
                   value={selectedAdjustment}
                   options={adjustmentOptions}
@@ -451,14 +458,16 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
               </div>
 
               <div className="flex gap-1 mt-1">
-                {adjustments.freight > 0 && (
-                  <span className="px-1 py-1 bg-blue-100 text-blue-800 rounded">Freight: ₹{adjustments.freight}</span>
+                {adjustments.freightAmount > 0 && (
+                  <span className="flex items-center justify-center px-2 py-0.5 text-sm font-semibold" style={{ background: "#7e7976ff", color: "white" }}>
+                    Freight: ₹{adjustments.freightAmount}
+                  </span>
                 )}
                 {adjustments.roundOffAdd > 0 && (
-                  <span className="px-1 py-1 bg-green-100 text-green-800 rounded">Round Off (+): ₹{adjustments.roundOffAdd}</span>
+                  <span className="flex items-center justify-center px-2 py-0.5 text-sm font-semibold" style={{ background: "#7e7976ff", color: "white" }}>Round Off (+): ₹{adjustments.roundOffAdd}</span>
                 )}
                 {adjustments.roundOffSub > 0 && (
-                  <span className="px-1 py-1 bg-red-100 text-red-800 rounded">Round Off (-): ₹{adjustments.roundOffSub}</span>
+                  <span className="flex items-center justify-center px-2 py-0.5 text-sm font-semibold" style={{ background: "#7e7976ff", color: "white" }}>Round Off (-): ₹{adjustments.roundOffSub}</span>
                 )}
               </div>
 
@@ -466,25 +475,25 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
               <div className="flex items-center gap-1 flex-wrap">
                 <div
                   className="flex items-center justify-start px-2 py-0.5 text-sm font-semibold"
-                  style={{ background: "#2ecc71", color: "white", borderRadius: 0, minWidth: 140, height: '87%' }}
+                  style={{ background: "#2ecc71", color: "white", borderRadius: 0, minWidth: 130, height: '87%' }}
                 >
                   <span>Total Amt: ₹{tableData.reduce((a, r) => a + (r.amount || 0), 0).toFixed(2)}</span>
                 </div>
 
                 <div
                   className="flex items-center justify-center px-2 py-0.5 text-sm font-semibold"
-                  style={{ background: "#f1c40f", color: "black", borderRadius: 0, minWidth: 140, height: '87%' }}
+                  style={{ background: "#f1c40f", color: "black", borderRadius: 0, minWidth: 130, height: '87%' }}
                 >
                   <span>GST Amt: ₹{tableData.reduce((a, r) => a + (r.gstAmount || 0), 0).toFixed(2)}</span>
                 </div>
 
                 <div
                   className="flex items-center justify-center px-2 py-0.5 text-sm font-semibold"
-                  style={{ background: "#3498db", color: "white", borderRadius: 0, minWidth: 140, height: '87%' }}
+                  style={{ background: "#3498db", color: "white", borderRadius: 0, minWidth: 130, height: '87%' }}
                 >
                   <span>Grand Total: ₹{(
                     tableData.reduce((a, r) => a + (r.totalAmount || 0), 0)
-                    + adjustments.freight
+                    + adjustments.freightAmount
                     + adjustments.roundOffAdd
                     - adjustments.roundOffSub
                   ).toFixed(2)}</span>
@@ -508,7 +517,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
               style={{ width: col.width || "auto", minWidth: col.width || "120px" }}
             />
           ))}
-          <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} frozen={true} alignFrozen="right"/>
+          <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} frozen={true} alignFrozen="right" />
         </DataTable>
 
         <Paginator

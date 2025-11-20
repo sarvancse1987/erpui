@@ -286,3 +286,11 @@ code {
   height: 400px;
   /* or any height you want */
 }
+
+.custom-width {
+  width: 110px !important;     /* or 30%, any size */
+}
+
+.custom-width input {
+  width: 100% !important;
+}

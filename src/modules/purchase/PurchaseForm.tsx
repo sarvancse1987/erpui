@@ -124,8 +124,11 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
       body: (row: PurchaseItemModel) => row.productName || "",
       placeholder: "Product Name"
     },
-    { field: "unitPrice", header: "Rate", editable: true, type: "currency", required: true, width: "110px", placeholder: "Product Rate" },
-    { field: "quantity", header: "Qty", editable: true, type: "decimal", required: true, placeholder: "Quantity" },
+    { field: "unitPrice", header: "Rate", editable: true, type: "currency", required: true, width: "110px"
+      , placeholder: "Product Rate", body: (row: any) =>
+        new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.unitPrice) },
+    { field: "quantity", header: "Qty", editable: true, type: "decimal", required: true, placeholder: "Quantity", body: (row: any) =>
+        new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.quantity), width: "110px" },
     { field: "gstPercent", header: "GST %", editable: true, type: "decimal", required: true, placeholder: "Total Gst" },
     {
       field: "amount",
