@@ -32,6 +32,9 @@ export interface ProductModel {
     brandName?: string;
     brandDescription?: string;
 
+    supplierId?: number | undefined;
+    supplierName?: string;
+
     filteredGroups?: OptionModel[];
     filteredBrands?: OptionModel[];
 }

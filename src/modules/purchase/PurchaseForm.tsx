@@ -60,8 +60,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
       const suppliersRes = await apiService.get("/Supplier/getallsupplier");
       setSuppliers(suppliersRes.suppliers ?? []);
 
-      const productsRes = await apiService.get("/Product");
-      setProducts(productsRes ?? []);
+      const productsRes = await apiService.get("/Product/productdetails");
+      setProducts(productsRes?.data ?? []);
 
       const purchaseTypesRes = await apiService.get("/PurchaseType") as PurchaseTypeModel[];
       const purchaseTypeOptions = (purchaseTypesRes ?? []).map(pt => ({
@@ -365,6 +365,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
           data={formData.purchaseItems}
           primaryKey="purchaseItemId"
           products={products}
+          suppliers={suppliers}
           isSave={false}
           itemsSaveTrigger={saveTrigger}
           onChange={handleItemsChange}

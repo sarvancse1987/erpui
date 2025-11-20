@@ -18,9 +18,8 @@ export interface TTypedDatatableProps<T extends Record<string, any>> {
     onChange?: (updatedData: T[]) => void;
     onAdjustmentsChange?: (adjustments: {
         freightAmount?: number;
-        roundOff?: number;
+        roundOff: number;
     }) => void;
-
 }
 
 export interface TTypeDatatableProps<T extends Record<string, any>> {

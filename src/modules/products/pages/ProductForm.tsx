@@ -14,6 +14,7 @@ interface ProductFormProps {
   allGroups: any[];
   allBrands: any[];
   units: OptionModel[];
+  suppliers: OptionModel[];
   validationErrors?: Record<string, string>;
   onSave: (product: ProductModel) => void;
   onCancel?: () => void;
@@ -27,6 +28,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   allGroups,
   allBrands,
   units,
+  suppliers,
   validationErrors = {},
   onSave,
   onCancel,
@@ -334,6 +336,21 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             {getErrorMessage("hsnCode") && <span className="mandatory-error">{getErrorMessage("hsnCode")}</span>}
           </div>
 
+          <div className="flex-1 min-w-[140px]">
+            <strong>Supplier <span className="mandatory-asterisk">*</span></strong>
+            <Dropdown
+              className={`w-full mt-1`}
+              value={formData.supplierId}
+              options={suppliers}
+              optionLabel="label"
+              optionValue="value"
+              onChange={(e) => handleChange("supplierId", e.value)}
+              filter
+              showClear
+              filterBy="label,value"
+            />
+          </div>
+
           <div className="flex items-center gap-2 mt-5">
             <strong>GST Include</strong>
             <Checkbox
@@ -344,7 +361,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         </div>
 
         <div className="flex justify-end gap-2 mt-4">
-          {onCancel && <Button type="button" label="Cancel" icon="pi pi-times-circle" style={{ color: 'red' }} outlined onClick={onCancel} className="p-button-sm custom-xs"/>}
+          {onCancel && <Button type="button" label="Cancel" icon="pi pi-times-circle" style={{ color: 'red' }} outlined onClick={onCancel} className="p-button-sm custom-xs" />}
           {isEditSidebar && (
             <Button
               type="submit"
@@ -356,6 +373,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           )}
         </div>
       </fieldset>
-    </form>
+    </form >
   );
 };

@@ -14,6 +14,7 @@ import { Sidebar } from "primereact/sidebar";
 import { useToast } from "../../../components/ToastService";
 import { Dropdown } from "primereact/dropdown";
 import { TTypedDatatable } from "../../../components/TTypedDatatable";
+import { SupplierModel } from "../../../models/supplier/SupplierModel";
 
 export default function ProductList() {
   const [allGroups, setAllGroups] = useState<GroupModel[]>([]);
@@ -22,7 +23,8 @@ export default function ProductList() {
   const [units, setUnits] = useState<OptionModel[]>([]);
   const [products, setProducts] = useState<ProductModel[]>([]);
   const [newProducts, setNewProducts] = useState<ProductModel[]>([]);
-  const [addedProducts, setAddedProducts] = useState<ProductModel[]>([]);
+  const [suppliers, setSuppliers] = useState<SupplierModel[]>([]);
+  const [allsuppliers, setAllsuppliers] = useState<OptionModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
@@ -50,6 +52,9 @@ export default function ProductList() {
 
       const initialProducts: ProductModel[] = hierarchy.products ?? [];
       setProducts(initialProducts);
+
+      const suppliers = await apiService.get("/Supplier/getallsupplier");
+      setAllsuppliers((suppliers?.suppliers ?? []).map((u: any) => ({ label: `${u.supplierName}-${u.city}`, value: u.supplierId })));
     } catch (err) {
       console.error("Error loading product data", err);
     } finally {
@@ -201,6 +206,12 @@ export default function ProductList() {
       required: true,
       width: "170px",
       frozen: true,
+    },
+    {
+      field: "supplierName",
+      header: "Supplier Name",
+      editable: true,
+      width: "170px",
     },
     {
       field: "categoryName",
@@ -376,8 +387,8 @@ export default function ProductList() {
             </div>
           }>
             <div className="flex gap-2 mb-4">
-              <Button label="Add" icon="pi pi-plus" outlined onClick={addNewProduct} size="small" className="p-button-sm custom-xs"/>
-              <Button label="Save" icon="pi pi-save" onClick={handleSaveProducts} disabled={!newProducts.length} size="small" className="p-button-sm custom-xs"/>
+              <Button label="Add" icon="pi pi-plus" outlined onClick={addNewProduct} size="small" className="p-button-sm custom-xs" />
+              <Button label="Save" icon="pi pi-save" onClick={handleSaveProducts} disabled={!newProducts.length} size="small" className="p-button-sm custom-xs" />
             </div>
 
             <div className="space-y-4">
@@ -393,6 +404,7 @@ export default function ProductList() {
                     allGroups={allGroups}
                     allBrands={allBrands}
                     units={units}
+                    suppliers={allsuppliers}
                     validationErrors={validationErrors}
                     onSave={(updatedProduct) => handleUpdateNewProduct(idx, updatedProduct)}
                     onCancel={() => handleRemoveNewProduct(idx)}
@@ -421,6 +433,7 @@ export default function ProductList() {
                 allGroups={allGroups}
                 allBrands={allBrands}
                 units={units}
+                suppliers={allsuppliers}
                 validationErrors={validationErrors}
                 onSave={(updatedProduct) => {
                   handleUpdateProduct(updatedProduct);

@@ -16,6 +16,7 @@ import { ProductModel, ProductSearchModel } from "../models/product/ProductModel
 import { Paginator } from "primereact/paginator";
 import { IconField } from "primereact/iconfield";
 import { InputIcon } from "primereact/inputicon";
+import { SupplierModel } from "../models/supplier/SupplierModel";
 
 export function TTypedSideBarDatatable<T extends Record<string, any>>({
   columns,
@@ -28,9 +29,10 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
   onDelete,
   itemsSaveTrigger,
   products = [] as ProductModel[],
+  suppliers = [] as SupplierModel[],
   onChange,
   onAdjustmentsChange,
-}: TTypedDatatableProps<T> & { products?: ProductModel[] }) {
+}: TTypedDatatableProps<T> & { products?: ProductModel[] } & { suppliers?: SupplierModel[] }) {
   const [tableData, setTableData] = useState<T[]>([]);
   const [editingRows, setEditingRows] = useState<{ [key: string]: boolean }>({});
   const [errors, setErrors] = useState<{ [rowId: string]: { [field: string]: string } }>({});
@@ -48,6 +50,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
   const [sidebarSearchText, setSidebarSearchText] = useState("");
   const [first, setFirst] = useState(0);
   const [rows, setRows] = useState(10);
+  const [selectedSupplier, setSelectedSupplier] = useState<number | null>(null);
 
   useEffect(() => {
     setTableData(data.map((d) => ({ ...d })));
@@ -562,6 +565,21 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
           style={{ width: "500px" }}
           header="Select Products"
         >
+
+          <div className="mb-3">
+            <Dropdown
+              value={selectedSupplier}
+              options={[
+                { label: "All Suppliers", value: null },
+                ...suppliers.map((s: any) => ({ label: s.supplierName, value: s.supplierId }))
+              ]}
+              onChange={(e) => setSelectedSupplier(e.value)}
+              placeholder="Select Supplier (Optional)"
+              className="w-full"
+              showClear
+            />
+          </div>
+
           <InputText
             value={sidebarSearchText}
             onChange={(e) => setSidebarSearchText(e.target.value)}
@@ -571,7 +589,10 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
 
           <DataTable
             value={products.filter(p =>
-              p.productName.toLowerCase().includes(sidebarSearchText.toLowerCase())
+              // Filter by search text
+              p.productName.toLowerCase().includes(sidebarSearchText.toLowerCase()) &&
+              // Filter by selected supplier (if any)
+              (!selectedSupplier || p.supplierId === selectedSupplier)
             )}
             selection={sidebarSelectedProducts}
             onSelectionChange={(e) => setSidebarSelectedProducts(e.value)}
@@ -583,7 +604,9 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
           >
             <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
             <Column field="productName" header="Item Name" style={{ minWidth: "200px" }} />
-            <Column field="unitPrice" header="Rate" style={{ minWidth: "120px" }} />
+            <Column field="purchasePrice" header="Rate" style={{ minWidth: "120px" }} body={(row: any) =>
+              new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.purchasePrice)
+            } />
           </DataTable>
 
           <div className="mt-3 flex justify-end gap-2">
