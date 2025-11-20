@@ -19,9 +19,7 @@ export const SupplierSelector: React.FC<SupplierSelectorProps> = ({
     onSelect,
     isValid
 }) => {
-    const [selectedSupplier, setSelectedSupplier] = useState<SupplierModel | null>(
-        suppliers.find((s) => s.supplierId === selectedSupplierId) || null
-    );
+    const [selectedSupplier, setSelectedSupplier] = useState<SupplierModel | null>(null);
     const [searchText, setSearchText] = useState("");
     const [filteredSuppliers, setFilteredSuppliers] = useState<SupplierModel[]>([]);
     const [showTable, setShowTable] = useState(false);
@@ -47,6 +45,19 @@ export const SupplierSelector: React.FC<SupplierSelectorProps> = ({
             }
         }
     }, [searchText, suppliers]);
+
+    useEffect(() => {
+        if (selectedSupplierId) {
+            const match = suppliers.find(
+                (s) => s.supplierId === selectedSupplierId
+            );
+            setSelectedSupplier(match || null);
+            setSearchText(match?.supplierName || "");
+        } else {
+            setSelectedSupplier(null);
+            setSearchText("");
+        }
+    }, [selectedSupplierId, suppliers]);
 
     // Handle clicking outside to close the table
     useEffect(() => {

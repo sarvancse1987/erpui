@@ -72,7 +72,7 @@ export function ParentChildTable<
         const footerTemplate = showFooter ? (
             <div className="flex justify-content-end gap-1 font-bold pr-2 py-1">
                 {freightAmount !== 0 && (
-                    <span>Freight: {freightAmount.toFixed(2)}</span>
+                    <span>Freight: ₹{freightAmount.toFixed(2)}</span>
                 )}
                 {roundOff !== 0 && (
                     <span>
@@ -83,7 +83,7 @@ export function ParentChildTable<
                                 fontWeight: "bold"
                             }}
                         >
-                            {roundOff.toFixed(2)}
+                            ₹{roundOff.toFixed(2)}
                         </span>
                     </span>
                 )}

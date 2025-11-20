@@ -98,19 +98,28 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
         ...prev,
         ...purchase,
         purchaseItems: purchase.purchaseItems ?? [],
-        // invoiceDate: purchase.invoiceDate?parseDate(purchase.invoiceDate),
-        // purchaseDate: parseDate(purchase.purchaseDate),
+        invoiceDate: isEditSidebar ? parseDate(purchase.invoiceDate) : parseDate(new Date()),
+        purchaseDate: isEditSidebar ? parseDate(purchase.purchaseDate) : parseDate(new Date()),
       }));
     }
   }, [purchase]);
 
-  const parseDate = (str: string): Date => {
-    const parts = str.split("-");
+
+  const parseDate = (value: string | Date | null): Date | null => {
+    if (!value) return null;
+
+    // If already a Date → return as-is
+    if (value instanceof Date) return value;
+
+    // Otherwise parse string "dd-MM-yyyy"
+    const parts = value.split("-");
     const day = Number(parts[0]);
-    const month = Number(parts[1]) - 1; // JS months are 0-indexed
+    const month = Number(parts[1]) - 1;
     const year = Number(parts[2]);
     return new Date(year, month, day);
   };
+
+
   // ---------------- TABLE COLUMNS ----------------
   const newEntrycolumns: ColumnMeta<PurchaseItemModel>[] = [
     {
@@ -325,7 +334,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
           <strong className="text-sm">Invoice Date <span className="mandatory-asterisk">*</span></strong>
           <Calendar
             value={formData.invoiceDate ? new Date(formData.invoiceDate) : null}
-            onChange={(e) => handleChange("invoiceDate", e.value ? e.value.toISOString() : "")}
+            onChange={(e) => handleChange("invoiceDate", e.value ?? null)}
             placeholder="Select Date"
             dateFormat="dd-mm-yy"
             showIcon
@@ -339,7 +348,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
           <strong className="text-sm">Purchase Date <span className="mandatory-asterisk">*</span></strong>
           <Calendar
             value={formData.purchaseDate ? new Date(formData.purchaseDate) : null}
-            onChange={(e) => handleChange("purchaseDate", e.value ? e.value.toISOString() : "")}
+            onChange={(e) => handleChange("purchaseDate", e.value ?? null)}
             placeholder="Select Date"
             dateFormat="dd-mm-yy"
             showIcon
