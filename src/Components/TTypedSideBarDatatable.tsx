@@ -29,6 +29,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
   itemsSaveTrigger,
   products = [] as ProductModel[],
   onChange,
+  onAdjustmentsChange,
 }: TTypedDatatableProps<T> & { products?: ProductModel[] }) {
   const [tableData, setTableData] = useState<T[]>([]);
   const [editingRows, setEditingRows] = useState<{ [key: string]: boolean }>({});
@@ -445,16 +446,34 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                   severity="success"
                   style={{ fontSize: '0.85rem', padding: '2px 2px', height: '36px' }}
                   onClick={() => {
-                    if (selectedAdjustment) {
-                      setAdjustments(prev => ({
-                        ...prev,
-                        [selectedAdjustment]: adjustmentValue,
-                      }));
-                      setSelectedAdjustment(null);
-                      setAdjustmentValue(0);
-                    }
+                    if (!selectedAdjustment) return;
+
+                    // STEP 1 — Prepare updated adjustments
+                    const updatedAdjustments = {
+                      ...adjustments,
+                      [selectedAdjustment]: adjustmentValue,
+                    };
+
+                    // STEP 2 — Update internal state
+                    setAdjustments(updatedAdjustments);
+
+                    // STEP 3 — Calculate final values to send parent
+                    const finalAdjustmentResult = {
+                      freightAmount: updatedAdjustments.freightAmount || 0,
+                      roundOff:
+                        (updatedAdjustments.roundOffAdd || 0) -
+                        (updatedAdjustments.roundOffSub || 0),
+                    };
+
+                    // STEP 4 — Emit to parent
+                    onAdjustmentsChange?.(finalAdjustmentResult);
+
+                    // STEP 5 — Reset UI controls
+                    setSelectedAdjustment(null);
+                    setAdjustmentValue(0);
                   }}
                 />
+
               </div>
 
               <div className="flex gap-1 mt-1">

@@ -124,11 +124,15 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
       body: (row: PurchaseItemModel) => row.productName || "",
       placeholder: "Product Name"
     },
-    { field: "unitPrice", header: "Rate", editable: true, type: "currency", required: true, width: "110px"
+    {
+      field: "unitPrice", header: "Rate", editable: true, type: "currency", required: true, width: "110px"
       , placeholder: "Product Rate", body: (row: any) =>
-        new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.unitPrice) },
-    { field: "quantity", header: "Qty", editable: true, type: "decimal", required: true, placeholder: "Quantity", body: (row: any) =>
-        new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.quantity), width: "110px" },
+        new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.unitPrice)
+    },
+    {
+      field: "quantity", header: "Qty", editable: true, type: "decimal", required: true, placeholder: "Quantity", body: (row: any) =>
+        new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.quantity), width: "110px"
+    },
     { field: "gstPercent", header: "GST %", editable: true, type: "decimal", required: true, placeholder: "Total Gst" },
     {
       field: "amount",
@@ -219,6 +223,27 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     e.preventDefault();
     if (!runLocalValidation()) return;
     onSave(formData);
+  };
+
+  const handleAdjustmentsChange = (adjustments: any) => {
+    setFormData(prev => {
+      const totalItemsAmount = prev.purchaseItems?.reduce(
+        (sum, item) => sum + (item.totalAmount || 0),
+        0
+      ) || 0;
+
+      const grandTotal =
+        totalItemsAmount +
+        (adjustments.freightAmount || 0) +
+        (adjustments.roundOff || 0);
+
+      return {
+        ...prev,
+        freightAmount: adjustments.freightAmount,
+        roundOff: adjustments.roundOff,
+        grandTotal: parseFloat(grandTotal.toFixed(2)),
+      };
+    });
   };
 
   // ---------------- RENDER ----------------
@@ -335,6 +360,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
           itemsSaveTrigger={saveTrigger}
           onChange={handleItemsChange}
           isDelete={true}
+          onAdjustmentsChange={handleAdjustmentsChange}
         />
       </div>
     </form>

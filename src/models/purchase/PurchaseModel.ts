@@ -20,7 +20,7 @@ export interface PurchaseModel {
     purchaseTypeName?: string;
     balanceAmount?: number;
     runningBalance?: number;
-    freightAmout?: number;
+    freightAmount?: number;
     roundOff?: number;
     purchaseItems: PurchaseItemModel[];
 }

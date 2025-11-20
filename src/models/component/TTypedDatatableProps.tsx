@@ -16,6 +16,11 @@ export interface TTypedDatatableProps<T extends Record<string, any>> {
     isDelete?: boolean;
     itemsSaveTrigger?: number;
     onChange?: (updatedData: T[]) => void;
+    onAdjustmentsChange?: (adjustments: {
+        freightAmount?: number;
+        roundOff?: number;
+    }) => void;
+
 }
 
 export interface TTypeDatatableProps<T extends Record<string, any>> {

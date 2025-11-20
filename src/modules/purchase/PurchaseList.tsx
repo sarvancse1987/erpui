@@ -68,7 +68,7 @@ export default function PurchaseList() {
         isActive: true,
         purchaseTypeId: 0,
         paidAmount: 0,
-        freightAmout: 0,
+        freightAmount: 0,
         roundOff: 0,
         purchaseItems: [],
     });
