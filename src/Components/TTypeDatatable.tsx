@@ -444,7 +444,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
             />
           ))}
 
-        <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} frozen={true} />
+        <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} frozen={true} alignFrozen="right"/>
       </DataTable>
     </div>
   );

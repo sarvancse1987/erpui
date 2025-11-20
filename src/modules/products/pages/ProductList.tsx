@@ -356,7 +356,7 @@ export default function ProductList() {
               <p>No products added yet.</p>
             ) : (
               <div className="space-y-2">
-                <TTypedDatatable<ProductModel>
+                <TTypeDatatable<ProductModel>
                   data={products}
                   columns={columns}
                   primaryKey="productId"

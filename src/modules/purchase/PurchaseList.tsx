@@ -460,22 +460,24 @@ export default function PurchaseList() {
     ];
 
     const childColumns: ColumnMeta<PurchaseItemModel>[] = [
-        { field: "productName", header: "Product Name" },
+        { field: "productName", header: "Product Name", width: "220px" },
         {
-            field: "unitPrice", header: "Rate",
+            field: "unitPrice", header: "Rate", width: "170px",
             body: (row: PurchaseItemModel) =>
                 new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.unitPrice)
         },
         {
             field: "quantity",
             header: "Qty",
+            width: "170px",
             body: (row: PurchaseItemModel) => row.quantity.toFixed(2)
         },
-        { field: "gstPercent", header: "GST %", editable: true, type: "decimal", required: true },
+        { field: "gstPercent", header: "GST %", editable: true, type: "decimal", required: true, width: "110px" },
         {
             field: "amount",
             header: "Amount",
             editable: false,
+            width: "170px",
             body: (row: PurchaseItemModel) => (
                 <div
                     className="flex items-center justify-center py-2 px-2 text-sm font-semibold"
@@ -496,6 +498,7 @@ export default function PurchaseList() {
             field: "gstAmount",
             header: "GST Amount",
             editable: false,
+            width: "170px",
             body: (row: PurchaseItemModel) => (
                 <div
                     className="flex items-center justify-center py-2 px-2 text-sm font-semibold"
@@ -516,6 +519,7 @@ export default function PurchaseList() {
             field: "totalAmount",
             header: "Grand Total",
             editable: false,
+            width: "170px",
             body: (row: PurchaseItemModel) => (
                 <div
                     className="flex items-center justify-center py-2 px-2 text-sm font-semibold"

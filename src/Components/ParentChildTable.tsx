@@ -18,21 +18,25 @@ interface ParentChildTableProps<ParentType, ChildType> {
     parentData: ParentType[];
     parentColumns: ColumnMeta<ParentType>[];
     childColumns: ColumnMeta<ChildType>[];
-    childField: keyof ParentType; // the property in parent that holds child array
+    childField: keyof ParentType;
     rowKey: keyof ParentType;
     expandAllInitially?: boolean;
     onEdit?: (row: ParentType) => void;
 }
 
-export function ParentChildTable<ParentType extends Record<string, any>, ChildType extends Record<string, any>>({
+export function ParentChildTable<
+    ParentType extends Record<string, any>,
+    ChildType extends Record<string, any>
+>({
     parentData,
     parentColumns,
     childColumns,
     childField,
     rowKey,
     expandAllInitially = false,
-    onEdit,
+    onEdit
 }: ParentChildTableProps<ParentType, ChildType>) {
+
     const [expandedRows, setExpandedRows] = useState<any>(
         expandAllInitially
             ? parentData.reduce((acc, curr) => {
@@ -44,7 +48,7 @@ export function ParentChildTable<ParentType extends Record<string, any>, ChildTy
 
     const [globalFilter, setGlobalFilter] = useState<string>("");
     const [filters, setFilters] = useState<any>({
-        global: { value: "", matchMode: FilterMatchMode.CONTAINS },
+        global: { value: "", matchMode: FilterMatchMode.CONTAINS }
     });
 
     const expandAll = () => {
@@ -55,13 +59,48 @@ export function ParentChildTable<ParentType extends Record<string, any>, ChildTy
 
     const collapseAll = () => setExpandedRows(null);
 
+    // -------------------------
+    // Child table + footer
+    // -------------------------
     const rowExpansionTemplate = (parent: ParentType) => {
         const children: ChildType[] = parent[childField] || [];
+
+        const freightAmount = parent.freightAmount ?? 0;
+        const roundOff = parent.roundOff ?? 0;
+        const showFooter = freightAmount !== 0 || roundOff !== 0;
+
+        const footerTemplate = showFooter ? (
+            <div className="flex justify-content-end gap-1 font-bold pr-2 py-1">
+                {freightAmount !== 0 && (
+                    <span>Freight: {freightAmount.toFixed(2)}</span>
+                )}
+                {roundOff !== 0 && (
+                    <span>
+                        Round Off:{" "}
+                        <span
+                            style={{
+                                color: roundOff > 0 ? "green" : "red",
+                                fontWeight: "bold"
+                            }}
+                        >
+                            {roundOff.toFixed(2)}
+                        </span>
+                    </span>
+                )}
+            </div>
+        ) : null;
+
         return (
             <div className="p-3">
-                <DataTable value={children}>
+                <DataTable value={children} footer={footerTemplate}>
                     {childColumns.map((col, idx) => (
-                        <Column key={idx} field={col.field as string} header={col.header} body={col.body} style={{ width: col.width }} />
+                        <Column
+                            key={idx}
+                            field={col.field as string}
+                            header={col.header}
+                            body={col.body}
+                            style={{ width: col.width }}
+                        />
                     ))}
                 </DataTable>
             </div>
@@ -70,6 +109,7 @@ export function ParentChildTable<ParentType extends Record<string, any>, ChildTy
 
     return (
         <div className="card">
+            {/* Toolbar */}
             <div className="flex justify-content-end gap-2 mb-2">
                 <Button icon="pi pi-plus" label="Expand All" onClick={expandAll} text />
                 <Button icon="pi pi-minus" label="Collapse All" onClick={collapseAll} text />
@@ -85,7 +125,7 @@ export function ParentChildTable<ParentType extends Record<string, any>, ChildTy
                                     setGlobalFilter(value);
                                     setFilters({
                                         ...filters,
-                                        global: { value, matchMode: FilterMatchMode.CONTAINS },
+                                        global: { value, matchMode: FilterMatchMode.CONTAINS }
                                     });
                                 }}
                                 placeholder="Search"
@@ -94,6 +134,8 @@ export function ParentChildTable<ParentType extends Record<string, any>, ChildTy
                     </span>
                 </div>
             </div>
+
+            {/* Parent table */}
             <DataTable
                 value={parentData}
                 paginator
@@ -105,16 +147,24 @@ export function ParentChildTable<ParentType extends Record<string, any>, ChildTy
                 onRowToggle={(e) => setExpandedRows(e.data)}
                 rowExpansionTemplate={rowExpansionTemplate}
                 dataKey={rowKey as string}
-                rowClassName={(rowData) => {
-                    return expandedRows && expandedRows[rowData[rowKey]]
+                rowClassName={(rowData) =>
+                    expandedRows && expandedRows[rowData[rowKey]]
                         ? "expanded-parent-row"
-                        : "";
-                }}
+                        : ""
+                }
             >
                 <Column expander style={{ width: "3rem" }} />
+
                 {parentColumns.map((col, idx) => (
-                    <Column key={idx} field={col.field as string} header={col.header} body={col.body} style={{ width: col.width }} />
+                    <Column
+                        key={idx}
+                        field={col.field as string}
+                        header={col.header}
+                        body={col.body}
+                        style={{ width: col.width }}
+                    />
                 ))}
+
                 {onEdit && (
                     <Column
                         key="edit"
@@ -123,15 +173,13 @@ export function ParentChildTable<ParentType extends Record<string, any>, ChildTy
                             <Button
                                 icon="pi pi-pencil"
                                 className="p-button-sm p-button-rounded p-button-outlined p-button-info"
-                                style={{ width: '25px', height: '25px', padding: '0' }}
+                                style={{ width: "25px", height: "25px", padding: "0" }}
                                 onClick={() => onEdit(rowData)}
                             />
                         )}
                         style={{ width: "3rem", textAlign: "center" }}
-                        frozen={false} // optional: can make it frozen if needed
                     />
                 )}
-
             </DataTable>
         </div>
     );
