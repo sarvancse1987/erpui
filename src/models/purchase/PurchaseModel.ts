@@ -22,5 +22,7 @@ export interface PurchaseModel {
     runningBalance?: number;
     freightAmount?: number;
     roundOff?: number;
+    companyId?: number;
+    locationId?: number;
     purchaseItems: PurchaseItemModel[];
 }

@@ -12,50 +12,46 @@ import { TTypedSideBarDatatable } from "../../components/TTypedSideBarDatatable"
 import { InputNumber } from "primereact/inputnumber";
 import { Dropdown } from "primereact/dropdown";
 import { PurchaseTypeModel } from "../../models/purchase/purchaseTypemodel";
+import { Button } from "primereact/button";
 
 interface PurchaseFormProps {
-  newPurchase: PurchaseModel;
-  purchase: PurchaseModel;
-  index?: number;
-  validationErrors?: Record<string, string>;
-  onSave: (purchase: PurchaseModel) => void;
-  onCancel?: () => void;
   isEditSidebar: boolean;
-  triggerValidation?: any;
-  onValidation?: (errors: Record<string, string>) => void;
+  purchase?: PurchaseModel | null;
+  onSaveSuccess?: () => void;
+  onCancel?: () => void;
 }
 
 export const PurchaseForm: React.FC<PurchaseFormProps> = ({
-  purchase,
-  newPurchase,
-  validationErrors = {},
-  onSave,
-  onCancel,
-  isEditSidebar,
-  triggerValidation,
-  onValidation,
+  isEditSidebar, purchase, onSaveSuccess, onCancel
 }) => {
-  const initialData: PurchaseModel = {
-    ...purchase,
-    ...newPurchase,
-    purchaseItems: [
-      ...(purchase?.purchaseItems ?? []),
-      ...(newPurchase?.purchaseItems ?? []),
-    ],
-  };
 
-  const [formData, setFormData] = useState<PurchaseModel>(initialData);
-  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState<PurchaseModel>({
+    purchaseId: 0,
+    supplierId: 0,
+    supplierName: "",
+    purchaseDate: new Date().toISOString(),
+    invoiceDate: new Date().toISOString(),
+    invoiceAmount: 0,
+    invoiceNumber: "",
+    totalAmount: 0,
+    totalGST: 0,
+    grandTotal: 0,
+    isActive: true,
+    purchaseTypeId: 0,
+    paidAmount: 0,
+    freightAmount: 0,
+    roundOff: 0,
+    purchaseItems: [],
+  });
   const [suppliers, setSuppliers] = useState<SupplierModel[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [purchaseTypes, setPurchaseTypes] = useState<{ label: string; value: number }[]>([]);
-  const [itemErrors, setItemErrors] = useState<Record<string, Record<string, string>>>({});
   const [saveTrigger, setSaveTrigger] = useState(0);
   const { showSuccess, showError } = useToast();
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   // ---------------- LOAD DATA ----------------
   const loadAllData = async () => {
-    setLoading(true);
     try {
       const suppliersRes = await apiService.get("/Supplier/getallsupplier");
       setSuppliers(suppliersRes.suppliers ?? []);
@@ -69,16 +65,9 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
         value: pt.purchaseTypeId
       }));
       setPurchaseTypes(purchaseTypeOptions);
-
-      // If creating new, default to Cash
-      if (!purchase?.purchaseTypeId) {
-        const cashOption = purchaseTypeOptions.find(pt => pt.label.toLowerCase() === "cash");
-        if (cashOption) setFormData(prev => ({ ...prev, purchaseTypeId: cashOption.value }));
-      }
     } catch (err) {
       console.error(err);
     } finally {
-      setLoading(false);
     }
   };
 
@@ -86,12 +75,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     loadAllData();
   }, []);
 
-  // When triggerValidation changes
-  useEffect(() => {
-    if (triggerValidation) runLocalValidation();
-  }, [triggerValidation]);
 
-  // When purchase prop changes (edit mode)
   useEffect(() => {
     if (purchase) {
       setFormData(prev => ({
@@ -103,7 +87,6 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
       }));
     }
   }, [purchase]);
-
 
   const parseDate = (value: string | Date | null): Date | null => {
     if (!value) return null;
@@ -182,7 +165,6 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
   const handleChange = (field: keyof PurchaseModel, value: any) => {
     const updated = { ...formData, [field]: value };
     setFormData(updated);
-    onSave?.(updated);
   };
 
   const handleItemsChange = (items: PurchaseItemModel[]) => {
@@ -192,11 +174,10 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     updatedFormData.grandTotal = items.reduce((sum, i) => sum + (i.totalAmount ?? 0), 0);
 
     setFormData(updatedFormData);
-    onSave?.(updatedFormData);
   };
 
   // ---------------- VALIDATION ----------------
-  const validateItems = (items: PurchaseItemModel[]) => {
+  const validateChildItems = (items: PurchaseItemModel[]) => {
     const errors: Record<string, Record<string, string>> = {};
     items.forEach(item => {
       const key = item.purchaseItemId;
@@ -219,19 +200,48 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     if (!formData.purchaseDate) errors.purchaseDate = "Purchase Date is required";
     if (!formData.purchaseTypeId) errors.purchaseTypeId = "Purchase Type is required";
 
-    const itemErrs = validateItems(formData.purchaseItems);
-    setItemErrors(itemErrs);
+    const itemErrs = validateChildItems(formData.purchaseItems);
+    setValidationErrors(errors);
 
-    if (onValidation) onValidation({ ...errors });
-    setSaveTrigger(prev => prev + 1);
-
-    return Object.keys(errors).length === 0 && Object.keys(itemErrs).length === 0;
+    return Object.keys(errors).length === 0 && Object.keys(itemErrs).length === 0 && formData.purchaseItems.length > 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!runLocalValidation()) return;
-    onSave(formData);
+  const handleSaveForm = async () => {
+    if (!runLocalValidation()) {
+      return;
+    }
+
+    try {
+      const payload = { ...formData };
+      await apiService.post("/Purchase", payload);
+      await loadAllData();
+      setValidationErrors({});
+      showSuccess("Purchases saved successfully!");
+      setFormData(createEmptyPurchase());
+      if (onSaveSuccess) onSaveSuccess();
+    } catch (err) {
+      console.error(err);
+      showError("Error saving purchase!");
+    }
+  };
+
+  const handleUpdateForm = async () => {
+    if (!runLocalValidation()) {
+      return;
+    }
+
+    try {
+      const payload = { ...formData };
+      await apiService.put(`/Purchase/${payload.purchaseId}`, payload);
+      await loadAllData();
+      setValidationErrors({});
+      showSuccess("Purchases saved successfully!");
+      setFormData(createEmptyPurchase());
+      if (onSaveSuccess) onSaveSuccess();
+    } catch (err) {
+      console.error(err);
+      showError("Error saving purchase!");
+    }
   };
 
   const handleAdjustmentsChange = (adjustments: any) => {
@@ -255,9 +265,38 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     });
   };
 
+  const createEmptyPurchase = (): PurchaseModel => ({
+    purchaseId: 0,
+    supplierId: 0,
+    supplierName: "",
+    purchaseDate: new Date().toISOString(),
+    invoiceDate: new Date().toISOString(),
+    invoiceAmount: 0,
+    invoiceNumber: "",
+    totalAmount: 0,
+    totalGST: 0,
+    grandTotal: 0,
+    isActive: true,
+    purchaseTypeId: 0,
+    paidAmount: 0,
+    freightAmount: 0,
+    roundOff: 0,
+    purchaseItems: [],
+  });
+
+  const onCancelSideBar = () => {
+    if (onCancel) onCancel();
+  }
+
   // ---------------- RENDER ----------------
   return (
-    <form onSubmit={handleSubmit} className={`border border-gray-200 rounded-md p-1 ${isEditSidebar ? "max-w-[800px]" : "w-full"}`}>
+    <div className={`border border-gray-200 rounded-md p-1 ${isEditSidebar ? "max-w-[800px]" : "w-full"}`}>
+      {!isEditSidebar && (
+        <div className="flex gap-2 mb-2">
+          <Button label="Save" icon="pi pi-save" onClick={handleSaveForm} className="p-button-sm custom-xs" />
+        </div>
+      )}
+
       <div className={`flex flex-wrap gap-2 mb-2 items-end`}>
         {/* Supplier */}
         <div className={isEditSidebar ? "w-[45%]" : "flex-1 min-w-[140px]"}>
@@ -268,7 +307,11 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             onSelect={s => handleChange("supplierId", s.supplierId)}
             isValid={!!validationErrors?.supplierId}
           />
-          {validationErrors?.supplierId && <span className="mandatory-error text-xs">{validationErrors.supplierId}</span>}
+          {validationErrors?.supplierId && (
+            <span className="mandatory-error text-xs">
+              {validationErrors.supplierId}
+            </span>
+          )}
         </div>
 
         {/* Invoice Number */}
@@ -370,9 +413,27 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
           itemsSaveTrigger={saveTrigger}
           onChange={handleItemsChange}
           isDelete={true}
+          isNew={isEditSidebar}
           onAdjustmentsChange={handleAdjustmentsChange}
         />
       </div>
-    </form>
+
+      {isEditSidebar && (
+        <div className="flex justify-end gap-2 mt-4">
+          {<Button type="button" label="Cancel" icon="pi pi-times-circle" style={{ color: 'red' }} outlined onClick={onCancelSideBar} className="p-button-sm custom-xs" />}
+          {isEditSidebar && (
+            <Button
+              type="submit"
+              label="Update"
+              icon="pi pi-save"
+              severity="success"
+              className="p-button-sm custom-xs"
+              onClick={handleUpdateForm}
+            />
+          )}
+        </div>
+      )}
+
+    </div>
   );
 };

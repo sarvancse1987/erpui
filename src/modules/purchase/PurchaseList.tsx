@@ -15,19 +15,12 @@ import { PurchaseItemModel } from "../../models/purchase/PurchaseItemModel";
 
 export default function PurchaseList() {
     const [purchases, setPurchases] = useState<PurchaseModel[]>([]);
-    const [newPurchases, setNewPurchases] = useState<PurchaseModel[]>([]);
     const [loading, setLoading] = useState(true);
-    const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
     const [selectedPurchase, setSelectedPurchase] = useState<PurchaseModel | null>(null);
-    const [sidebarVisible, setSidebarVisible] = useState(false);
     const { showSuccess, showError } = useToast();
-    const [validationErrorsAll, setValidationErrorsAll] = useState<
-        Record<number, Record<string, string>>
-    >({});
-    const [triggerValidation, setTriggerValidation] = useState(0);
     const [viewType, setViewType] = useState<"simple" | "detailed">("simple");
-    const [editParentRow, setEditParentRow] = useState<PurchaseModel | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(0);
 
     const loadAllData = async () => {
         setLoading(true);
@@ -50,90 +43,15 @@ export default function PurchaseList() {
     }, []);
 
     const handleParentEdit = (row: PurchaseModel) => {
-        setEditParentRow(row);       // set the row data to edit
-        setIsSidebarOpen(true);      // open sidebar/modal for editing
-    };
-
-    const createEmptyPurchase = (): PurchaseModel => ({
-        purchaseId: 0,
-        supplierId: 0,
-        supplierName: "",
-        purchaseDate: new Date().toISOString(),
-        invoiceDate: new Date().toISOString(),
-        invoiceAmount: 0,
-        invoiceNumber: "",
-        totalAmount: 0,
-        totalGST: 0,
-        grandTotal: 0,
-        isActive: true,
-        purchaseTypeId: 0,
-        paidAmount: 0,
-        freightAmount: 0,
-        roundOff: 0,
-        purchaseItems: [],
-    });
-
-    const addNewPurchase = () => {
-        setNewPurchases((prev) => [createEmptyPurchase(), ...prev]);
-    };
-
-    const handleUpdateNewPurchase = (index: number, updated: PurchaseModel) => {
-        setNewPurchases((prev) => {
-            const copy = [...prev];
-            copy[index] = updated;
-            return copy;
-        });
-    };
-
-    const handleRemoveNewPurchase = (index: number) => {
-        setNewPurchases((prev) => prev.filter((_, i) => i !== index));
-    };
-
-    const handleSavePurchases = async () => {
-        const errors: Record<string, string> = {};
-        newPurchases.forEach((p, idx) => {
-            if (!p.supplierId) errors[`purchase-${idx}-supplierId`] = "Supplier is required";
-            if (!p.purchaseDate) errors[`purchase-${idx}-purchaseDate`] = "Purchase Date is required";
-            if (!p.purchaseItems || p.purchaseItems.length === 0) errors[`purchase-${idx}-purchaseItems`] = "Add at least one item";
-        });
-
-        setTriggerValidation(Date.now());
-
-        setValidationErrors(errors);
-        if (Object.keys(errors).length > 0) return;
-
-        try {
-            await apiService.post("/Purchase", newPurchases[0]);
-            await loadAllData();
-            setNewPurchases([]);
-            setValidationErrors({});
-            showSuccess("Purchases saved successfully!");
-        } catch (err) {
-            console.error(err);
-            showError("Error saving purchases. Try again.");
+        if (row != null) {
+            setSelectedPurchase(row);
+            setIsSidebarOpen(true);
         }
     };
 
     const handleOpenEdit = (purchase: PurchaseModel) => {
         setSelectedPurchase({ ...purchase });
-        setSidebarVisible(true);
-    };
-
-    const handleUpdatePurchase = async (updated: PurchaseModel) => {
-        try {
-            if (updated.purchaseId) {
-                await apiService.put(`/Purchase/${updated.purchaseId}`, updated);
-            }
-            setPurchases((prev) =>
-                prev.map((p) => (p.purchaseId === updated.purchaseId ? updated : p))
-            );
-            showSuccess("Purchase updated successfully!");
-            setSidebarVisible(false);
-            setSelectedPurchase(null);
-        } catch (err) {
-            console.error(err);
-            showError("Error updating purchase. Try again.");
-        }
+        setIsSidebarOpen(true);
     };
 
     const handleDeletePurchase = async (rows: PurchaseModel[]) => {
@@ -538,14 +456,31 @@ export default function PurchaseList() {
         },
     ];
 
+    const closeEditSidebar = () => {
+        setIsSidebarOpen(false);
+        setSelectedPurchase(null);
+    };
 
-    if (loading) return <p>Loading purchases...</p>;
+    if (loading)
+        return (
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "100vh",
+                    width: "100%",
+                }}
+            >
+                <p>Loading purchases...</p>
+            </div>
+        );
 
     return (
         <div className="p-2 h-[calc(100vh-100px)] overflow-auto">
             <h2 className="text-lg font-semibold mb-1">🧾 Purchase Management</h2>
 
-            <TabView>
+            <TabView activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index)}>
                 <TabPanel header={
                     <div className="flex items-center gap-2 text-blue-600 font-semibold">
                         <i className="pi pi-shopping-cart" />
@@ -610,84 +545,57 @@ export default function PurchaseList() {
                         <span>Add New</span>
                     </div>
                 }>
-                    <div className="flex gap-2 mb-2">
-                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewPurchase} className="p-button-sm custom-xs" />
-                        <Button label="Save" icon="pi pi-save" onClick={handleSavePurchases} disabled={!newPurchases.length} className="p-button-sm custom-xs" />
-                    </div>
-
                     <div className="space-y-4">
-                        {newPurchases.length === 0 ? (
-                            <p className="text-gray-500">No new purchases. Click "Add New" to create.</p>
-                        ) : newPurchases.map((p, idx) => (
-                            <PurchaseForm
-                                key={idx}
-                                purchase={p}
-                                newPurchase={p}
-                                index={idx}
-                                validationErrors={validationErrorsAll[idx] ?? {}}
-                                triggerValidation={triggerValidation}
-                                onValidation={(childErr) => {
-                                    setValidationErrorsAll((prev) => ({
-                                        ...prev,
-                                        [idx]: childErr
-                                    }));
-                                }}
-                                onSave={(updated) => handleUpdateNewPurchase(idx, updated)}
-                                onCancel={() => handleRemoveNewPurchase(idx)}
-                                isEditSidebar={false}
-                            />
-                        ))}
+                        <PurchaseForm
+                            key={1}
+                            isEditSidebar={false}
+                            purchase={selectedPurchase}
+                            onSaveSuccess={() => {
+                                setActiveIndex(0);
+                                loadAllData();
+                            }}
+                            onCancel={closeEditSidebar}
+                        />
                     </div>
                 </TabPanel>
             </TabView>
 
-            <Sidebar visible={sidebarVisible}
+            <Sidebar visible={isSidebarOpen}
                 position="right"
-                onHide={() => setSidebarVisible(false)}
+                onHide={() => setIsSidebarOpen(false)}
                 header="Edit Purchase"
                 style={{ width: '70rem' }}>
                 {selectedPurchase ? (
                     <PurchaseForm
                         key={selectedPurchase.purchaseId || "edit"}
-                        purchase={selectedPurchase}
-                        newPurchase={selectedPurchase}
-                        validationErrors={validationErrors}
-                        onSave={handleUpdatePurchase}
-                        onCancel={() => setSidebarVisible(false)}
                         isEditSidebar={true}
-                        triggerValidation={triggerValidation}
+                        purchase={selectedPurchase}
+                        onSaveSuccess={() => {
+                            setActiveIndex(0);
+                            loadAllData();
+                        }}
+                        onCancel={closeEditSidebar}
                     />
                 ) : <p className="p-4 text-gray-500 text-center">Select a purchase to edit.</p>}
             </Sidebar>
 
-            {isSidebarOpen && editParentRow && (
+            {isSidebarOpen && selectedPurchase && (
                 <Sidebar
                     position="right"
                     visible={isSidebarOpen}
                     onHide={() => setIsSidebarOpen(false)}
                     header="Edit Purchase"
-                    style={{ width: '70rem' }}
+                    style={{ width: '90rem' }}
                 >
                     <PurchaseForm
-                        key={editParentRow.purchaseId || "edit"}
-                        purchase={editParentRow}
-                        newPurchase={editParentRow}
-                        validationErrors={validationErrors}
-                        onSave={(updated) => {
-                            // update purchases state
-                            setPurchases((prev) =>
-                                prev.map((p) => (p.purchaseId === updated.purchaseId ? updated : p))
-                            );
-                            setIsSidebarOpen(false);
-                            setEditParentRow(null);
-                            showSuccess("Purchase updated successfully!");
-                        }}
-                        onCancel={() => {
-                            setIsSidebarOpen(false);
-                            setEditParentRow(null);
-                        }}
+                        key={selectedPurchase.purchaseId || "edit"}
                         isEditSidebar={true}
-                        triggerValidation={triggerValidation}
+                        purchase={selectedPurchase}
+                        onSaveSuccess={() => {
+                            setActiveIndex(0);
+                            loadAllData();
+                        }}
+                        onCancel={closeEditSidebar}
                     />
                 </Sidebar>
             )}

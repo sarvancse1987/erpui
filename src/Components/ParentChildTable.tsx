@@ -73,7 +73,7 @@ export function ParentChildTable<
             <div className="flex justify-content-end gap-1 font-bold pr-2 py-1">
                 {freightAmount !== 0 && (
                     <span>
-                        Freight: <span style={{ backgroundColor: "#12b63b", color: "white", padding: "2px 6px", borderRadius: "4px" }}>₹{freightAmount.toFixed(2)}</span>
+                        Freight Charge: <span style={{ backgroundColor: "#12b63b", color: "white", padding: "2px 6px", borderRadius: "4px" }}>₹{freightAmount.toFixed(2)}</span>
 
                     </span>
                 )}

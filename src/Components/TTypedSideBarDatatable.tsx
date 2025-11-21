@@ -589,15 +589,13 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
 
           <DataTable
             value={products.filter(p =>
-              // Filter by search text
               p.productName.toLowerCase().includes(sidebarSearchText.toLowerCase()) &&
-              // Filter by selected supplier (if any)
               (!selectedSupplier || p.supplierId === selectedSupplier)
             )}
             selection={sidebarSelectedProducts}
             onSelectionChange={(e) => setSidebarSelectedProducts(e.value)}
             dataKey="productId"
-            selectionMode="multiple"      // <-- ADD THIS
+            selectionMode="multiple"
             scrollable
             scrollHeight="300px"
             size="small"

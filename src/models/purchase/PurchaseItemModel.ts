@@ -10,6 +10,8 @@ export interface PurchaseItemModel {
     gstAmount: number;
     totalAmount: number;
     isNew: boolean;
+    companyId?: number;
+    locationId?: number;
     _tempKey?: string;
     _edited?: boolean;
 }
