@@ -14,7 +14,7 @@ import CustomerList from "../modules/customer/CustomerList";
 const Dashboard = React.lazy(() => import("../modules/dashboard/Dashboard"));
 const ProductList = React.lazy(() => import("../modules/products/pages/ProductList"));
 const SalesList = React.lazy(() => import("../modules/sales/pages/SalesList"));
-const SalesDetail = React.lazy(() => import("../modules/sales/pages/SalesDetail"));
+const SalesDetail = React.lazy(() => import("../modules/sales/pages/SalesForm"));
 const InventoryList = React.lazy(() => import("../modules/inventory/pages/InventoryList"));
 const InventoryAdjust = React.lazy(() => import("../modules/inventory/pages/InventoryAdjust"));
 const UserList = React.lazy(() => import("../modules/settings/pages/UserList"));

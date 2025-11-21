@@ -51,6 +51,8 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
   const [first, setFirst] = useState(0);
   const [rows, setRows] = useState(10);
   const [selectedSupplier, setSelectedSupplier] = useState<number | null>(null);
+  const [errorDropdown, setErrorDropdown] = useState(false);
+  const [errorTextbox, setErrorTextbox] = useState(false);
 
   useEffect(() => {
     setTableData(data.map((d) => ({ ...d })));
@@ -430,9 +432,12 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                 <Dropdown
                   value={selectedAdjustment}
                   options={adjustmentOptions}
-                  onChange={(e) => setSelectedAdjustment(e.value)}
+                  onChange={(e) => {
+                    setSelectedAdjustment(e.value);
+                    setErrorDropdown(false);
+                  }}
                   placeholder="Select Adjustment"
-                  className="w-30"
+                  className={errorDropdown ? "p-invalid" : ""}
                   style={{ fontSize: '0.85rem' }}
                 />
                 <InputNumber
@@ -442,6 +447,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                   currency="INR"
                   locale="en-IN"
                   style={{ width: '60%', fontSize: '0.85rem' }}
+                  className={errorDropdown ? "p-invalid" : ""}
                 />
                 <Button
                   label=""
@@ -449,18 +455,37 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                   severity="success"
                   style={{ fontSize: '0.85rem', padding: '2px 2px', height: '36px' }}
                   onClick={() => {
+
+                    let hasError = false;
+                    if (!selectedAdjustment) {
+                      setErrorDropdown(true);
+                      hasError = true;
+                    } else {
+                      setErrorDropdown(false);
+                    }
+
+                    if (
+                      adjustmentValue === null ||
+                      adjustmentValue === 0 ||
+                      isNaN(adjustmentValue)
+                    ) {
+                      setErrorTextbox(true);
+                      hasError = true;
+                    } else {
+                      setErrorTextbox(false);
+                    }
+
+                    if (hasError) return;
+
                     if (!selectedAdjustment) return;
 
-                    // STEP 1 — Prepare updated adjustments
                     const updatedAdjustments = {
                       ...adjustments,
                       [selectedAdjustment]: adjustmentValue,
                     };
 
-                    // STEP 2 — Update internal state
                     setAdjustments(updatedAdjustments);
 
-                    // STEP 3 — Calculate final values to send parent
                     const finalAdjustmentResult = {
                       freightAmount: updatedAdjustments.freightAmount || 0,
                       roundOff:
@@ -468,10 +493,8 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                         (updatedAdjustments.roundOffSub || 0),
                     };
 
-                    // STEP 4 — Emit to parent
                     onAdjustmentsChange?.(finalAdjustmentResult);
 
-                    // STEP 5 — Reset UI controls
                     setSelectedAdjustment(null);
                     setAdjustmentValue(0);
                   }}
@@ -479,21 +502,68 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
 
               </div>
 
-              <div className="flex gap-1 mt-1">
+              <div className="flex items-center gap-1 flex-wrap">
                 {adjustments.freightAmount > 0 && (
-                  <span className="flex items-center justify-center px-2 py-0.5 text-sm font-semibold" style={{ background: "#7e7976ff", color: "white" }}>
+                  <span
+                    className="flex items-center justify-start text-left gap-2 px-2 py-0.5 text-sm font-semibold"
+                    style={{ background: "#7e7976ff", color: "white", borderRadius: "4px" }}
+                  >
                     Freight: ₹{adjustments.freightAmount}
+                    <i
+                      className="pi pi-times cursor-pointer ml-1"
+                      onClick={() => {
+                        const updated = { ...adjustments, freightAmount: 0 };
+                        setAdjustments(updated);
+                        onAdjustmentsChange?.({
+                          freightAmount: 0,
+                          roundOff: (updated.roundOffAdd || 0) - (updated.roundOffSub || 0)
+                        });
+                      }}
+                    ></i>
                   </span>
                 )}
+
                 {adjustments.roundOffAdd > 0 && (
-                  <span className="flex items-center justify-center px-2 py-0.5 text-sm font-semibold" style={{ background: "#7e7976ff", color: "white" }}>Round Off (+): ₹{adjustments.roundOffAdd}</span>
+                  <span
+                    className="flex items-center gap-2 px-2 py-0.5 text-sm font-semibold"
+                    style={{ background: "#7e7976ff", color: "white", borderRadius: "4px" }}
+                  >
+                    Round Off (+): ₹{adjustments.roundOffAdd}
+                    <i
+                      className="pi pi-times cursor-pointer ml-1"
+                      onClick={() => {
+                        const updated = { ...adjustments, roundOffAdd: 0 };
+                        setAdjustments(updated);
+                        onAdjustmentsChange?.({
+                          freightAmount: updated.freightAmount || 0,
+                          roundOff: (updated.roundOffAdd || 0) - (updated.roundOffSub || 0)
+                        });
+                      }}
+                    ></i>
+                  </span>
                 )}
+
                 {adjustments.roundOffSub > 0 && (
-                  <span className="flex items-center justify-center px-2 py-0.5 text-sm font-semibold" style={{ background: "#7e7976ff", color: "white" }}>Round Off (-): ₹{adjustments.roundOffSub}</span>
+                  <span
+                    className="flex items-center gap-2 px-2 py-0.5 text-sm font-semibold"
+                    style={{ background: "#7e7976ff", color: "white", borderRadius: "4px" }}
+                  >
+                    Round Off (-): ₹{adjustments.roundOffSub}
+                    <i
+                      className="pi pi-times cursor-pointer ml-1"
+                      onClick={() => {
+                        const updated = { ...adjustments, roundOffSub: 0 };
+                        setAdjustments(updated);
+                        onAdjustmentsChange?.({
+                          freightAmount: updated.freightAmount || 0,
+                          roundOff: (updated.roundOffAdd || 0) - (updated.roundOffSub || 0)
+                        });
+                      }}
+                    ></i>
+                  </span>
                 )}
               </div>
 
-              {/* Right: Totals */}
               <div className="flex items-center gap-1 flex-wrap">
                 <div
                   className="flex items-center justify-start px-2 py-0.5 text-sm font-semibold"
@@ -577,6 +647,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
               placeholder="Select Supplier (Optional)"
               className="w-full"
               showClear
+              filter
             />
           </div>
 
