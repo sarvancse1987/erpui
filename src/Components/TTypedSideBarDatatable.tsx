@@ -17,6 +17,7 @@ import { Paginator } from "primereact/paginator";
 import { IconField } from "primereact/iconfield";
 import { InputIcon } from "primereact/inputicon";
 import { SupplierModel } from "../models/supplier/SupplierModel";
+import { useToast } from "./ToastService";
 
 export function TTypedSideBarDatatable<T extends Record<string, any>>({
   columns,
@@ -53,6 +54,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
   const [selectedSupplier, setSelectedSupplier] = useState<number | null>(null);
   const [errorDropdown, setErrorDropdown] = useState(false);
   const [errorTextbox, setErrorTextbox] = useState(false);
+  const { showSuccess, showError } = useToast();
 
   useEffect(() => {
     setTableData(data.map((d) => ({ ...d })));
@@ -763,6 +765,11 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
               severity="success"
               className="p-button-sm custom-xs"
               onClick={() => {
+                if (sidebarSelectedProducts.length <= 0) {
+                  showError("Select at least one product");
+                  return;
+                }
+
                 const newRows = sidebarSelectedProducts.map((p: ProductSearchModel) => {
                   const rowKey = `temp-${Date.now()}-${Math.random()}`;
                   return {

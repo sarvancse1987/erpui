@@ -95,10 +95,24 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         ...prev,
         ...sale,
         saleItems: sale.saleItems ?? [],
-        saleDate: sale.saleDate
+        saleDate: isEditSidebar ? parseDate(sale.saleDate) : parseDate(new Date()),
       }));
     }
   }, [sale]);
+
+  const parseDate = (value: string | Date | null): Date | null => {
+    if (!value) return null;
+
+    // If already a Date → return as-is
+    if (value instanceof Date) return value;
+
+    // Otherwise parse string "dd-MM-yyyy"
+    const parts = value.split("-");
+    const day = Number(parts[0]);
+    const month = Number(parts[1]) - 1;
+    const year = Number(parts[2]);
+    return new Date(year, month, day);
+  };
 
   const renderEditor = (options: any, field: keyof SaleItemModel) => {
     return (
@@ -230,7 +244,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
       if (onSaveSuccess) onSaveSuccess();
     } catch (err) {
       console.error(err);
-      showError("Error saving purchase!");
+      showError("Error saving sale!");
     }
   };
 
@@ -286,7 +300,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
       )}
 
       <div className="flex flex-wrap gap-2 mb-2 items-end">
-        <div className={isEditSidebar ? "w-[45%]" : "flex-1 min-w-[140px]"}>
+        <div className="flex-1 min-w-[140px]">
           <strong className="text-sm">Customer <span className="mandatory-asterisk">*</span></strong>
           <CustomerSelector
             customers={customers}
@@ -301,11 +315,11 @@ export const SalesForm: React.FC<SalesFormProps> = ({
           )}
         </div>
 
-        <div className={isEditSidebar ? "w-[25%]" : "w-[25%]"}>
+        <div className="flex-1 min-w-[140px]">
           <Button label="Add" icon="pi pi-plus" onClick={c => { setShowCustomerAdd(true); }} className="p-button-sm custom-md mt-4" />
         </div>
 
-        <div className={isEditSidebar ? "w-[45%]" : "flex-1 min-w-[120px]"}>
+        <div className="flex-1 min-w-[140px]">
           <strong className="text-sm">Sale Type <span className="mandatory-asterisk">*</span></strong>
           <Dropdown
             value={formData.saleTypeId}
@@ -343,7 +357,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
           {validationErrors?.saleDate && <span className="mandatory-error text-xs">{validationErrors.saleDate}</span>}
         </div>
 
-        <div className="flex items-center gap-2 mt-5">
+        <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[120px]"}>
           <strong className="mb-2">GST Include</strong>
           <Checkbox
             checked={formData.isGst}
@@ -380,8 +394,12 @@ export const SalesForm: React.FC<SalesFormProps> = ({
 
       {isEditSidebar && (
         <div className="flex justify-end gap-2 mt-4">
-          <Button type="button" label="Cancel" icon="pi pi-times-circle" outlined onClick={onCancelSideBar} />
-          <Button type="submit" label="Update" icon="pi pi-save" onClick={handleUpdateForm} />
+          <Button type="button" label="Cancel" icon="pi pi-times-circle" style={{ color: 'red' }} outlined onClick={onCancelSideBar} className="p-button-sm custom-xs" />
+          <Button type="submit"
+            label="Update"
+            icon="pi pi-save"
+            severity="success"
+            className="p-button-sm custom-xs" onClick={handleUpdateForm} />
         </div>
       )}
     </div>

@@ -12,10 +12,10 @@ import { TTypeDatatable } from "../../../components/TTypeDatatable";
 import { ParentChildTable } from "../../../components/ParentChildTable";
 import { SalesForm } from "./SalesForm";
 
-export default function PurchaseList() {
-  const [purchases, setPurchases] = useState<SaleModel[]>([]);
+export default function SaleList() {
+  const [sales, setSales] = useState<SaleModel[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPurchase, setSelectedPurchase] = useState<SaleModel | null>(null);
+  const [selectedSale, setSelectedSSale] = useState<SaleModel | null>(null);
   const { showSuccess, showError } = useToast();
   const [viewType, setViewType] = useState<"simple" | "detailed">("simple");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -24,12 +24,12 @@ export default function PurchaseList() {
   const loadAllData = async () => {
     setLoading(true);
     try {
-      const res = await apiService.get(`/Purchase/purchasedetails`);
-      const mapped = res.purchase.map((p: any) => ({
+      const res = await apiService.get(`/Sale/saledetails`);
+      const mapped = res.sale .map((p: any) => ({
         ...p,
-        purchaseItems: res.items.filter((i: any) => i.purchaseId === p.purchaseId),
+        saleItems: res.saleItems.filter((i: any) => i.saleId === p.saleId),
       }));
-      setPurchases(mapped ?? []);
+      setSales(mapped ?? []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -43,25 +43,25 @@ export default function PurchaseList() {
 
   const handleParentEdit = (row: SaleModel) => {
     if (row != null) {
-      setSelectedPurchase(row);
+      setSelectedSSale(row);
       setIsSidebarOpen(true);
     }
   };
 
-  const handleOpenEdit = (purchase: SaleModel) => {
-    setSelectedPurchase({ ...purchase });
+  const handleOpenEdit = (sale: SaleModel) => {
+    setSelectedSSale({ ...sale });
     setIsSidebarOpen(true);
   };
 
-  const handleDeletePurchase = async (rows: SaleModel[]) => {
+  const handleDeleteSale = async (rows: SaleModel[]) => {
     try {
       // Extract IDs only
       const ids = rows.map(r => r.customerId);
 
       // Call API (bulk delete)
-      await apiService.post("/purchase/bulk-delete", ids);
+      await apiService.post("/sale/bulk-delete", ids);
 
-      showSuccess("Purchase(s) deleted successfully!");
+      showSuccess("Sale(s) deleted successfully!");
 
       // Reload table
       //await loadSuppliers();
@@ -72,14 +72,14 @@ export default function PurchaseList() {
   };
 
   const columns: ColumnMeta<SaleModel>[] = [
-    { field: "customerId", header: "ID", width: "80px", editable: false, hidden: true },
-    { field: "customerName", header: "Customer Name", width: "220px", frozen: true },
+    { field: "customerId", header: "ID", editable: false, hidden: true },
+    { field: "customerName", header: "Customer Name", width: "160px", frozen: true },
     { field: "saleRefNo", header: "Sale Ref No", width: "160px" },
-    { field: "saleDate", header: "Sale Date", width: "100px" },
+    { field: "saleOnDate", header: "Sale Date", width: "100px" },
     {
       field: "saleTypeName",
       header: "Sale Type",
-      width: "110px",
+      width: "90px",
       body: (row: SaleModel) => {
         let severity: "success" | "warning" | "info" | "danger" = "info";
 
@@ -151,7 +151,7 @@ export default function PurchaseList() {
     {
       field: "balanceAmount",
       header: "Bal Amt",
-      width: "120px",
+      width: "110px",
       body: (row: SaleModel) => {
         const paid = row.paidAmount ?? 0;
         let balance = row.totalAmount - paid;
@@ -182,7 +182,7 @@ export default function PurchaseList() {
     {
       field: "runningBalance",
       header: "Run Amt",
-      width: "120px",
+      width: "100px",
       body: (row: SaleModel) => {
         const balance = row.runningBalance ?? 0; // cumulative/current balance
 
@@ -206,15 +206,6 @@ export default function PurchaseList() {
       },
     },
     {
-      field: "totalGST",
-      header: "Gst Amt",
-      width: "110px",
-      body: (row) =>
-        row.totalGST != null
-          ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.totalGST)
-          : "",
-    },
-    {
       field: "grandTotal",
       header: "Grand Total",
       width: "110px",
@@ -228,7 +219,7 @@ export default function PurchaseList() {
   const parentColumns = [
     { field: "customerName", header: "Customer Name", width: "130px" },
     { field: "saleRefNo", header: "Sale Ref No", width: "180px" },
-    { field: "saleDate", header: "Sale Date", width: "130px" },
+    { field: "saleOnDate", header: "Sale Date", width: "130px" },
     {
       field: "saleType",
       header: "Sale Type",
@@ -402,7 +393,7 @@ export default function PurchaseList() {
 
   const closeEditSidebar = () => {
     setIsSidebarOpen(false);
-    setSelectedPurchase(null);
+    setSelectedSSale(null);
   };
 
   if (loading)
@@ -455,23 +446,23 @@ export default function PurchaseList() {
             </div>
           </div>
 
-          {purchases.length === 0 ? (
-            <p>No purchases found.</p>
+          {setSales.length === 0 ? (
+            <p>No sales found.</p>
           ) : viewType === "simple" ? (
             <TTypeDatatable<SaleModel>
-              data={purchases}
+              data={sales}
               columns={columns}
               primaryKey="saleId"
               onEdit={handleOpenEdit}
               isDelete={true}
-              onDelete={handleDeletePurchase}
+              onDelete={handleDeleteSale}
               isNew={false}
               isSave={false}
             />
           ) : (
             <div className="space-y-2">
               <ParentChildTable<SaleModel, SaleItemModel>
-                parentData={purchases}
+                parentData={sales}
                 parentColumns={parentColumns as ColumnMeta<SaleModel>[]}
                 childColumns={childColumns as ColumnMeta<SaleItemModel>[]}
                 childField={"saleItems" as keyof SaleModel}
@@ -493,7 +484,7 @@ export default function PurchaseList() {
             <SalesForm
               key={1}
               isEditSidebar={false}
-              sale={selectedPurchase}
+              sale={selectedSale}
               onSaveSuccess={() => {
                 setActiveIndex(0);
                 loadAllData();
@@ -507,34 +498,34 @@ export default function PurchaseList() {
       <Sidebar visible={isSidebarOpen}
         position="right"
         onHide={() => setIsSidebarOpen(false)}
-        header="Edit Purchase"
+        header="Edit Sale"
         style={{ width: '70rem' }}>
-        {selectedPurchase ? (
+        {selectedSale ? (
           <SalesForm
-            key={selectedPurchase.saleId || "edit"}
+            key={selectedSale.saleId || "edit"}
             isEditSidebar={true}
-            sale={selectedPurchase}
+            sale={selectedSale}
             onSaveSuccess={() => {
               setActiveIndex(0);
               loadAllData();
             }}
             onCancel={closeEditSidebar}
           />
-        ) : <p className="p-4 text-gray-500 text-center">Select a purchase to edit.</p>}
+        ) : <p className="p-4 text-gray-500 text-center">Select a sale to edit.</p>}
       </Sidebar>
 
-      {isSidebarOpen && selectedPurchase && (
+      {isSidebarOpen && selectedSale && (
         <Sidebar
           position="right"
           visible={isSidebarOpen}
           onHide={() => setIsSidebarOpen(false)}
-          header="Edit Purchase"
+          header="Edit Sale"
           style={{ width: '90rem' }}
         >
           <SalesForm
-            key={selectedPurchase.saleId || "edit"}
+            key={selectedSale.saleId || "edit"}
             isEditSidebar={true}
-            sale={selectedPurchase}
+            sale={selectedSale}
             onSaveSuccess={() => {
               setActiveIndex(0);
               loadAllData();

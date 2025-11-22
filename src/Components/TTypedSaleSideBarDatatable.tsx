@@ -19,6 +19,7 @@ import { InputIcon } from "primereact/inputicon";
 import { CategoryModel } from "../models/product/CategoryModel";
 import apiService from "../services/apiService";
 import { MultiSelect } from "primereact/multiselect";
+import { useToast } from "./ToastService";
 
 export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
   columns,
@@ -56,6 +57,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
   const [errorDropdown, setErrorDropdown] = useState(false);
   const [errorTextbox, setErrorTextbox] = useState(false);
   const [activeCategories, setActiveCategories] = useState<CategoryModel[]>([]);
+  const { showSuccess, showError } = useToast();
 
   useEffect(() => {
     fetchCategories();
@@ -622,7 +624,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
           }
         >
           <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
-          <Column header="Sr. No." body={(_, options) => options.rowIndex + 1} style={{ width: "70px", minWidth: "70px" }} />
+          <Column header="No." body={(_, options) => options.rowIndex + 1} style={{ width: "70px", minWidth: "70px" }} />
           {columns.filter((col) => !col.hidden).map((col) => (
             <Column
               key={String(col.field)}
@@ -777,6 +779,10 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
               severity="success"
               className="p-button-sm custom-xs"
               onClick={() => {
+                if (sidebarSelectedProducts.length <= 0) {
+                  showError("Select at least one product");
+                  return;
+                }
                 const newRows = sidebarSelectedProducts.map((p: ProductSearchModel) => {
                   const rowKey = `temp-${Date.now()}-${Math.random()}`;
                   return {

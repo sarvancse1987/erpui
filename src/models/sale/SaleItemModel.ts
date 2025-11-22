@@ -1,11 +1,8 @@
 export interface SaleItemModel {
   saleItemId: number;
-
-  // Foreign Keys
   saleId: number;
   productId: number;
   productName?: string;
-
   salePrice: number;
   unitPrice: number;
   quantity: number;
@@ -13,4 +10,5 @@ export interface SaleItemModel {
   amount: number;
   gstAmount?: number;
   totalAmount?: number;
+  supplierId?: number;
 }

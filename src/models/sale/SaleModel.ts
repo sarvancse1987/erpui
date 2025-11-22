@@ -15,7 +15,8 @@ export interface SaleModel {
     isGst: boolean;
 
     // Properties
-    saleDate: Date;
+    saleDate: string | Date | null;
+    saleOnDate?: string;
     totalAmount: number;
     paidAmount: number;
     brokerageAmount?: number;
