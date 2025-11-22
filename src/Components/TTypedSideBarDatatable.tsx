@@ -233,28 +233,40 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
           <InputNumber
             value={options.value}
             onValueChange={(e) => {
-              const updatedRow = { ...options.rowData, [col.field]: e.value };
+              const value = e.value ?? 0;
+              const key = options.rowData._tempKey || options.rowData[primaryKey];
 
-              if (col.field === "unitPrice" || col.field === "quantity") {
-                const unitPrice = parseFloat(updatedRow.unitPrice) || 0;
-                const quantity = parseFloat(updatedRow.quantity) || 0;
-                updatedRow.amount = parseFloat((unitPrice * quantity).toFixed(2));
+              setTableData((prev) => {
+                const newTable = prev.map((r) => {
+                  if ((r._tempKey || r[primaryKey]) === key) {
+                    const updated: any = { ...r, [col.field]: value };
 
-                const gstPercent = parseFloat(updatedRow.gstPercent) || 0;
-                updatedRow.gstAmount = parseFloat(((updatedRow.amount * gstPercent) / 100).toFixed(2));
-              }
+                    // Compute amount & GST
+                    const unitPrice = parseFloat(updated.unitPrice) || 0;
+                    const quantity = parseFloat(updated.quantity) || 0;
+                    updated.amount = parseFloat((unitPrice * quantity).toFixed(2));
 
-              if (col.field === "gstPercent") {
-                const unitPrice = parseFloat(updatedRow.unitPrice) || 0;
-                const quantity = parseFloat(updatedRow.quantity) || 0;
-                const amount = parseFloat((unitPrice * quantity).toFixed(2));
-                const gstPercent = parseFloat(updatedRow.gstPercent) || 0;
-                updatedRow.gstAmount = parseFloat(((amount * gstPercent) / 100).toFixed(2));
-              }
+                    const gstPercent = parseFloat(updated.gstPercent) || 0;
+                    updated.gstAmount = parseFloat(((updated.amount * gstPercent) / 100).toFixed(2));
 
-              options.editorCallback(e.value);
-              markRowEdited(updatedRow);
+                    updated.totalAmount = updated.amount + updated.gstAmount;
+                    updated._edited = true;
+
+                    // Call editor callback
+                    options.editorCallback(value);
+
+                    return updated;
+                  }
+                  return r;
+                });
+
+                // Emit updated table to parent
+                onChange?.(newTable);
+
+                return newTable;
+              });
             }}
+
             mode={inputMode}
             currency={inputCurrency}
             locale="en-IN"
@@ -596,7 +608,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
           }
         >
           <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
-          <Column header="Sr. No." body={(_, options) => options.rowIndex + 1} style={{ width: "70px", minWidth: "70px" }} />
+          <Column header="No." body={(_, options) => options.rowIndex + 1} style={{ width: "40px", minWidth: "40px" }} />
           {columns.filter((col) => !col.hidden).map((col) => (
             <Column
               key={String(col.field)}
@@ -633,7 +645,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
             setSidebarSearchText("");
           }}
           position="right"
-          style={{ width: "500px" }}
+          style={{ width: "750px" }}
           header="Select Products"
         >
 
@@ -641,8 +653,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
             <Dropdown
               value={selectedSupplier}
               options={[
-                { label: "All Suppliers", value: null },
-                ...suppliers.map((s: any) => ({ label: s.supplierName, value: s.supplierId }))
+                ...suppliers.map((s: any) => ({ label: s.supplierName, value: Number(s.supplierId) }))
               ]}
               onChange={(e) => { setSelectedSupplier(e.value); }}
               placeholder="Select Supplier (Optional)"
@@ -670,7 +681,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                 selectedSupplier === undefined ||
                 Number(p.supplierId) === Number(selectedSupplier);
 
-              return nameMatch || supplierMatch;
+              return nameMatch && supplierMatch;
             })}
             selection={sidebarSelectedProducts}
             onSelectionChange={(e) => setSidebarSelectedProducts(e.value)}
@@ -685,9 +696,67 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
             <Column field="purchasePrice" header="Rate" style={{ minWidth: "120px" }} body={(row: any) =>
               new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.purchasePrice)
             } />
+            <Column
+              field="quantity"
+              header="Quantity"
+              style={{ minWidth: "120px" }}
+              body={(row: any) => {
+                const value = row.quantity;
+
+                // Determine quantity symbol and background
+                let symbol = "";
+                let bgColor = "";
+                if (value === 0) {
+                  symbol = "❌"; // Out of stock
+                  bgColor = "quantity-zero";
+                } else if (value < 5) {
+                  symbol = "⚠️"; // Low stock
+                  bgColor = "quantity-low";
+                } else {
+                  symbol = "✅"; // Sufficient stock
+                  bgColor = "quantity-high";
+                }
+
+                return (
+                  <div
+                    style={{
+                      backgroundColor: bgColor,
+                      padding: "4px",
+                      borderRadius: "4px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px"
+                    }}
+                  >
+                    <span>{symbol}</span>
+                    <span>{value}</span> {/* quantity number */}
+                  </div>
+                );
+              }}
+            />
+
+            <Column
+              field="inventoryPurchasePrice"
+              header="Inv Price"
+              style={{ minWidth: "120px" }}
+              body={(row: any) => {
+                const value = row.inventoryPurchasePrice;
+                let bgColor = "";
+                if (value === 0) bgColor = "quantity-zero";
+                else if (value < 5) bgColor = "quantity-low";
+                else bgColor = "quantity-high";
+
+                return (
+                  <div style={{ backgroundColor: bgColor, padding: "4px", borderRadius: "4px" }}>
+                    {new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(value)}
+                  </div>
+                );
+              }}
+            />
           </DataTable>
 
           <div className="mt-3 flex justify-end gap-2">
+            <Button label="Cancel" outlined onClick={() => setProductSidebarVisible(false)} icon="pi pi-times-circle" style={{ color: 'red' }} className="p-button-sm custom-xs" />
             <Button
               label="Add Selected"
               icon="pi pi-check"
@@ -718,7 +787,6 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                 setProductSidebarVisible(false);
               }}
             />
-            <Button label="Cancel" outlined onClick={() => setProductSidebarVisible(false)} icon="pi pi-times-circle" style={{ color: 'red' }} className="p-button-sm custom-xs" />
           </div>
         </Sidebar>
       </div>

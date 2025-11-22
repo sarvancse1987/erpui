@@ -294,3 +294,7 @@ code {
 .custom-width input {
   width: 100% !important;
 }
+
+.quantity-zero { background-color: #c5aaaa; }
+.quantity-low { background-color: #d1d144; }
+.quantity-high { background-color: #74b374; }

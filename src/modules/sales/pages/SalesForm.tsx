@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Calendar } from "primereact/calendar";
-import { InputText } from "primereact/inputtext";
 import { InputNumber } from "primereact/inputnumber";
 import { Button } from "primereact/button";
 import { SaleModel } from "../../../models/sale/SaleModel";
@@ -9,12 +8,13 @@ import { useToast } from "../../../components/ToastService";
 import apiService from "../../../services/apiService";
 import { ColumnMeta } from "../../../models/component/ColumnMeta";
 import { SaleItemModel } from "../../../models/sale/SaleItemModel";
-import { TTypedSideBarDatatable } from "../../../components/TTypedSideBarDatatable";
 import { CustomerSelector } from "../../customer/CustomerSelector";
 import { Checkbox } from "primereact/checkbox";
 import { CustomerForm } from "../../customer/CustomerForm";
 import { Sidebar } from "primereact/sidebar";
 import { TTypedSaleSideBarDatatable } from "../../../components/TTypedSaleSideBarDatatable";
+import { Dropdown } from "primereact/dropdown";
+import { SaleTypeModel } from "../../../models/sale/SaleTypeModel";
 
 interface SalesFormProps {
   isEditSidebar: boolean;
@@ -28,7 +28,6 @@ export const SalesForm: React.FC<SalesFormProps> = ({
 }) => {
   const [formData, setFormData] = useState<SaleModel>({
     saleId: 0,
-    salesNumber: "",
     saleRefNo: "",
     customerId: 0,
     saleTypeId: 0,
@@ -61,18 +60,26 @@ export const SalesForm: React.FC<SalesFormProps> = ({
   });
 
   const [customers, setCustomers] = useState<CustomerModel[]>([]);
+  const [saleTypes, setSaleTypes] = useState<SaleTypeModel[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const { showSuccess, showError } = useToast();
   const [showCustomerAdd, setShowCustomerAdd] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  // ---------------- LOAD DATA ----------------
   const loadAllData = async () => {
     try {
       const customersRes = await apiService.get("/Customer/details");
       setCustomers(customersRes?.customers ?? []);
 
-      const productsRes = await apiService.get("/Product/productdetails");
+      const productsRes = await apiService.get("/Product/productdetails?isInventoryRequired=true");
       setProducts(productsRes?.data ?? []);
+
+      const saleTypes = await apiService.get("/SaleType");
+      const saleTypeOptions = (saleTypes ?? []).map((pt: SaleTypeModel) => ({
+        label: pt.saleTypeName,
+        value: pt.saleTypeId
+      }));
+      setSaleTypes(saleTypeOptions ?? []);
     } catch (err) {
       console.error(err);
     }
@@ -93,14 +100,28 @@ export const SalesForm: React.FC<SalesFormProps> = ({
     }
   }, [sale]);
 
-  // ---------------- TABLE COLUMNS ----------------
+  const renderEditor = (options: any, field: keyof SaleItemModel) => {
+    return (
+      <InputNumber
+        value={options.value[field] ?? 0}
+        onValueChange={(e) => {
+          const updatedRow = { ...options.value, [field]: e.value ?? 0 };
+          updatedRow.amount = (updatedRow.unitPrice ?? 0) * (updatedRow.quantity ?? 0);
+          options.editorCallback(updatedRow);
+        }}
+        mode="decimal"
+        minFractionDigits={0}
+      />
+    );
+  };
+
   const saleColumns: ColumnMeta<SaleItemModel>[] = [
     {
       field: "productId",
       header: "Item Name",
       editable: false,
       type: "textdisabled",
-      width: "200px",
+      width: "240px",
       frozen: true,
       body: (row) => row.productName || ""
     },
@@ -108,6 +129,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
       field: "salePrice",
       header: "Sale Rate",
       type: "currency",
+      width: "140px",
       body: (row) =>
         new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.salePrice)
     },
@@ -116,6 +138,9 @@ export const SalesForm: React.FC<SalesFormProps> = ({
       header: "Rate",
       editable: true,
       type: "currency",
+      required: true,
+      width: "240px",
+      editor: (options) => renderEditor(options, "unitPrice"),
       body: (row) =>
         new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.unitPrice)
     },
@@ -124,6 +149,9 @@ export const SalesForm: React.FC<SalesFormProps> = ({
       header: "Qty",
       editable: true,
       type: "decimal",
+      required: true,
+      width: "240px",
+      editor: (options) => renderEditor(options, "quantity"),
       body: (row) =>
         new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.quantity)
     },
@@ -131,53 +159,78 @@ export const SalesForm: React.FC<SalesFormProps> = ({
       field: "amount",
       header: "Amount",
       editable: false,
-      body: (row) =>
-        `₹${(row.amount ?? 0).toFixed(2)}`
-    },
-    {
-      field: "gstAmount",
-      header: "GST Amount",
-      editable: false,
-      body: (row) =>
-        `₹${(row.gstAmount ?? 0).toFixed(2)}`
-    },
-    {
-      field: "totalAmount",
-      header: "Grand Total",
-      editable: false,
-      body: (row) =>
-        `₹${(row.totalAmount ?? 0).toFixed(2)}`
-    },
+      body: (row) => `₹${(row.amount ?? 0).toFixed(2)}`
+    }
   ];
 
-  // ---------------- FORM CHANGE ----------------
   const handleChange = (field: keyof SaleModel, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleItemsChange = (items: SaleItemModel[]) => {
     const totalAmount = items.reduce((sum, i) => sum + (i.amount ?? 0), 0);
-    const totalGST = items.reduce((sum, i) => sum + (i.gstAmount ?? 0), 0);
-    const grandTotal = totalAmount + totalGST + (formData.freightAmount || 0) + (formData.roundOff || 0);
+    const grandTotal = totalAmount + (formData.freightAmount || 0) + (formData.roundOff || 0);
 
     setFormData(prev => ({
       ...prev,
       saleItems: items,
       totalAmount,
-      totalGST,
       grandTotal
     }));
   };
 
-  // ---------------- SAVE ----------------
+  const validateChildItems = (items: SaleItemModel[]) => {
+    const errors: Record<string, Record<string, string>> = {};
+    items.forEach(item => {
+      const key = item.saleItemId;
+      errors[key] = {};
+      if (!item.productId) errors[key].productId = "Item Name is required";
+      if (!item.unitPrice || item.unitPrice <= 0) errors[key].unitPrice = "Rate is required";
+      if (!item.quantity || item.quantity <= 0) errors[key].quantity = "Qty is required";
+      if (Object.keys(errors[key]).length === 0) delete errors[key];
+    });
+    return errors;
+  };
+
+  const runLocalValidation = () => {
+    const errors: Record<string, string> = {};
+    if (!formData.customerId) errors.customerId = "Customer is required";
+    if (!formData.saleTypeId) errors.saleTypeId = "Sale type is required";
+    const paidAmountRequired =
+      formData.saleTypeId === 1 || formData.saleTypeId === 3;
+
+    if (paidAmountRequired) {
+      if (!formData.paidAmount || formData.paidAmount <= 0) {
+        errors.paidAmount = "Paid Amount is required";
+      } else {
+        if (formData.saleTypeId === 1 && formData.paidAmount !== formData.grandTotal) {
+          errors.paidAmount = `For Cash sales, Paid Amount must match the Grand Total (${formData.grandTotal.toFixed(2)}).`;
+        }
+      }
+    }
+    if (!formData.saleDate) errors.saleDate = "Invoice Date is required";
+
+    const itemErrs = validateChildItems(formData.saleItems);
+    setValidationErrors(errors);
+
+    return Object.keys(errors).length === 0 && Object.keys(itemErrs).length === 0 && formData.saleItems.length > 0;
+  };
+
   const handleSaveForm = async () => {
+    if (!runLocalValidation()) {
+      return;
+    }
+
     try {
-      await apiService.post("/Sale", formData);
-      showSuccess("Sale saved successfully!");
+      const payload = { ...formData };
+      await apiService.post("/Sale", payload);
+      await loadAllData();
+      setValidationErrors({});
+      showSuccess("Sales saved successfully!");
       if (onSaveSuccess) onSaveSuccess();
     } catch (err) {
       console.error(err);
-      showError("Error saving sale!");
+      showError("Error saving purchase!");
     }
   };
 
@@ -224,8 +277,6 @@ export const SalesForm: React.FC<SalesFormProps> = ({
     }
   };
 
-
-  // ---------------- RENDER ----------------
   return (
     <div className={`border border-gray-200 rounded-md p-1 ${isEditSidebar ? "max-w-[800px]" : "w-full"}`}>
       {!isEditSidebar && (
@@ -236,16 +287,36 @@ export const SalesForm: React.FC<SalesFormProps> = ({
 
       <div className="flex flex-wrap gap-2 mb-2 items-end">
         <div className={isEditSidebar ? "w-[45%]" : "flex-1 min-w-[140px]"}>
-          <strong className="text-sm">Supplier <span className="mandatory-asterisk">*</span></strong>
+          <strong className="text-sm">Customer <span className="mandatory-asterisk">*</span></strong>
           <CustomerSelector
             customers={customers}
             selectedCustomerId={formData.customerId}
             onSelect={c => handleChange("customerId", c.customerId)}
+            isValid={!!validationErrors?.customerId}
           />
+          {validationErrors?.customerId && (
+            <span className="mandatory-error text-xs">
+              {validationErrors.customerId}
+            </span>
+          )}
         </div>
 
-        <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[70px]"}>
+        <div className={isEditSidebar ? "w-[25%]" : "w-[25%]"}>
           <Button label="Add" icon="pi pi-plus" onClick={c => { setShowCustomerAdd(true); }} className="p-button-sm custom-md mt-4" />
+        </div>
+
+        <div className={isEditSidebar ? "w-[45%]" : "flex-1 min-w-[120px]"}>
+          <strong className="text-sm">Sale Type <span className="mandatory-asterisk">*</span></strong>
+          <Dropdown
+            value={formData.saleTypeId}
+            options={saleTypes}
+            onChange={(e) => handleChange("saleTypeId", e.value)}
+            placeholder="Select Type"
+            showClear
+            filter
+            className={`w-full mt-1 text-sm ${validationErrors?.saleTypeId ? "p-invalid" : ""}`}
+          />
+          {validationErrors?.saleTypeId && <span className="mandatory-error text-xs">{validationErrors.saleTypeId}</span>}
         </div>
 
         <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[140px]"}>
@@ -257,6 +328,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
             locale="en-IN"
             onChange={e => handleChange("paidAmount", e.value)}
           />
+          {validationErrors?.paidAmount && <span className="mandatory-error text-xs">{validationErrors.paidAmount}</span>}
         </div>
 
         <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[120px]"}>
@@ -266,7 +338,9 @@ export const SalesForm: React.FC<SalesFormProps> = ({
             onChange={e => handleChange("saleDate", e.value ?? null)}
             dateFormat="dd-mm-yy"
             showIcon
+            showButtonBar
           />
+          {validationErrors?.saleDate && <span className="mandatory-error text-xs">{validationErrors.saleDate}</span>}
         </div>
 
         <div className="flex items-center gap-2 mt-5">

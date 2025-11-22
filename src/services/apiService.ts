@@ -6,6 +6,11 @@ export async function get(url: string): Promise<any> {
   return client.get(url);
 }
 
+export async function getQueryParam(url: string, params?: Record<string, any>): Promise<any> {
+  const client = getHttpClient();
+  return client.get(url, { params });
+}
+
 export async function post(url: string, data: any): Promise<any> {
   const client = getHttpClient();
   return client.post(url, data);
@@ -45,6 +50,7 @@ export async function document(
 
 export default {
   get,
+  getQueryParam,
   post,
   put,
   //postImage,

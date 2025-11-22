@@ -94,7 +94,7 @@ export const CustomerSelector: React.FC<CustomerSelectorProps> = ({
                 placeholder="Search Customer"
                 value={searchText}
                 onChange={(e) => {
-                    setSearchText(e.target.value); 
+                    setSearchText(e.target.value);
                 }}
                 onFocus={() => {
                     if (searchText.trim() !== "") {

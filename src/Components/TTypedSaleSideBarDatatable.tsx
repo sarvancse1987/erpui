@@ -40,6 +40,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [filters, setFilters] = useState<any>({});
+  const [editedValues, setEditedValues] = useState({});
 
   // For Product search per row
   const [showTableMap, setShowTableMap] = useState<{ [key: string]: boolean }>({});
@@ -142,21 +143,16 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
   const markRowEdited = (updatedRow: any) => {
     const key = (updatedRow as any)._tempKey || updatedRow[primaryKey];
 
-    // Recalculate totals...
     const unitPrice = parseFloat(updatedRow.unitPrice) || 0;
     const quantity = parseFloat(updatedRow.quantity) || 0;
     const amount = parseFloat((unitPrice * quantity).toFixed(2));
-    const gstPercent = parseFloat(updatedRow.gstPercent) || 0;
-    const gstAmount = parseFloat(((amount * gstPercent) / 100).toFixed(2));
-    const totalAmount = parseFloat((amount + gstAmount).toFixed(2));
 
     updatedRow.amount = amount;
-    updatedRow.gstAmount = gstAmount;
-    updatedRow.totalAmount = totalAmount;
+    updatedRow.totalAmount = amount;
 
     setTableData(prev => {
       const newData = prev.map(r => (r._tempKey || r[primaryKey]) === key ? { ...r, ...updatedRow, _edited: true } : r);
-      onChange?.(newData); // <-- EMIT TO PARENT
+      onChange?.(newData);
       return newData;
     });
   };
@@ -234,9 +230,9 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
       case "decimal":
       case "currency":
         let inputMode: "decimal" | "currency" = "decimal";
-        let inputCurrency: string | undefined = undefined;
-        let minFrac: number | undefined = undefined;
-        let maxFrac: number | undefined = undefined;
+        let inputCurrency: string | undefined;
+        let minFrac: number | undefined;
+        let maxFrac: number | undefined;
 
         if (col.type === "currency") {
           inputMode = "currency";
@@ -249,40 +245,41 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
 
         return (
           <InputNumber
-            value={options.value}
-            onValueChange={(e) => {
-              const updatedRow = { ...options.rowData, [col.field]: e.value };
-
-              if (col.field === "unitPrice" || col.field === "quantity") {
-                const unitPrice = parseFloat(updatedRow.unitPrice) || 0;
-                const quantity = parseFloat(updatedRow.quantity) || 0;
-                updatedRow.amount = parseFloat((unitPrice * quantity).toFixed(2));
-
-                const gstPercent = parseFloat(updatedRow.gstPercent) || 0;
-                updatedRow.gstAmount = parseFloat(((updatedRow.amount * gstPercent) / 100).toFixed(2));
-              }
-
-              if (col.field === "gstPercent") {
-                const unitPrice = parseFloat(updatedRow.unitPrice) || 0;
-                const quantity = parseFloat(updatedRow.quantity) || 0;
-                const amount = parseFloat((unitPrice * quantity).toFixed(2));
-                const gstPercent = parseFloat(updatedRow.gstPercent) || 0;
-                updatedRow.gstAmount = parseFloat(((amount * gstPercent) / 100).toFixed(2));
-              }
-
-              options.editorCallback(e.value);
-              markRowEdited(updatedRow);
-            }}
+            value={tableData.find(r => (r._tempKey || r[primaryKey]) === (options.rowData._tempKey || options.rowData[primaryKey]))?.[col.field] ?? 0}
             mode={inputMode}
             currency={inputCurrency}
             locale="en-IN"
             minFractionDigits={minFrac}
             maxFractionDigits={maxFrac}
             className={classNames("custom-width p-inputnumber-sm", { "p-invalid": showError })}
-            style={{ width: "30%" }}
+            style={{ width: "100%" }}
             placeholder={col.placeholder}
-          />
+            onValueChange={(e) => {
+              const value = e.value ?? 0;
+              const key = options.rowData._tempKey || options.rowData[primaryKey];
 
+              // Update the row directly using the primary key / temp key
+              setTableData((prev) =>
+                prev.map((r) => {
+                  if ((r._tempKey || r[primaryKey]) === key) {
+                    const updated: any = { ...r, [col.field]: value };
+
+                    const unitPrice = parseFloat(updated.unitPrice) || 0;
+                    const quantity = parseFloat(updated.quantity) || 0;
+                    updated.amount = parseFloat((unitPrice * quantity).toFixed(2));
+                    updated.totalAmount = updated.amount; // or include GST logic if needed
+                    updated._edited = true;
+
+                    // Call onChange callback if needed
+                    onChange?.(prev.map((row) => (row._tempKey || row[primaryKey]) === key ? updated : row));
+
+                    return updated;
+                  }
+                  return r;
+                })
+              );
+            }}
+          />
         );
       case "gst":
         return (
@@ -400,6 +397,24 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
     roundOffSub: 0,
   });
 
+  const onRowEditComplete = (e: any) => {
+    const updatedRow = { ...e.data };
+    const unitPrice = parseFloat(updatedRow.unitPrice);
+    const qty = parseFloat(updatedRow.quantity);
+    const gstPercent = parseFloat(updatedRow.gstPercent);
+
+    updatedRow.amount = +(unitPrice * qty).toFixed(2);
+    updatedRow.gstAmount = +(updatedRow.amount * gstPercent / 100).toFixed(2);
+    updatedRow.totalAmount = updatedRow.amount + updatedRow.gstAmount;
+    updatedRow._edited = true;
+
+    const newTable = [...tableData];
+    newTable[e.index] = updatedRow;
+
+    setTableData(newTable);
+    onChange?.(newTable);
+  };
+
   return (
     <div className="card p-3 h-[calc(100vh-100px)] overflow-auto">
       <div className="flex justify-between items-center mb-1">
@@ -434,6 +449,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
           editMode="row"
           editingRows={editingRows}
           onRowEditChange={(e: DataTableRowEditEvent) => setEditingRows(e.data)}
+          //onRowEditComplete={onRowEditComplete}
           filters={filters}
           globalFilterFields={columns.map((c) => c.field as string)}
           size="small"
@@ -592,13 +608,6 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
 
                 <div
                   className="flex items-center justify-center px-2 py-0.5 text-sm font-semibold"
-                  style={{ background: "#f1c40f", color: "black", borderRadius: 0, minWidth: 130, height: '87%' }}
-                >
-                  <span>GST Amt: ₹{tableData.reduce((a, r) => a + (r.gstAmount || 0), 0).toFixed(2)}</span>
-                </div>
-
-                <div
-                  className="flex items-center justify-center px-2 py-0.5 text-sm font-semibold"
                   style={{ background: "#3498db", color: "white", borderRadius: 0, minWidth: 130, height: '87%' }}
                 >
                   <span>Grand Total: ₹{(
@@ -650,7 +659,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
             setSidebarSearchText("");
           }}
           position="right"
-          style={{ width: "600px" }}
+          style={{ width: "850px" }}
           header="Select Products"
         >
 
@@ -700,9 +709,68 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
               new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.salePrice)
             } />
             <Column field="brandName" header="Brand" style={{ minWidth: "200px" }} />
+            <Column
+              field="quantity"
+              header="Quantity"
+              style={{ minWidth: "120px" }}
+              body={(row: any) => {
+                const value = row.quantity;
+
+                // Determine quantity symbol and background
+                let symbol = "";
+                let bgColor = "";
+                if (value === 0) {
+                  symbol = "❌"; // Out of stock
+                  bgColor = "quantity-zero";
+                } else if (value < 5) {
+                  symbol = "⚠️"; // Low stock
+                  bgColor = "quantity-low";
+                } else {
+                  symbol = "✅"; // Sufficient stock
+                  bgColor = "quantity-high";
+                }
+
+                return (
+                  <div
+                    style={{
+                      backgroundColor: bgColor,
+                      padding: "4px",
+                      borderRadius: "4px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px"
+                    }}
+                  >
+                    <span>{symbol}</span>
+                    <span>{value}</span> {/* quantity number */}
+                  </div>
+                );
+              }}
+            />
+
+            <Column
+              field="inventoryPurchasePrice"
+              header="Inv Price"
+              style={{ minWidth: "120px" }}
+              body={(row: any) => {
+                const value = row.inventoryPurchasePrice;
+                let bgColor = "";
+                if (value === 0) bgColor = "quantity-zero";
+                else if (value < 5) bgColor = "quantity-low";
+                else bgColor = "quantity-high";
+
+                return (
+                  <div style={{ backgroundColor: bgColor, padding: "4px", borderRadius: "4px" }}>
+                    {new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(value)}
+                  </div>
+                );
+              }}
+            />
+
           </DataTable>
 
           <div className="mt-3 flex justify-end gap-2">
+            <Button label="Cancel" outlined onClick={() => setProductSidebarVisible(false)} icon="pi pi-times-circle" style={{ color: 'red' }} className="p-button-sm custom-xs" />
             <Button
               label="Add Selected"
               icon="pi pi-check"
@@ -714,7 +782,11 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
                   return {
                     productId: p.productId,
                     productName: p.productName,
-                    saleunitPrice: p.salePrice,
+                    salePrice: p.salePrice,
+                    unitPrice: 0,
+                    quantity: 0,
+                    amount: 0,
+                    totalAmount: 0,
                     _tempKey: rowKey,
                     _edited: true,
                   } as unknown as T;
@@ -734,7 +806,6 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
                 setProductSidebarVisible(false);
               }}
             />
-            <Button label="Cancel" outlined onClick={() => setProductSidebarVisible(false)} icon="pi pi-times-circle" style={{ color: 'red' }} className="p-button-sm custom-xs" />
           </div>
         </Sidebar>
       </div>

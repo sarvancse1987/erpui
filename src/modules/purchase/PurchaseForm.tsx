@@ -56,7 +56,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
       const suppliersRes = await apiService.get("/Supplier/getallsupplier");
       setSuppliers(suppliersRes.suppliers ?? []);
 
-      const productsRes = await apiService.get("/Product/productdetails");
+      const productsRes = await apiService.get("/Product/productdetails?isInventoryRequired=true");
       setProducts(productsRes?.data ?? []);
 
       const purchaseTypesRes = await apiService.get("/PurchaseType") as PurchaseTypeModel[];
@@ -199,6 +199,13 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     if (!formData.invoiceDate) errors.invoiceDate = "Invoice Date is required";
     if (!formData.purchaseDate) errors.purchaseDate = "Purchase Date is required";
     if (!formData.purchaseTypeId) errors.purchaseTypeId = "Purchase Type is required";
+
+    const cashPurchaseTypeId = 1;
+    if (formData.purchaseTypeId === cashPurchaseTypeId) {
+      if ((formData.invoiceAmount ?? 0) !== (formData.paidAmount ?? 0)) {
+        errors.paidAmount = "For Cash Purchase, Paid Amount must equal Invoice Amount.";
+      }
+    }
 
     const itemErrs = validateChildItems(formData.purchaseItems);
     setValidationErrors(errors);
@@ -355,6 +362,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             onChange={(e) => handleChange("paidAmount", e.value)}
             className="w-full mt-1 text-sm"
           />
+          {validationErrors?.paidAmount && <span className="mandatory-error text-xs">{validationErrors.paidAmount}</span>}
         </div>
 
         {/* Purchase Type */}
@@ -384,6 +392,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             showButtonBar
             className="w-full h-8 text-sm p-1"
           />
+          {validationErrors?.invoiceDate && <span className="mandatory-error text-xs">{validationErrors.invoiceDate}</span>}
         </div>
 
         {/* Purchase Date */}
@@ -398,6 +407,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             showButtonBar
             className="w-full h-8 text-sm p-1"
           />
+          {validationErrors?.purchaseDate && <span className="mandatory-error text-xs">{validationErrors.purchaseDate}</span>}
         </div>
       </div>
 

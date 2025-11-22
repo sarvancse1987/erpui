@@ -2,29 +2,29 @@ import { SaleItemModel } from "./SaleItemModel";
 
 export interface SaleModel {
     saleId: number;
-    salesNumber: string;
     saleRefNo: string;
     // Foreign Keys
     customerId: number;
     customerName?: string;
     saleTypeId: number;
-    saleType?: string;
-    paymentTypeId: number;
+    saleTypeName?: string;
+    paymentTypeId?: number;
     paymentTypeName?: string;
-    saleStatusId: number;
+    saleStatusId?: number;
+    saleStatusName?: number;
     isGst: boolean;
 
     // Properties
     saleDate: Date;
-
     totalAmount: number;
-    totalGST?: number;
-    grandTotal: number;
     paidAmount: number;
+    brokerageAmount?: number;
     balanceAmount?: number;
-    runningBalance?: number;
+    totalGST?: number;
     freightAmount?: number;
     roundOff?: number;
+    grandTotal: number;
+    runningBalance?: number;
 
     noOfDays?: number;
     dueDate?: Date;

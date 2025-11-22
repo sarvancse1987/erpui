@@ -74,17 +74,16 @@ export default function PurchaseList() {
   const columns: ColumnMeta<SaleModel>[] = [
     { field: "customerId", header: "ID", width: "80px", editable: false, hidden: true },
     { field: "customerName", header: "Customer Name", width: "220px", frozen: true },
-    { field: "salesNumber", header: "Sales No", width: "130px", hidden: true },
     { field: "saleRefNo", header: "Sale Ref No", width: "160px" },
     { field: "saleDate", header: "Sale Date", width: "100px" },
     {
-      field: "saleType",
+      field: "saleTypeName",
       header: "Sale Type",
       width: "110px",
       body: (row: SaleModel) => {
         let severity: "success" | "warning" | "info" | "danger" = "info";
 
-        switch (row.saleType) {
+        switch (row.saleTypeName) {
           case "Cash":
             severity = "success"; // green
             break;
@@ -100,7 +99,7 @@ export default function PurchaseList() {
 
         return (
           <Tag
-            value={row.saleType}
+            value={row.saleTypeName}
             severity={severity}
             className="purchase-type-tag"
           />
@@ -237,7 +236,7 @@ export default function PurchaseList() {
       body: (row: SaleModel) => {
         let severity: "success" | "warning" | "info" | "danger" = "info";
 
-        switch (row.saleType) {
+        switch (row.saleTypeName) {
           case "Cash":
             severity = "success"; // green
             break;
@@ -253,7 +252,7 @@ export default function PurchaseList() {
 
         return (
           <Tag
-            value={row.saleType}
+            value={row.saleTypeName}
             severity={severity}
             className="purchase-type-tag"
           />
@@ -377,7 +376,7 @@ export default function PurchaseList() {
       width: "170px",
       body: (row: SaleItemModel) => row.quantity.toFixed(2)
     },
-    { field: "gstPercent", header: "GST %", editable: true, type: "decimal", required: true, width: "110px" },
+    // { field: "gstPercent", header: "GST %", editable: true, type: "decimal", required: true, width: "110px" },
     {
       field: "amount",
       header: "Amount",
@@ -399,48 +398,6 @@ export default function PurchaseList() {
         </div>
       ),
     },
-    {
-      field: "gstAmount",
-      header: "GST Amount",
-      editable: false,
-      width: "170px",
-      body: (row: SaleItemModel) => (
-        <div
-          className="flex items-center justify-center py-2 px-2 text-sm font-semibold"
-          style={{
-            background: "#f1c40f",
-            color: "black",
-            borderRadius: "0px",
-            minWidth: "90px",
-            textAlign: "center",
-            height: "100%",
-          }}
-        >
-          ₹{(row.gstAmount ?? 0).toFixed(2)}
-        </div>
-      ),
-    },
-    {
-      field: "totalAmount",
-      header: "Grand Total",
-      editable: false,
-      width: "170px",
-      body: (row: SaleItemModel) => (
-        <div
-          className="flex items-center justify-center py-2 px-2 text-sm font-semibold"
-          style={{
-            background: "#3498db",
-            color: "white",
-            borderRadius: "0px",
-            minWidth: "90px",
-            textAlign: "center",
-            height: "100%",
-          }}
-        >
-          ₹{(row.totalAmount ?? 0).toFixed(2)}
-        </div>
-      ),
-    },
   ];
 
   const closeEditSidebar = () => {
@@ -459,7 +416,7 @@ export default function PurchaseList() {
           width: "100%",
         }}
       >
-        <p>Loading purchases...</p>
+        <p>Loading sales...</p>
       </div>
     );
 
@@ -471,7 +428,7 @@ export default function PurchaseList() {
         <TabPanel header={
           <div className="flex items-center gap-2 text-blue-600 font-semibold">
             <i className="pi pi-wallet" />
-            <span>Purchases</span>
+            <span>Sales</span>
           </div>
         }>
 
