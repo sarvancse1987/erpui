@@ -8,6 +8,7 @@ export interface SaleItemModel {
   // Properties
   productName?: string;
 
+  salePrice: number;
   unitPrice: number;
   quantity: number;
   gstPercent: number;

@@ -2,12 +2,17 @@ import { SaleItemModel } from "./SaleItemModel";
 
 export interface SaleModel {
     saleId: number;
-
+    salesNumber: string;
+    saleRefNo: string;
     // Foreign Keys
     customerId: number;
+    customerName?: string;
     saleTypeId: number;
+    saleType?: string;
     paymentTypeId: number;
+    paymentTypeName?: string;
     saleStatusId: number;
+    isGst: boolean;
 
     // Properties
     saleDate: Date;
@@ -17,6 +22,7 @@ export interface SaleModel {
     grandTotal: number;
     paidAmount: number;
     balanceAmount?: number;
+    runningBalance?: number;
     freightAmount?: number;
     roundOff?: number;
 

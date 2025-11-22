@@ -12,6 +12,7 @@ interface CustomerFormProps {
     onSave: (customer: CustomerModel) => void;
     onCancel?: () => void;
     isEditSidebar?: boolean;
+    isAddNewCustomer?: boolean;
 }
 
 export const CustomerForm: React.FC<CustomerFormProps> = ({
@@ -21,6 +22,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
     onSave,
     onCancel,
     isEditSidebar = false,
+    isAddNewCustomer = false
 }) => {
     const [formData, setFormData] = useState<CustomerModel>({ ...customer });
     const [localValidationErrors, setLocalValidationErrors] = useState<Record<string, string>>({});
@@ -94,9 +96,13 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
     const getErrorKey = (field: string) => `customer-${index}-${field}`;
     const getErrorMessage = (field: string) => {
         const key = getErrorKey(field);
-        return isEditSidebar ? localValidationErrors[key] : validationErrors[key];
-    };
 
+        if (isEditSidebar || isAddNewCustomer) {
+            return localValidationErrors[key];
+        }
+
+        return validationErrors[key];
+    };
     const onClearError = (fieldKey: string) => {
         setLocalValidationErrors((prev) => {
             const copy = { ...prev };
@@ -121,13 +127,13 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
         const key = getErrorKey(field);
         if (isEditSidebar && localValidationErrors[key]) onClearError(key);
 
-        if (!isEditSidebar) onSave(updated);
+        if (!isEditSidebar && !isAddNewCustomer) onSave(updated);
     };
 
     const validateForm = (): boolean => {
         const errors: Record<string, string> = {};
 
-        if (!formData.customerName?.trim())
+        if (!formData.customerName?.trim() || formData.customerName?.trim().length == 0)
             errors[getErrorKey("customerName")] = "Customer Name is required";
 
         if (formData.email?.trim()) {
@@ -144,6 +150,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!validateForm()) return;
+
         onSave(formData);
     };
 
@@ -274,7 +281,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                 </div>
 
                 <div className="flex justify-end gap-2 mt-4">
-                    {onCancel && (
+                    {onCancel && !isAddNewCustomer && (
                         <Button type="button" label="Cancel" icon="pi pi-times-circle" style={{ color: 'red' }}
                             outlined onClick={onCancel} className="p-button-sm custom-xs" />
                     )}
@@ -282,6 +289,17 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                         <Button type="submit" label="Save" icon="pi pi-save" severity="success" className="p-button-sm custom-xs" />
                     )}
                 </div>
+
+                {
+                    isAddNewCustomer && (
+                        <div className="flex justify-end gap-2 mt-4">
+                            <Button type="button" label="Cancel" icon="pi pi-times-circle" style={{ color: 'red' }}
+                                outlined onClick={onCancel} className="p-button-sm custom-xs" />
+
+                            <Button type="submit" label="Save" icon="pi pi-save" severity="success" className="p-button-sm custom-xs" />
+                        </div>
+                    )
+                }
             </fieldset>
         </form>
     );

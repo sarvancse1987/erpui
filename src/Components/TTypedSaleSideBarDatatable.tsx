@@ -16,9 +16,11 @@ import { ProductModel, ProductSearchModel } from "../models/product/ProductModel
 import { Paginator } from "primereact/paginator";
 import { IconField } from "primereact/iconfield";
 import { InputIcon } from "primereact/inputicon";
-import { SupplierModel } from "../models/supplier/SupplierModel";
+import { CategoryModel } from "../models/product/CategoryModel";
+import apiService from "../services/apiService";
+import { MultiSelect } from "primereact/multiselect";
 
-export function TTypedSideBarDatatable<T extends Record<string, any>>({
+export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
   columns,
   data,
   primaryKey,
@@ -29,10 +31,9 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
   onDelete,
   itemsSaveTrigger,
   products = [] as ProductModel[],
-  suppliers = [] as SupplierModel[],
   onChange,
   onAdjustmentsChange,
-}: TTypedDatatableProps<T> & { products?: ProductModel[] } & { suppliers?: SupplierModel[] }) {
+}: TTypedDatatableProps<T> & { products?: ProductModel[] }) {
   const [tableData, setTableData] = useState<T[]>([]);
   const [editingRows, setEditingRows] = useState<{ [key: string]: boolean }>({});
   const [errors, setErrors] = useState<{ [rowId: string]: { [field: string]: string } }>({});
@@ -50,9 +51,14 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
   const [sidebarSearchText, setSidebarSearchText] = useState("");
   const [first, setFirst] = useState(0);
   const [rows, setRows] = useState(10);
-  const [selectedSupplier, setSelectedSupplier] = useState<number | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<number[] | null>(null);
   const [errorDropdown, setErrorDropdown] = useState(false);
   const [errorTextbox, setErrorTextbox] = useState(false);
+  const [activeCategories, setActiveCategories] = useState<CategoryModel[]>([]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     setTableData(data.map((d) => ({ ...d })));
@@ -68,6 +74,18 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
     if (!itemsSaveTrigger) return;
     saveAll();
   }, [itemsSaveTrigger]);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await apiService.get("/ProductCategory/hierarchy?includeCategories=true");
+      const categoriesArray: CategoryModel[] = response.categories ?? [];
+
+      setActiveCategories(categoriesArray.filter(c => c.isActive));
+    } catch (error) {
+      console.error("Failed to fetch categories", error);
+      setActiveCategories([]);
+    }
+  };
 
   const addRow = () => {
     if (Object.keys(editingRows).length > 0) return;
@@ -382,7 +400,6 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
     roundOffSub: 0,
   });
 
-
   return (
     <div className="card p-3 h-[calc(100vh-100px)] overflow-auto">
       <div className="flex justify-between items-center mb-1">
@@ -633,22 +650,25 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
             setSidebarSearchText("");
           }}
           position="right"
-          style={{ width: "500px" }}
+          style={{ width: "600px" }}
           header="Select Products"
         >
 
           <div className="mb-3">
-            <Dropdown
-              value={selectedSupplier}
+            <MultiSelect
+              value={selectedCategory}
               options={[
-                { label: "All Suppliers", value: null },
-                ...suppliers.map((s: any) => ({ label: s.supplierName, value: s.supplierId }))
+                ...activeCategories.map((s: any) => ({
+                  label: s.categoryName,
+                  value: s.categoryId
+                }))
               ]}
-              onChange={(e) => { setSelectedSupplier(e.value); }}
-              placeholder="Select Supplier (Optional)"
+              onChange={(e) => setSelectedCategory(e.value)}
+              placeholder="Select Categories"
               className="w-full"
-              showClear
+              display="chip"
               filter
+              showClear
             />
           </div>
 
@@ -660,31 +680,26 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
           />
 
           <DataTable
-            value={products.filter((p) => {
-              const nameMatch =
-                sidebarSearchText.trim() === "" ||
-                p.productName?.toLowerCase().includes(sidebarSearchText.toLowerCase());
-
-              const supplierMatch =
-                selectedSupplier === null ||
-                selectedSupplier === undefined ||
-                Number(p.supplierId) === Number(selectedSupplier);
-
-              return nameMatch || supplierMatch;
-            })}
+            value={products.filter(p =>
+              p.productName.toLowerCase().includes(sidebarSearchText.toLowerCase()) &&
+              (selectedCategory === null ||
+                selectedCategory.length === 0 ||
+                selectedCategory.includes(p.productCategoryId))
+            )}
             selection={sidebarSelectedProducts}
             onSelectionChange={(e) => setSidebarSelectedProducts(e.value)}
             dataKey="productId"
             selectionMode="multiple"
             scrollable
             scrollHeight="300px"
-            size="small"
+            size="normal"
           >
             <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
-            <Column field="productName" header="Item Name" style={{ minWidth: "200px" }} />
-            <Column field="purchasePrice" header="Rate" style={{ minWidth: "120px" }} body={(row: any) =>
-              new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.purchasePrice)
+            <Column field="productName" header="Name" style={{ minWidth: "200px" }} />
+            <Column field="salePrice" header="Rate" style={{ minWidth: "120px" }} body={(row: any) =>
+              new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.salePrice)
             } />
+            <Column field="brandName" header="Brand" style={{ minWidth: "200px" }} />
           </DataTable>
 
           <div className="mt-3 flex justify-end gap-2">
@@ -699,6 +714,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                   return {
                     productId: p.productId,
                     productName: p.productName,
+                    saleunitPrice: p.salePrice,
                     _tempKey: rowKey,
                     _edited: true,
                   } as unknown as T;

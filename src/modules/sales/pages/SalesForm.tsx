@@ -9,6 +9,12 @@ import { useToast } from "../../../components/ToastService";
 import apiService from "../../../services/apiService";
 import { ColumnMeta } from "../../../models/component/ColumnMeta";
 import { SaleItemModel } from "../../../models/sale/SaleItemModel";
+import { TTypedSideBarDatatable } from "../../../components/TTypedSideBarDatatable";
+import { CustomerSelector } from "../../customer/CustomerSelector";
+import { Checkbox } from "primereact/checkbox";
+import { CustomerForm } from "../../customer/CustomerForm";
+import { Sidebar } from "primereact/sidebar";
+import { TTypedSaleSideBarDatatable } from "../../../components/TTypedSaleSideBarDatatable";
 
 interface SalesFormProps {
   isEditSidebar: boolean;
@@ -22,10 +28,12 @@ export const SalesForm: React.FC<SalesFormProps> = ({
 }) => {
   const [formData, setFormData] = useState<SaleModel>({
     saleId: 0,
+    salesNumber: "",
+    saleRefNo: "",
     customerId: 0,
-    saleTypeId:0,
-    paymentTypeId:0,
-    saleStatusId:0,
+    saleTypeId: 0,
+    paymentTypeId: 0,
+    saleStatusId: 0,
     saleDate: new Date(),
     totalAmount: 0,
     totalGST: 0,
@@ -33,17 +41,34 @@ export const SalesForm: React.FC<SalesFormProps> = ({
     paidAmount: 0,
     freightAmount: 0,
     roundOff: 0,
+    isGst: false,
     saleItems: [],
+  });
+
+  const [newcustomer, setNewCustomer] = useState<CustomerModel>({
+    customerId: 0,
+    customerName: "",
+    phone: "",
+    email: "",
+    gstNumber: "",
+    address: "",
+    city: "",
+    postalCode: "",
+    countryId: 0,
+    stateId: 0,
+    districtId: 0,
+    currentEligibility: null
   });
 
   const [customers, setCustomers] = useState<CustomerModel[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const { showSuccess, showError } = useToast();
+  const [showCustomerAdd, setShowCustomerAdd] = useState(false);
 
   // ---------------- LOAD DATA ----------------
   const loadAllData = async () => {
     try {
-      const customersRes = await apiService.get("/Customer/getAll");
+      const customersRes = await apiService.get("/Customer/details");
       setCustomers(customersRes?.customers ?? []);
 
       const productsRes = await apiService.get("/Product/productdetails");
@@ -63,7 +88,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         ...prev,
         ...sale,
         saleItems: sale.saleItems ?? [],
-        saleDate: sale.saleDate 
+        saleDate: sale.saleDate
       }));
     }
   }, [sale]);
@@ -78,6 +103,13 @@ export const SalesForm: React.FC<SalesFormProps> = ({
       width: "200px",
       frozen: true,
       body: (row) => row.productName || ""
+    },
+    {
+      field: "salePrice",
+      header: "Sale Rate",
+      type: "currency",
+      body: (row) =>
+        new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.salePrice)
     },
     {
       field: "unitPrice",
@@ -95,7 +127,6 @@ export const SalesForm: React.FC<SalesFormProps> = ({
       body: (row) =>
         new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.quantity)
     },
-    { field: "gstPercent", header: "GST %", editable: true, type: "decimal" },
     {
       field: "amount",
       header: "Amount",
@@ -165,6 +196,35 @@ export const SalesForm: React.FC<SalesFormProps> = ({
     if (onCancel) onCancel();
   };
 
+  const handleSaveCustomer = async (updated: CustomerModel) => {
+    try {
+      if (updated.districtId == 0) {
+        updated.districtId = null;
+      }
+
+      const response = await apiService.post("/Customer", updated);
+      showSuccess("Customers saved successfully!");
+      if (response) {
+        const customersRes = await apiService.get("/Customer/details");
+        setCustomers(customersRes?.customers ?? []);
+
+        if (customersRes) {
+          setFormData((prev) => ({
+            ...prev,
+            customerId: response.customerId,
+            customerName: response.customerName
+          }));
+          setShowCustomerAdd(false);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      showError("Error saving customers");
+      throw err;
+    }
+  };
+
+
   // ---------------- RENDER ----------------
   return (
     <div className={`border border-gray-200 rounded-md p-1 ${isEditSidebar ? "max-w-[800px]" : "w-full"}`}>
@@ -176,7 +236,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
 
       <div className="flex flex-wrap gap-2 mb-2 items-end">
         <div className={isEditSidebar ? "w-[45%]" : "flex-1 min-w-[140px]"}>
-          <strong>Customer *</strong>
+          <strong className="text-sm">Supplier <span className="mandatory-asterisk">*</span></strong>
           <CustomerSelector
             customers={customers}
             selectedCustomerId={formData.customerId}
@@ -184,19 +244,12 @@ export const SalesForm: React.FC<SalesFormProps> = ({
           />
         </div>
 
-        <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[100px]"}>
-          <strong>Total Amount</strong>
-          <InputNumber
-            value={formData.totalAmount}
-            mode="currency"
-            currency="INR"
-            locale="en-IN"
-            onChange={e => handleChange("totalAmount", e.value)}
-          />
+        <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[70px]"}>
+          <Button label="Add" icon="pi pi-plus" onClick={c => { setShowCustomerAdd(true); }} className="p-button-sm custom-md mt-4" />
         </div>
 
-        <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[100px]"}>
-          <strong>Paid Amount</strong>
+        <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[140px]"}>
+          <strong className="text-sm">Paid Amount <span className="mandatory-asterisk">*</span></strong>
           <InputNumber
             value={formData.paidAmount}
             mode="currency"
@@ -207,7 +260,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         </div>
 
         <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[120px]"}>
-          <strong>Sale Date</strong>
+          <strong className="text-sm">Sale Date <span className="mandatory-asterisk">*</span></strong>
           <Calendar
             value={formData.saleDate ? new Date(formData.saleDate) : null}
             onChange={e => handleChange("saleDate", e.value ?? null)}
@@ -215,10 +268,18 @@ export const SalesForm: React.FC<SalesFormProps> = ({
             showIcon
           />
         </div>
+
+        <div className="flex items-center gap-2 mt-5">
+          <strong className="mb-2">GST Include</strong>
+          <Checkbox
+            checked={formData.isGst}
+            onChange={(e) => handleChange("isGst", e.checked)}
+          />
+        </div>
       </div>
 
       <div className={`${isEditSidebar ? "max-w-[800px]" : "w-full"}`}>
-        <TTypedSideBarDatatable<SaleItemModel>
+        <TTypedSaleSideBarDatatable<SaleItemModel>
           columns={saleColumns}
           data={formData.saleItems}
           primaryKey="saleItemId"
@@ -229,6 +290,19 @@ export const SalesForm: React.FC<SalesFormProps> = ({
           isNew={isEditSidebar}
         />
       </div>
+
+      <Sidebar visible={showCustomerAdd}
+        position="right"
+        onHide={() => setShowCustomerAdd(false)}
+        header="Add New Customer"
+        style={{ width: '60rem' }}>
+        <CustomerForm
+          customer={newcustomer}
+          onSave={handleSaveCustomer}
+          isAddNewCustomer={true}
+          onCancel={() => setShowCustomerAdd(false)}
+        />
+      </Sidebar>
 
       {isEditSidebar && (
         <div className="flex justify-end gap-2 mt-4">
