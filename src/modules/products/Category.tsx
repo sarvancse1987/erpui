@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { TabView, TabPanel } from "primereact/tabview";
-import { ColumnMeta } from "../../../models/component/ColumnMeta";
-import { TTypedDatatable } from "../../../components/TTypedDatatable";
-import apiService from "../../../services/apiService";
-import { CategoryModel } from "../../../models/product/CategoryModel";
-import { useToast } from "../../../components/ToastService";
-import { TTypeDatatable } from "../../../components/TTypeDatatable";
+import { ColumnMeta } from "../../models/component/ColumnMeta";
+import { TTypedDatatable } from "../../components/TTypedDatatable";
+import apiService from "../../services/apiService";
+import { CategoryModel } from "../../models/product/CategoryModel";
+import { useToast } from "../../components/ToastService";
+import { TTypeDatatable } from "../../components/TTypeDatatable";
 
 export default function Category() {
     const [categories, setCategories] = useState<CategoryModel[]>([]);

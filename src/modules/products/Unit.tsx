@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { TabView, TabPanel } from "primereact/tabview";
-import { ColumnMeta } from "../../../models/component/ColumnMeta";
-import { TTypedDatatable } from "../../../components/TTypedDatatable";
-import apiService from "../../../services/apiService";
-import { UnitModel } from "../../../models/product/UnitModel";
+import { UnitModel } from "../../models/product/UnitModel";
+import { ColumnMeta } from "../../models/component/ColumnMeta";
+import apiService from "../../services/apiService";
+import { TTypedDatatable } from "../../components/TTypedDatatable";
 
 export default function Unit() {
     const [units, setUnits] = useState<UnitModel[]>([]);

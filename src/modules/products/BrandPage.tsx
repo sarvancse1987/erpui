@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { TabView, TabPanel } from "primereact/tabview";
-import { TTypedDatatable } from "../../../components/TTypedDatatable";
-import { ColumnMeta } from "../../../models/component/ColumnMeta";
-import { CategoryModel } from "../../../models/product/CategoryModel";
-import { GroupModel } from "../../../models/product/GroupModel";
-import { BrandModel } from "../../../models/product/BrandModel";
-import apiService from "../../../services/apiService";
-import { useToast } from "../../../components/ToastService";
+import { TTypedDatatable } from "../../components/TTypedDatatable";
+import { ColumnMeta } from "../../models/component/ColumnMeta";
+import { CategoryModel } from "../../models/product/CategoryModel";
+import { GroupModel } from "../../models/product/GroupModel";
+import { BrandModel } from "../../models/product/BrandModel";
+import apiService from "../../services/apiService";
+import { useToast } from "../../components/ToastService";
 
 export default function BrandPage() {
     const [categories, setCategories] = useState<CategoryModel[]>([]);

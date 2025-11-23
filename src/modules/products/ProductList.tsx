@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from "react";
-import apiService from "../../../services/apiService";
-import { ProductModel } from "../../../models/product/ProductModel";
-import { CategoryModel } from "../../../models/product/CategoryModel";
-import { GroupModel } from "../../../models/product/GroupModel";
-import { BrandModel } from "../../../models/product/BrandModel";
+import apiService from "../../services/apiService";
+import { ProductModel } from "../../models/product/ProductModel";
+import { CategoryModel } from "../../models/product/CategoryModel";
+import { GroupModel } from "../../models/product/GroupModel";
+import { BrandModel } from "../../models/product/BrandModel";
 import { Button } from "primereact/button";
 import { TabView, TabPanel } from "primereact/tabview";
-import { OptionModel } from "../../../models/product/OptionModel";
-import { TTypeDatatable } from "../../../components/TTypeDatatable";
-import { ColumnMeta } from "../../../models/component/ColumnMeta";
+import { OptionModel } from "../../models/product/OptionModel";
+import { TTypeDatatable } from "../../components/TTypeDatatable";
+import { ColumnMeta } from "../../models/component/ColumnMeta";
 import { ProductForm } from "./ProductForm";
 import { Sidebar } from "primereact/sidebar";
-import { useToast } from "../../../components/ToastService";
+import { useToast } from "../../components/ToastService";
 import { Dropdown } from "primereact/dropdown";
-import { TTypedDatatable } from "../../../components/TTypedDatatable";
-import { SupplierModel } from "../../../models/supplier/SupplierModel";
+import { TTypedDatatable } from "../../components/TTypedDatatable";
+import { SupplierModel } from "../../models/supplier/SupplierModel";
 
 export default function ProductList() {
   const [allGroups, setAllGroups] = useState<GroupModel[]>([]);

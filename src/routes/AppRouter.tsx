@@ -3,20 +3,22 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "../layout/layout";
 import { ProtectedRoute } from "./ProtectedRoute";
 import MinimalLayout from "../layout/MinimalLayout";
-import Category from "../modules/products/pages/Category";
-import Group from "../modules/products/pages/Group";
-import Brand from "../modules/products/pages/BrandPage";
-import Unit from "../modules/products/pages/Unit";
+import Category from "../modules/products/Category";
+import Group from "../modules/products/Group";
+import Brand from "../modules/products/BrandPage";
+import Unit from "../modules/products/Unit";
 import SupplierList from "../modules/supplier/SupplierList";
 import PurchaseList from "../modules/purchase/PurchaseList";
 import CustomerList from "../modules/customer/CustomerList";
+import Role from "../modules/user/Role";
+import UserType from "../modules/user/UserType";
 
 const Dashboard = React.lazy(() => import("../modules/dashboard/Dashboard"));
-const ProductList = React.lazy(() => import("../modules/products/pages/ProductList"));
-const SalesList = React.lazy(() => import("../modules/sales/pages/SalesList"));
-const InventoryList = React.lazy(() => import("../modules/inventory/pages/InventoryList"));
-const InventoryAdjust = React.lazy(() => import("../modules/inventory/pages/InventoryAdjust"));
-const UserList = React.lazy(() => import("../modules/settings/pages/UserList"));
+const ProductList = React.lazy(() => import("../modules/products/ProductList"));
+const SalesList = React.lazy(() => import("../modules/sales/SalesList"));
+const InventoryList = React.lazy(() => import("../modules/inventory/InventoryList"));
+const InventoryAdjust = React.lazy(() => import("../modules/inventory/InventoryAdjust"));
+const UserList = React.lazy(() => import("../modules/user/UserList"));
 const RoleList = React.lazy(() => import("../modules/settings/pages/RoleList"));
 const Login = React.lazy(() => import("../modules/auth/Login"));
 
@@ -50,12 +52,19 @@ export default function AppRouter() {
                     <Route path="unit" element={<Unit />} />
                 </Route>
 
+                {/* User Module */}
+                <Route path="users">
+                    <Route index element={<UserList />} />
+                    <Route path="roles" element={<Role />} />
+                    <Route path="usertypes" element={<UserType />} />
+                </Route>
+
                 {/* Supplier Module */}
                 <Route path="suppliers">
                     <Route index element={<SupplierList />} />
                 </Route>
 
-                 {/* Supplier Module */}
+                {/* Supplier Module */}
                 <Route path="customers">
                     <Route index element={<CustomerList />} />
                 </Route>

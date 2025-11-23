@@ -4,8 +4,8 @@ import { InputText } from "primereact/inputtext";
 import { InputNumber } from "primereact/inputnumber";
 import { Checkbox } from "primereact/checkbox";
 import { Button } from "primereact/button";
-import { ProductModel } from "../../../models/product/ProductModel";
-import { OptionModel } from "../../../models/product/OptionModel";
+import { ProductModel } from "../../models/product/ProductModel";
+import { OptionModel } from "../../models/product/OptionModel";
 
 interface ProductFormProps {
   product: ProductModel;

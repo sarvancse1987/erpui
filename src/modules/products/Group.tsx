@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { TabView, TabPanel } from "primereact/tabview";
-import { TTypedDatatable } from "../../../components/TTypedDatatable";
-import { ColumnMeta } from "../../../models/component/ColumnMeta";
-import { GroupModel } from "../../../models/product/GroupModel";
-import { CategoryModel } from "../../../models/product/CategoryModel";
-import apiService from "../../../services/apiService";
-import { useToast } from "../../../components/ToastService";
-import { TTypeDatatable } from "../../../components/TTypeDatatable";
+import { TTypedDatatable } from "../../components/TTypedDatatable";
+import { ColumnMeta } from "../../models/component/ColumnMeta";
+import { GroupModel } from "../../models/product/GroupModel";
+import { CategoryModel } from "../../models/product/CategoryModel";
+import apiService from "../../services/apiService";
+import { useToast } from "../../components/ToastService";
+import { TTypeDatatable } from "../../components/TTypeDatatable";
 
 
 export default function GroupPage() {

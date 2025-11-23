@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { TabView, TabPanel } from "primereact/tabview";
 import { Sidebar } from "primereact/sidebar";
-import { SaleModel } from "../../../models/sale/SaleModel";
-import { useToast } from "../../../components/ToastService";
-import apiService from "../../../services/apiService";
-import { ColumnMeta } from "../../../models/component/ColumnMeta";
+import { SaleModel } from "../../models/sale/SaleModel";
+import { useToast } from "../../components/ToastService";
+import apiService from "../../services/apiService";
+import { ColumnMeta } from "../../models/component/ColumnMeta";
 import { Tag } from "primereact/tag";
-import { SaleItemModel } from "../../../models/sale/SaleItemModel";
+import { SaleItemModel } from "../../models/sale/SaleItemModel";
 import { RadioButton } from "primereact/radiobutton";
-import { TTypeDatatable } from "../../../components/TTypeDatatable";
-import { ParentChildTable } from "../../../components/ParentChildTable";
+import { TTypeDatatable } from "../../components/TTypeDatatable";
+import { ParentChildTable } from "../../components/ParentChildTable";
 import { SalesForm } from "./SalesForm";
 
 export default function SaleList() {
