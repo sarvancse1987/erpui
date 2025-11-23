@@ -95,6 +95,7 @@ export default function Unit() {
                         isNew={true}
                         isSave={true}
                         isDelete={true}
+                        sortableColumns={['name']}
                     />
                 </TabPanel>
 
@@ -111,6 +112,7 @@ export default function Unit() {
                         isNew={true}
                         isSave={true}
                         isDelete={true}
+                        sortableColumns={['name']}
                     />
                 </TabPanel>
             </TabView>

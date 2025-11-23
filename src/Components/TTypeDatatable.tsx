@@ -28,14 +28,27 @@ export function TTypeDatatable<T extends Record<string, any>>({
   isDelete,
   onEdit,
   onDelete,
+  sortableColumns = [],
 }: TTypeDatatableProps<T>) {
   const [tableData, setTableData] = useState<T[]>(data);
   const [editingRows, setEditingRows] = useState<{ [key: string]: boolean }>({});
   const [errors, setErrors] = useState<{ [rowId: string]: { [field: string]: string } }>({});
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [filters, setFilters] = useState<any>({});
-  const [editingRowData, setEditingRowData] = useState<T | null>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkIfMobile();
+    window.addEventListener("resize", checkIfMobile);
+
+    return () => window.removeEventListener("resize", checkIfMobile);
+  }, []);
+
 
   useEffect(() => {
     const f: any = { global: { value: null, matchMode: FilterMatchMode.CONTAINS } };
@@ -351,7 +364,6 @@ export function TTypeDatatable<T extends Record<string, any>>({
     });
   };
 
-
   return (
     <div className="card p-3 h-[calc(100vh-100px)]">
       {/* Removed overflow-auto 🟢 */}
@@ -408,11 +420,26 @@ export function TTypeDatatable<T extends Record<string, any>>({
         editingRows={editingRows}
         onRowEditChange={(e) => setEditingRows(e.data)}
         rowEditValidator={rowEditorValidator}
-        size="small"
-        scrollable
         scrollHeight="600px"
         frozenWidth="250px"
+        size="small"
+        scrollable
+        style={{ width: "100%" }}
+        rowClassName={(rowData, rowIndex: any) =>
+          rowIndex % 2 === 0 ? "bg-gray-50" : "bg-white"
+        }
+        filters={filters}
+        globalFilterFields={columns.map((c) => c.field as string)}
+        paginator
+        rows={10}
+        rowsPerPageOptions={[5, 10, 25, 50]}
         onRowEditCancel={(e: DataTableRowEditEvent) => discardRow(e.data)}
+        paginatorTemplate={
+          isMobile
+            ? "PrevPageLink NextPageLink CurrentPageReport"
+            : "FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+        }
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
       >
         <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} frozen />
 
@@ -441,10 +468,11 @@ export function TTypeDatatable<T extends Record<string, any>>({
                 minWidth: col.width || "120px",
               }}
               frozen={col.frozen}
+              sortable={sortableColumns?.includes(col.field)}
             />
           ))}
 
-        <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} frozen={true} alignFrozen="right"/>
+        <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} frozen={true} alignFrozen="right" />
       </DataTable>
     </div>
   );

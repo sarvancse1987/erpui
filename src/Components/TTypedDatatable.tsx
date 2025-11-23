@@ -27,7 +27,8 @@ export function TTypedDatatable<T extends Record<string, any>>({
   isDelete,
   onEdit,
   onDelete,
-  onSave
+  onSave,
+  sortableColumns = [],
 }: TTypeDatatableProps<T>) {
   const [tableData, setTableData] = useState<T[]>(data);
   const [editingRows, setEditingRows] = useState<{ [key: string]: boolean }>({});
@@ -37,6 +38,18 @@ export function TTypedDatatable<T extends Record<string, any>>({
   const [editDialogVisible, setEditDialogVisible] = useState(false);
   const [editingRowData, setEditingRowData] = useState<T | null>(null);
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkIfMobile();
+    window.addEventListener("resize", checkIfMobile);
+
+    return () => window.removeEventListener("resize", checkIfMobile);
+  }, []);
 
   useEffect(() => {
     const f: any = { global: { value: null, matchMode: FilterMatchMode.CONTAINS } };
@@ -449,6 +462,12 @@ export function TTypedDatatable<T extends Record<string, any>>({
         rows={10} // rows per page
         rowsPerPageOptions={[5, 10, 25, 50]}
         onRowEditCancel={(e: DataTableRowEditEvent) => discardRow(e.data)}
+        paginatorTemplate={
+          isMobile
+            ? "PrevPageLink NextPageLink CurrentPageReport"
+            : "FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+        }
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
       >
         <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
         <Column
@@ -472,11 +491,12 @@ export function TTypedDatatable<T extends Record<string, any>>({
               minWidth: col.width || "120px",
             }}
             frozen={col.frozen}
+            sortable={sortableColumns?.includes(col.field)}
           />
         ))}
 
         {/* <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} frozen={true} /> */}
-        <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} frozen={true} alignFrozen="right"/>
+        <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} frozen={true} alignFrozen="right" />
       </DataTable>
     </div >
   );

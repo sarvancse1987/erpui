@@ -132,6 +132,7 @@ export default function GroupPage() {
                     isNew={true}
                     isSave={true}
                     isDelete={true}
+                    sortableColumns={['groupName']}
                 />
             </div>
         );

@@ -20,12 +20,14 @@ export interface TTypedDatatableProps<T extends Record<string, any>> {
         freightAmount?: number;
         roundOff: number;
     }) => void;
+    sortableColumns?: (keyof T)[];
 }
 
 export interface TTypeDatatableProps<T extends Record<string, any>> {
     columns: ColumnMeta<T>[];
     data: T[];
     primaryKey: keyof T;
+    sortableColumns?: (keyof T)[];
     onSave?: (updatedData: T[]) => void;
     onDelete?: (updatedData: T[]) => void;
     onEdit?: (updatedData: T) => void;

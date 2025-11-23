@@ -100,6 +100,7 @@ export default function Category() {
                         isNew={true}
                         isSave={true}
                         isDelete={true}
+                        sortableColumns={['categoryName']}
                     />
                 </TabPanel>
 

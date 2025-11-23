@@ -375,6 +375,7 @@ export default function ProductList() {
                   isNew={false}
                   isSave={false}
                   isDelete={true}
+                  sortableColumns={['productName']}
                 />
               </div>
             )}

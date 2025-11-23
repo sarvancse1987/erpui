@@ -8,7 +8,7 @@ import { Button } from "primereact/button";
 import "../../asset/style/TLogin.css";
 import { useAuth } from "../../auth/AuthProvider";
 import TetrosoftLofo from "../../Images/Client/tetrosoft_logo.png";
-import appLogo from "../../Images/jobsnap_logo.png";
+import appLogo from "../../Images/erp.png";
 import { setCookie, validateForm } from "../../common/common";
 
 const LoginPage: React.FC = () => {
@@ -28,9 +28,7 @@ const LoginPage: React.FC = () => {
         loginModel
       );
       if (response && response.status) {
-        setCookie("authToken", response.token, 2);
         localStorage.setItem("authToken", response.token);
-        localStorage.setItem("token", response.token);
         setToken(response.token);
         navigate("/", { replace: true });
       } else {
@@ -72,12 +70,10 @@ const LoginPage: React.FC = () => {
           <div className="leftSideContent hidden md:flex flex-column justify-content-center align-items-center md:col-6">
             <img src={appLogo} alt="JobSnap" className="mb-4 LogoApp" />
             <h1 className="WelcomeContent">
-              Welcome to <span className="brand">JobSnap</span>
+              Welcome to <span className="brand">Erp</span>
             </h1>
             <p>
-              Sign in to your Jobsnap account to manage your job applications,
-              update your profile, and stay informed about the latest career
-              opportunities.
+              Sign in to manage your business operations, track reports, and streamline workflows.
             </p>
           </div>
 
