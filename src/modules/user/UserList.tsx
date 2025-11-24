@@ -21,7 +21,7 @@ export default function UserList() {
     const loadUsers = async () => {
         setLoading(true);
         try {
-            const res = await apiService.get("/User");
+            const res = await apiService.get(`/Users/getallusers/${Number(localStorage.getItem("companyId"))}`);
             setUsers(res.users ?? []);
         } catch (err) {
             console.error("Error loading users:", err);
@@ -50,10 +50,10 @@ export default function UserList() {
         isActive: true,
     });
 
-    const addNewUser = () => setNewUsers((prev) => [createEmptyUser(), ...prev]);
+    const addNewUser = () => setNewUsers(prev => [createEmptyUser(), ...prev]);
 
     const handleUpdateNewUser = (index: number, updated: UserModel) => {
-        setNewUsers((prev) => {
+        setNewUsers(prev => {
             const copy = [...prev];
             copy[index] = updated;
             return copy;
@@ -61,16 +61,15 @@ export default function UserList() {
     };
 
     const handleRemoveNewUser = (index: number) => {
-        setNewUsers((prev) => prev.filter((_, i) => i !== index));
+        setNewUsers(prev => prev.filter((_, i) => i !== index));
     };
 
     const handleSaveUsers = async () => {
         const errors: Record<string, string> = {};
-
         newUsers.forEach((u, idx) => {
             if (!u.username.trim()) errors[`user-${idx}-username`] = "Username required";
             if (!u.firstName.trim()) errors[`user-${idx}-firstName`] = "First name required";
-            if (!u.passwordHash.trim()) errors[`user-${idx}-passwordHash`] = "Password required";
+            if (!u.email.trim()) errors[`user-${idx}-email`] = "Email required";
             if (!u.roleId) errors[`user-${idx}-roleId`] = "Role required";
             if (!u.userTypeId) errors[`user-${idx}-userTypeId`] = "User type required";
             if (!u.companyId) errors[`user-${idx}-companyId`] = "Company required";
@@ -81,7 +80,7 @@ export default function UserList() {
         if (Object.keys(errors).length > 0) return;
 
         try {
-            await apiService.post("/User/bulk", newUsers);
+            await apiService.post("/Users/bulk", newUsers);
             await loadUsers();
             setNewUsers([]);
             showSuccess("Users saved successfully!");
@@ -122,15 +121,15 @@ export default function UserList() {
 
     const columns: ColumnMeta<UserModel>[] = [
         { field: "id", header: "ID", width: "80px", editable: false, hidden: true },
-        { field: "username", header: "Username", width: "200px" },
+        { field: "username", header: "Username", width: "200px", frozen: true },
         { field: "firstName", header: "First Name", width: "180px" },
         { field: "lastName", header: "Last Name", width: "180px" },
         { field: "email", header: "Email", width: "220px" },
         { field: "phone", header: "Phone", width: "150px" },
-        { field: "roleId", header: "Role", width: "140px" },
-        { field: "userTypeId", header: "User Type", width: "140px" },
-        { field: "companyId", header: "Company", width: "140px" },
-        { field: "locationId", header: "Location", width: "140px" },
+        { field: "roleName", header: "Role", width: "140px" },
+        { field: "userTypeName", header: "User Type", width: "140px" },
+        { field: "companyName", header: "Company", width: "140px" },
+        { field: "locationName", header: "Location", width: "140px" },
         { field: "isActive", header: "Active", width: "100px", body: row => row.isActive ? "✅" : "❌", editable: false },
     ];
 
@@ -166,8 +165,8 @@ export default function UserList() {
                     </div>
                 }>
                     <div className="flex gap-2 mb-4">
-                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewUser} className="p-button-sm custom-xs"/>
-                        <Button label="Save" icon="pi pi-save" onClick={handleSaveUsers} disabled={!newUsers.length} className="p-button-sm custom-xs"/>
+                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewUser} className="p-button-sm custom-xs" />
+                        <Button label="Save" icon="pi pi-save" onClick={handleSaveUsers} disabled={!newUsers.length} className="p-button-sm custom-xs" />
                     </div>
 
                     {newUsers.length === 0 ? (
@@ -177,8 +176,10 @@ export default function UserList() {
                             <UsersForm
                                 key={idx}
                                 user={u}
+                                onSave={(updated) => handleUpdateNewUser(idx, updated)}
                                 onCancel={() => handleRemoveNewUser(idx)}
                                 isEditSidebar={false}
+                                validationErrors={validationErrors}
                             />
                         ))
                     )}
@@ -195,8 +196,10 @@ export default function UserList() {
                 {selectedUser ? (
                     <UsersForm
                         user={selectedUser}
+                        onSave={handleUpdateUser}
                         onCancel={() => setSidebarVisible(false)}
                         isEditSidebar={true}
+                        validationErrors={validationErrors}
                     />
                 ) : (
                     <p className="p-4 text-gray-500 text-center">Select a user to edit.</p>

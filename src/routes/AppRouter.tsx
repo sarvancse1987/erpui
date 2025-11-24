@@ -12,6 +12,7 @@ import PurchaseList from "../modules/purchase/PurchaseList";
 import CustomerList from "../modules/customer/CustomerList";
 import Role from "../modules/user/Role";
 import UserType from "../modules/user/UserType";
+import LocationList from "../modules/companies/LocationList";
 
 const Dashboard = React.lazy(() => import("../modules/dashboard/Dashboard"));
 const ProductList = React.lazy(() => import("../modules/products/ProductList"));
@@ -88,6 +89,7 @@ export default function AppRouter() {
                 {/* Inventory Module */}
                 <Route path="companies">
                     <Route index element={<CompanyList />} />
+                    <Route path="locations" element={<LocationList />} />
                 </Route>
 
                 {/* Settings Module */}

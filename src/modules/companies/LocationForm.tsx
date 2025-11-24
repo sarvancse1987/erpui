@@ -2,38 +2,39 @@ import React, { useState, useEffect } from "react";
 import { InputText } from "primereact/inputtext";
 import { Checkbox } from "primereact/checkbox";
 import { Button } from "primereact/button";
-import { CompanyModel } from "../../models/companies/CompanyModel";
 import { Dropdown } from "primereact/dropdown";
-import apiService from "../../services/apiService";
 import { InputMask } from "primereact/inputmask";
+import apiService from "../../services/apiService";
+import { LocationModel } from "../../models/LocationModel";
 
-interface CompanyFormProps {
-    company: CompanyModel;
+interface LocationFormProps {
+    location: LocationModel;
     index?: number;
     validationErrors?: Record<string, string>;
-    onSave: (company: CompanyModel) => void;
+    onSave: (loc: LocationModel) => void;
     onCancel?: () => void;
     isEditSidebar?: boolean;
-    isAddNewCompany?: boolean;
+    isAddNewLocation?: boolean;
 }
 
-export const CompanyForm: React.FC<CompanyFormProps> = ({
-    company,
+export const LocationForm: React.FC<LocationFormProps> = ({
+    location,
     index = 0,
     validationErrors = {},
     onSave,
     onCancel,
     isEditSidebar = false,
-    isAddNewCompany = false
+    isAddNewLocation = false
 }) => {
 
-    const [formData, setFormData] = useState<CompanyModel>({ ...company });
+    const [formData, setFormData] = useState<LocationModel>({ ...location });
     const [localValidationErrors, setLocalValidationErrors] =
         useState<Record<string, string>>({});
 
-    const [allCountries, setAllCountries] = useState<{ label: string; value: number }[]>([]);
-    const [allStates, setAllStates] = useState<{ label: string; value: number; countryId: number }[]>([]);
-    const [allDistricts, setAllDistricts] = useState<{ label: string; value: number; stateId: number }[]>([]);
+    const [companies, setCompanies] = useState<any[]>([]);
+    const [countries, setCountries] = useState<any[]>([]);
+    const [states, setStates] = useState<any[]>([]);
+    const [districts, setDistricts] = useState<any[]>([]);
 
     const loadLocationMaster = async () => {
         try {
@@ -41,44 +42,38 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                 "/master/location?isIncludeCountries=true&isIncludeStates=true&isIncludeDistricts=true"
             );
 
-            setAllCountries((res.countries ?? []).map((c: any) => ({
-                label: c.countryName,
-                value: c.countryId
+            setCountries((res.countries ?? []).map((c: any) => ({
+                label: c.countryName, value: c.countryId
             })));
 
-            setAllStates((res.states ?? []).map((s: any) => ({
-                label: s.stateName,
-                value: s.stateId,
-                countryId: s.countryId
+            setStates((res.states ?? []).map((s: any) => ({
+                label: s.stateName, value: s.stateId, countryId: s.countryId
             })));
 
-            setAllDistricts((res.districts ?? []).map((d: any) => ({
-                label: d.districtName,
-                value: d.districtId,
-                stateId: d.stateId
+            setDistricts((res.districts ?? []).map((d: any) => ({
+                label: d.districtName, value: d.districtId, stateId: d.stateId
             })));
         } catch (err) {
-            console.error("Error loading location master", err);
+            console.error("Error loading master", err);
         }
     };
 
-    useEffect(() => {
-        loadLocationMaster();
-    }, []);
+    const loadAllCompanies = async () => {
+        const res = await apiService.get(`/company/getallcompany/${Number(localStorage.getItem("companyId"))}`);
+        setCompanies((res.companies ?? []).map((c: any) => ({
+            label: c.name, value: c.id
+        })));
+    }
 
     useEffect(() => {
-        setFormData({ ...company });
-    }, [company]);
-
-    useEffect(() => {
-        if (allCountries.length === 0 || allStates.length === 0) return;
+        if (countries.length === 0 || states.length === 0) return;
 
         setFormData(prev => {
             const updated = { ...prev };
 
             // Default Country → India
             if (!updated.countryId) {
-                const india = allCountries.find(c =>
+                const india = countries.find(c =>
                     c.label.toLowerCase() === "india"
                 );
                 if (india) updated.countryId = india.value;
@@ -86,7 +81,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
 
             // Default State → Tamil Nadu
             if (!updated.stateId && updated.countryId) {
-                const tamilnadu = allStates.find(s =>
+                const tamilnadu = states.find(s =>
                     s.label.toLowerCase() === "tamil nadu" &&
                     s.countryId === updated.countryId
                 );
@@ -95,14 +90,21 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
 
             return updated;
         });
-    }, [allCountries, allStates]);
+    }, [countries, states]);
 
-    const getErrorKey = (field: string) => `company-${index}-${field}`;
+    useEffect(() => {
+        loadLocationMaster();
+        loadAllCompanies();
+    }, []);
+
+    useEffect(() => setFormData({ ...location }), [location]);
+
+    const getErrorKey = (field: string) => `location-${index}-${field}`;
 
     const getErrorMessage = (field: string) => {
         const key = getErrorKey(field);
 
-        if (isEditSidebar || isAddNewCompany) return localValidationErrors[key];
+        if (isEditSidebar || isAddNewLocation) return localValidationErrors[key];
         return validationErrors[key];
     };
 
@@ -114,74 +116,89 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
         });
     };
 
-    const handleChange = (field: keyof CompanyModel, value: any) => {
+    const handleChange = (field: keyof LocationModel, value: any) => {
         const updated = { ...formData, [field]: value };
         setFormData(updated);
 
         const key = getErrorKey(field);
         if (isEditSidebar && localValidationErrors[key]) onClearError(key);
 
-        if (!isEditSidebar && !isAddNewCompany) onSave(updated);
+        if (!isEditSidebar && !isAddNewLocation) onSave(updated);
     };
 
-    const validateForm = (): boolean => {
-        const errors: Record<string, string> = {};
+    const validateForm = () => {
+        const err: Record<string, string> = {};
+
+        if (formData.companyId == 0)
+            err[getErrorKey("companyId")] = "Company name is required";
 
         if (!formData.name?.trim())
-            errors[getErrorKey("name")] = "Company Name is required";
+            err[getErrorKey("name")] = "Location name is required";
 
         if (!formData.phone?.trim())
-            errors[getErrorKey("phone")] = "Phone is required";
+            err[getErrorKey("phone")] = "Phone is required";
 
         if (formData.email?.trim()) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(formData.email.trim())) {
-                errors[getErrorKey("email")] = "Invalid email format";
-            }
+            if (!emailRegex.test(formData.email))
+                err[getErrorKey("email")] = "Invalid email";
         }
 
-        setLocalValidationErrors(errors);
-        return Object.keys(errors).length === 0;
+        setLocalValidationErrors(err);
+        return Object.keys(err).length === 0;
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const submit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!validateForm()) return;
         onSave(formData);
     };
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={submit}>
             <fieldset className="border border-gray-300 rounded-md p-2 bg-white mb-2">
                 <legend className="text-sm font-semibold px-2 text-gray-700">
-                    {formData.id ? "Edit Company" : "Add Company"}
+                    {formData.id ? "Edit Location" : "Add Location"}
                 </legend>
 
-                {/* Input Fields */}
                 <div className="flex flex-wrap gap-3 p-1">
 
-                    {/* Company Name */}
+                    {/* Country */}
                     <div className="flex-1 min-w-[160px]">
-                        <strong>Company Name <span className="mandatory-asterisk">*</span></strong>
+                        <strong>Country</strong>
+                        <Dropdown
+                            className={`w-full mt-1 ${getErrorMessage("companyId") ? "mandatory-border" : ""}`}
+                            value={formData.companyId ?? null}
+                            options={companies}
+                            optionLabel="label"
+                            optionValue="value"
+                            onChange={(e) => handleChange("companyId", e.value)}
+                            filter
+                            showClear
+                            filterBy="label,value"
+                        />
+                        {getErrorMessage("companyId") && <span className="mandatory-error">{getErrorMessage("companyId")}</span>}
+                    </div>
+
+                    <div className="flex-1 min-w-[160px]">
+                        <strong>Location Name <span className="mandatory-asterisk">*</span></strong>
                         <InputText
                             className={`w-full mt-1 ${getErrorMessage("name") ? "mandatory-border" : ""}`}
                             value={formData.name ?? ""}
                             onChange={e => handleChange("name", e.target.value)}
-                            placeholder="Company name"
+                            placeholder="Location name"
                         />
                         {getErrorMessage("name") && (
                             <span className="mandatory-error">{getErrorMessage("name")}</span>
                         )}
                     </div>
 
-                    {/* Phone */}
                     <div className="flex-1 min-w-[160px]">
                         <strong>Phone <span className="mandatory-asterisk">*</span></strong>
                         <InputMask
                             mask="+99-9999999999"
                             value={formData.phone}
-                            onChange={(e) => handleChange("phone", e.target.value)}
-                            placeholder="+91-9999999999"
+                            onChange={(e) => handleChange("phone", e.value)}
                             className={`w-full mt-1 ${getErrorMessage("phone") ? "mandatory-border" : ""}`}
                         />
                         {getErrorMessage("phone") && (
@@ -189,7 +206,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                         )}
                     </div>
 
-                    {/* Email */}
                     <div className="flex-1 min-w-[160px]">
                         <strong>Email</strong>
                         <InputText
@@ -200,7 +216,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                         />
                     </div>
 
-                    {/* Address */}
                     <div className="flex-1 min-w-[160px]">
                         <strong>Address</strong>
                         <InputText
@@ -210,30 +225,29 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                             placeholder="Address"
                         />
                     </div>
-                </div>
 
+                </div>
                 <div className="flex flex-wrap gap-3 p-1">
-                    {/* City */}
                     <div className="flex-1 min-w-[160px]">
-                        <strong>City</strong>
+                        <strong>Pincode</strong>
                         <InputText
                             className="w-full mt-1"
-                            value={formData.city ?? ""}
-                            onChange={e => handleChange("city", e.target.value)}
-                            placeholder="City"
+                            value={formData.pincode ?? ""}
+                            onChange={e => handleChange("pincode", e.target.value)}
+                            placeholder="Pincode"
                         />
                     </div>
 
+                    {/* Country */}
                     <div className="flex-1 min-w-[160px]">
                         <strong>Country</strong>
                         <Dropdown
                             className="w-full mt-1"
                             value={formData.countryId ?? null}
-                            options={allCountries}
+                            options={countries}
                             onChange={(e) => handleChange("countryId", e.value)}
                             filter
                             showClear
-                            placeholder="Country"
                         />
                     </div>
 
@@ -243,11 +257,10 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                         <Dropdown
                             className="w-full mt-1"
                             value={formData.stateId ?? null}
-                            options={allStates.filter(s => !formData.countryId || s.countryId === formData.countryId)}
+                            options={states.filter(s => !formData.countryId || s.countryId === formData.countryId)}
                             onChange={(e) => handleChange("stateId", e.value)}
                             filter
                             showClear
-                            placeholder="State"
                         />
                     </div>
 
@@ -257,51 +270,25 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                         <Dropdown
                             className="w-full mt-1"
                             value={formData.districtId ?? null}
-                            options={allDistricts.filter(d => !formData.stateId || d.stateId === formData.stateId)}
+                            options={districts.filter(d => !formData.stateId || d.stateId === formData.stateId)}
                             onChange={(e) => handleChange("districtId", e.value)}
                             filter
                             showClear
-                            placeholder="District"
-                        />
-                    </div>
-                </div>
-
-                <div className="flex flex-wrap gap-3 p-1">
-                    {/* GST */}
-                    <div className="flex-1 min-w-[160px]">
-                        <strong>GST Number</strong>
-                        <InputText
-                            className="w-full mt-1"
-                            value={formData.gstNumber ?? ""}
-                            onChange={e => handleChange("gstNumber", e.target.value)}
-                            placeholder="Gst Number"
                         />
                     </div>
 
-                    {/* Website */}
-                    <div className="flex-1 min-w-[160px]">
-                        <strong>Website</strong>
-                        <InputText
-                            className="w-full mt-1"
-                            value={formData.website ?? ""}
-                            onChange={e => handleChange("website", e.target.value)}
-                            placeholder="Website"
-                        />
-                    </div>
-
-                    {/* Active */}
                     <div className="flex items-center gap-2 mt-3">
                         <Checkbox
-                            checked={formData.isActive ?? false}
-                            onChange={e => handleChange("isActive", e.checked)}
+                            checked={formData.isActive ?? true}
+                            onChange={(e) => handleChange("isActive", e.checked)}
                         />
-                        <strong>Is Active</strong>
+                        <strong>Active</strong>
                     </div>
                 </div>
 
                 {/* Buttons */}
                 <div className="flex justify-end gap-2 mt-4">
-                    {onCancel && !isAddNewCompany && (
+                    {onCancel && !isAddNewLocation && (
                         <Button type="button" label="Cancel" icon="pi pi-times-circle" style={{ color: 'red' }}
                             outlined onClick={onCancel} className="p-button-sm custom-xs" />
                     )}

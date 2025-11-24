@@ -29,8 +29,8 @@ const LoginPage: React.FC = () => {
       );
       if (response && response.status) {
         localStorage.setItem("authToken", response.token);
-        localStorage.setItem("companyId", response.companyId);
-        localStorage.setItem("locationId", response.locationId);
+        localStorage.setItem("companyId", String(response.companyId));
+        localStorage.setItem("locationId", String(response.locationId));
         setToken(response.token);
         navigate("/", { replace: true });
       } else {

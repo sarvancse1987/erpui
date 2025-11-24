@@ -21,7 +21,7 @@ export default function CompanyList() {
     const loadCompanies = async () => {
         setLoading(true);
         try {
-            const res = await apiService.get("/Company/getallcompany");
+            const res = await apiService.get(`/Company/getcompany/${Number(localStorage.getItem("companyId"))}`);
             setCompanies(res.companies ?? []);
         } catch (err) {
             console.error("Error loading companies:", err);
@@ -58,7 +58,6 @@ export default function CompanyList() {
         upiId: "",
         signature: "",
         companyId: 0,
-        locationId: 0,
         isActive: true
     });
 
@@ -79,6 +78,7 @@ export default function CompanyList() {
     const handleSaveCompanies = async () => {
         const errors: Record<string, string> = {};
         newCompanies.forEach((c, idx) => {
+            c.companyId = Number(localStorage.getItem("companyId"));
             if (c.name.trim().length === 0) {
                 errors[`company-${idx}-name`] = "Company name required";
             }
@@ -86,7 +86,6 @@ export default function CompanyList() {
             if (!c.name.trim()) {
                 errors[`company-${idx}-name`] = "Company name required";
             }
-            if (!c.email?.trim()) errors[`company-${idx}-email`] = "Email required";
             if (!c.phone?.trim()) errors[`company-${idx}-phone`] = "Phone required";
             if (c.email?.trim()) {
                 if (c.email?.trim() != undefined && c.email?.trim() !== "") {
@@ -153,13 +152,13 @@ export default function CompanyList() {
 
     const columns: ColumnMeta<CompanyModel>[] = [
         { field: "id", header: "ID", width: "80px", editable: false, hidden: true },
-        { field: "name", header: "Company Name", width: "220px" },
-        { field: "email", header: "Email", width: "200px" },
+        { field: "name", header: "Company Name", width: "220px", frozen: true },
         { field: "phone", header: "Phone", width: "150px" },
+        { field: "email", header: "Email", width: "200px" },
         { field: "city", header: "City", width: "140px" },
-        { field: "districtId", header: "District", width: "140px" },
-        { field: "stateId", header: "State", width: "140px" },
-        { field: "countryId", header: "Country", width: "140px" },
+        { field: "districtName", header: "District", width: "140px" },
+        { field: "stateName", header: "State", width: "140px" },
+        { field: "countryName", header: "Country", width: "140px" },
         { field: "isActive", header: "Active", width: "100px", body: row => row.isActive ? "✅" : "❌", editable: false },
     ];
 
