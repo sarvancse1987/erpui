@@ -152,8 +152,8 @@ export default function CompanyList() {
 
     const columns: ColumnMeta<CompanyModel>[] = [
         { field: "id", header: "ID", width: "80px", editable: false, hidden: true },
-        { field: "name", header: "Company Name", width: "220px", frozen: true },
-        { field: "phone", header: "Phone", width: "150px" },
+        { field: "name", header: "Company Name", width: "220px", frozen: true, required: true },
+        { field: "phone", header: "Phone", width: "150px", required: true },
         { field: "email", header: "Email", width: "200px" },
         { field: "city", header: "City", width: "140px" },
         { field: "districtName", header: "District", width: "140px" },
@@ -184,6 +184,7 @@ export default function CompanyList() {
                         onDelete={handleDeleteCompanies}
                         isNew={false}
                         isSave={false}
+                        sortableColumns={['name', 'phone', 'city']}
                     />
                 </TabPanel>
 
@@ -219,8 +220,8 @@ export default function CompanyList() {
                 visible={sidebarVisible}
                 position="right"
                 onHide={() => setSidebarVisible(false)}
-                header="Edit Company"
-                style={{ width: "70rem" }}
+                style={{ width: '75rem', height: '100%' }}
+                showCloseIcon={false}
             >
                 {selectedCompany ? (
                     <CompanyForm

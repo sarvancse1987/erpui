@@ -4,16 +4,18 @@ import { UnitModel } from "../../models/product/UnitModel";
 import { ColumnMeta } from "../../models/component/ColumnMeta";
 import apiService from "../../services/apiService";
 import { TTypedDatatable } from "../../components/TTypedDatatable";
+import { useToast } from "../../components/ToastService";
 
 export default function Unit() {
     const [units, setUnits] = useState<UnitModel[]>([]);
     const [activeUnits, setActiveUnits] = useState<UnitModel[]>([]);
     const [inactiveUnits, setInActiveUnits] = useState<UnitModel[]>([]);
+    const { showSuccess, showError } = useToast();
 
     const baseColumns: ColumnMeta<UnitModel>[] = [
         { field: "id", header: "ID", editable: false, hidden: true },
-        { field: "name", header: "Unit Name", editable: true, required: true },
-        { field: "description", header: "Description", editable: true },
+        { field: "name", header: "Unit Name", editable: true, required: true, placeholder: "Unit name" },
+        { field: "description", header: "Description", editable: true, placeholder: "Description" },
         { field: "isActive", header: "Active", editable: true, type: "checkbox" },
     ];
 
@@ -42,7 +44,8 @@ export default function Unit() {
 
     const saveUnits = async (
         updatedCategories: UnitModel[],
-        isActiveTab: boolean
+        isActiveTab: boolean,
+        isDelete: boolean
     ): Promise<void> => {
         try {
             // Save categories via API
@@ -56,6 +59,10 @@ export default function Unit() {
             setActiveUnits(latestCategories.filter(c => c.isActive));
             setInActiveUnits(latestCategories.filter(c => !c.isActive));
             setUnits(latestCategories);
+            if (!isDelete)
+                showSuccess("Categories saved successfully!");
+            else
+                showSuccess("Categories deleted successfully!");
         } catch (error) {
             console.error("Failed to save categories", error);
         }
@@ -64,16 +71,16 @@ export default function Unit() {
     // ✅ Make handlers async and await save
     const onActiveSave = async (updated: UnitModel[]) => {
         const updatedWithActive = updated.map(c => ({ ...c, isActive: true }));
-        await saveUnits(updatedWithActive, true);
+        await saveUnits(updatedWithActive, true, false);
     };
 
     const onInactiveSave = async (updated: UnitModel[]) => {
-        await saveUnits(updated, false);
+        await saveUnits(updated, false, false);
     };
 
     const onActiveDelete = async (toDelete: UnitModel[]) => {
         const updatedWithActive = toDelete.map(c => ({ ...c, isActive: false }));
-        await saveUnits(updatedWithActive, true);
+        await saveUnits(updatedWithActive, true, true);
     }
 
     return (

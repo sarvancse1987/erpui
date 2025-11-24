@@ -21,8 +21,8 @@ export default function GroupPage() {
 
     const columns: ColumnMeta<GroupModel>[] = [
         { field: "groupId", header: "ID", editable: false, width: "80px", hidden: true },
-        { field: "groupName", header: "Group Name", editable: true, required: true },
-        { field: "groupDescription", header: "Group Description", editable: true },
+        { field: "groupName", header: "Group Name", editable: true, required: true, placeholder: "Group name" },
+        { field: "groupDescription", header: "Group Description", editable: true, placeholder: "Description" },
         { field: "isActive", header: "Active", editable: true, type: "checkbox" },
     ];
 
@@ -108,13 +108,10 @@ export default function GroupPage() {
                     const others = prev.filter((g: any) => !updatedIds.has(g.groupId));
                     return [...others, ...savedGroups];
                 });
-
-                console.log(
-                    `♻️ ${savedGroups.length} group(s) moved to ${activeState ? "Inactive" : "Active"
-                    } tab`
-                );
+                showSuccess("Group deleted successfully!");
             } catch (error) {
                 console.error("❌ Failed to toggle active status", error);
+                showError("Error delete groups. Please try again.");
             }
         };
 

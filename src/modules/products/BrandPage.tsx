@@ -73,8 +73,8 @@ export default function BrandPage() {
     // 🔹 Brand columns
     const brandColumns: ColumnMeta<BrandModel>[] = [
         { field: "brandId", header: "ID", editable: false, width: "80px", hidden: true },
-        { field: "brandName", header: "Brand Name", editable: true, required: true },
-        { field: "brandDescription", header: "Description", editable: true },
+        { field: "brandName", header: "Brand Name", editable: true, required: true, placeholder: "Brand name" },
+        { field: "brandDescription", header: "Description", editable: true, placeholder: "Description" },
         { field: "isActive", header: "Active", editable: true, type: "checkbox" },
     ];
 
@@ -124,8 +124,10 @@ export default function BrandPage() {
                 }));
                 await apiService.post("/ProductBrand/bulk", updates);
                 await fetchHierarchy();
+                 showSuccess("Brand deleted successfully!");
             } catch (err) {
                 console.error("❌ Failed to deactivate brands", err);
+                showError("Error delete brand. Please try again.");
             }
         };
 
@@ -140,6 +142,7 @@ export default function BrandPage() {
                     isNew={true}
                     isSave={true}
                     isDelete={true}
+                    sortableColumns={['brandName']}
                 />
             </div>
         );

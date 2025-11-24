@@ -5,7 +5,6 @@ import { TTypedDatatable } from "../../components/TTypedDatatable";
 import apiService from "../../services/apiService";
 import { CategoryModel } from "../../models/product/CategoryModel";
 import { useToast } from "../../components/ToastService";
-import { TTypeDatatable } from "../../components/TTypeDatatable";
 
 export default function Category() {
     const [categories, setCategories] = useState<CategoryModel[]>([]);
@@ -15,8 +14,8 @@ export default function Category() {
 
     const baseColumns: ColumnMeta<CategoryModel>[] = [
         { field: "categoryId", header: "ID", editable: false, hidden: true },
-        { field: "categoryName", header: "Category Name", editable: true, required: true },
-        { field: "categoryDescription", header: "Description", editable: true },
+        { field: "categoryName", header: "Category Name", editable: true, required: true, placeholder: "Category name" },
+        { field: "categoryDescription", header: "Description", editable: true, placeholder: "Description" },
         { field: "isActive", header: "Active", editable: true, type: "checkbox" },
     ];
 
@@ -45,7 +44,8 @@ export default function Category() {
 
     const saveCategories = async (
         updatedCategories: CategoryModel[],
-        isActiveTab: boolean
+        isActiveTab: boolean,
+        isDeleted: boolean
     ): Promise<void> => {
         try {
             // Save categories via API
@@ -59,7 +59,10 @@ export default function Category() {
             setActiveCategories(latestCategories.filter(c => c.isActive));
             setInActiveCategories(latestCategories.filter(c => !c.isActive));
             setCategories(latestCategories);
-            showSuccess("Categories saved successfully!");
+            if (!isDeleted)
+                showSuccess("Categories saved successfully!");
+            else
+                showSuccess("Categories deleted successfully!");
         } catch (error) {
             console.error("Failed to save categories", error);
             showError("Error saving categories. Please try again.");
@@ -69,16 +72,16 @@ export default function Category() {
     // ✅ Make handlers async and await save
     const onActiveSave = async (updated: CategoryModel[]) => {
         const updatedWithActive = updated.map(c => ({ ...c, isActive: true }));
-        await saveCategories(updatedWithActive, true);
+        await saveCategories(updatedWithActive, true, false);
     };
 
     const onInactiveSave = async (updated: CategoryModel[]) => {
-        await saveCategories(updated, false);
+        await saveCategories(updated, false, false);
     };
 
     const onActiveDelete = async (toDelete: CategoryModel[]) => {
         const updatedWithActive = toDelete.map(c => ({ ...c, isActive: false }));
-        await saveCategories(updatedWithActive, true);
+        await saveCategories(updatedWithActive, true, true);
     }
 
     return (
@@ -106,10 +109,10 @@ export default function Category() {
 
                 <TabPanel header={
                     <div className="flex items-center gap-2" style={{ color: 'red' }}>
-                    <i className="pi pi-times-circle" />
-                    <span>Inactive</span>
-                </div>}>
-                    <TTypeDatatable<CategoryModel>
+                        <i className="pi pi-times-circle" />
+                        <span>Inactive</span>
+                    </div>}>
+                    <TTypedDatatable<CategoryModel>
                         columns={inactiveColumns}
                         data={inactiveCategories}
                         primaryKey="categoryId"

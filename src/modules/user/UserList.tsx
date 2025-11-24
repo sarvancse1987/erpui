@@ -97,7 +97,7 @@ export default function UserList() {
 
     const handleUpdateUser = async (updated: UserModel) => {
         try {
-            await apiService.put(`/User/${updated.id}`, updated);
+            await apiService.put(`/Users/${updated.id}`, updated);
             await loadUsers();
             showSuccess("User updated successfully!");
             setSidebarVisible(false);
@@ -110,7 +110,7 @@ export default function UserList() {
     const handleDeleteUsers = async (rows: UserModel[]) => {
         try {
             const ids = rows.map(r => r.id);
-            await apiService.post("/User/bulk-delete", ids);
+            await apiService.post("/Users/bulk-delete", ids);
             showSuccess("User(s) deleted successfully!");
             await loadUsers();
         } catch (err) {
@@ -121,15 +121,15 @@ export default function UserList() {
 
     const columns: ColumnMeta<UserModel>[] = [
         { field: "id", header: "ID", width: "80px", editable: false, hidden: true },
-        { field: "username", header: "Username", width: "200px", frozen: true },
-        { field: "firstName", header: "First Name", width: "180px" },
+        { field: "username", header: "Username", width: "200px", frozen: true, required: true },
+        { field: "firstName", header: "First Name", width: "180px", required: true },
         { field: "lastName", header: "Last Name", width: "180px" },
-        { field: "email", header: "Email", width: "220px" },
+        { field: "email", header: "Email", width: "220px", required: true },
         { field: "phone", header: "Phone", width: "150px" },
-        { field: "roleName", header: "Role", width: "140px" },
-        { field: "userTypeName", header: "User Type", width: "140px" },
-        { field: "companyName", header: "Company", width: "140px" },
-        { field: "locationName", header: "Location", width: "140px" },
+        { field: "roleName", header: "Role", width: "140px", required: true },
+        { field: "userTypeName", header: "User Type", width: "140px", required: true },
+        { field: "companyName", header: "Company", width: "140px", required: true },
+        { field: "locationName", header: "Location", width: "140px", required: true },
         { field: "isActive", header: "Active", width: "100px", body: row => row.isActive ? "✅" : "❌", editable: false },
     ];
 
@@ -155,6 +155,7 @@ export default function UserList() {
                         onDelete={handleDeleteUsers}
                         isNew={false}
                         isSave={false}
+                        sortableColumns={['username', 'firstName', 'companyName']}
                     />
                 </TabPanel>
 
@@ -190,8 +191,8 @@ export default function UserList() {
                 visible={sidebarVisible}
                 position="right"
                 onHide={() => setSidebarVisible(false)}
-                header="Edit User"
-                style={{ width: "70rem" }}
+                style={{ width: '75rem', height: '100%' }}
+                showCloseIcon={false}
             >
                 {selectedUser ? (
                     <UsersForm

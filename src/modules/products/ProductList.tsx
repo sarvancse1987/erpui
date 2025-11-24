@@ -220,7 +220,7 @@ export default function ProductList() {
       type: "selectsearch",
       options: categories,
       required: true,
-      width: "130px",
+      width: "120px",
       editor: (options) => searchDropdownEditor(options, "categoryName")
     },
     {
@@ -349,6 +349,20 @@ export default function ProductList() {
     // },
   ];
 
+  const onActiveDelete = async (toDelete: ProductModel[]) => {
+    const updatedWithActive = toDelete.map(c => ({ ...c, isActive: false }));
+    try {
+      await apiService.post("/Product/bulk", updatedWithActive);
+      await loadAllData();
+      setNewProducts([]);
+      setValidationErrors({});
+      showSuccess("Products deleted successfully!");
+    } catch (err) {
+      console.error(err);
+      showError('Error delete product. Please try again.');
+    }
+  }
+
   if (loading) return <p>Loading data...</p>;
 
   return (
@@ -375,7 +389,8 @@ export default function ProductList() {
                   isNew={false}
                   isSave={false}
                   isDelete={true}
-                  sortableColumns={['productName']}
+                  onDelete={onActiveDelete}
+                  sortableColumns={['productName', 'categoryName', 'groupName', 'brandName', 'purchasePrice', 'salePrice', 'supplierName']}
                 />
               </div>
             )}
@@ -422,11 +437,11 @@ export default function ProductList() {
           visible={sidebarVisible}
           position="right"
           onHide={() => setSidebarVisible(false)}
-          header="Edit Product"
           style={{ width: '75rem', height: '100%' }}
+          showCloseIcon={false}
         >
           {selectedProduct ? (
-            <div className="p-4 overflow-y-auto max-h-[80vh]"> {/* scrollable for longer forms */}
+            <div className="p-2 overflow-y-auto max-h-[80vh]"> {/* scrollable for longer forms */}
               <ProductForm
                 key={selectedProduct.productId || "edit"}
                 product={selectedProduct}
@@ -445,7 +460,7 @@ export default function ProductList() {
               />
             </div>
           ) : (
-            <div className="p-4 text-gray-500 text-center">
+            <div className="p-2 text-gray-500 text-center">
               Select a product to edit.
             </div>
           )}

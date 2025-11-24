@@ -192,6 +192,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             className={`w-full mt-1 ${getErrorMessage("supplierName") ? "mandatory-border" : ""}`}
                             value={formData.supplierName}
                             onChange={(e) => handleChange("supplierName", e.target.value)}
+                            placeholder="Supplier name"
                         />
                         {getErrorMessage("supplierName") && (
                             <span className="mandatory-error">{getErrorMessage("supplierName")}</span>
@@ -207,6 +208,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             className={`w-full mt-1 ${getErrorMessage("contactPerson") ? "mandatory-border" : ""}`}
                             value={formData.contactPerson}
                             onChange={(e) => handleChange("contactPerson", e.target.value)}
+                            placeholder="Contact person"
                         />
                         {getErrorMessage("contactPerson") && (
                             <span className="mandatory-error">{getErrorMessage("contactPerson")}</span>
@@ -237,6 +239,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             className={`w-full mt-1 ${getErrorMessage("email") ? "mandatory-border" : ""}`}
                             value={formData.email}
                             onChange={(e) => handleChange("email", e.target.value)}
+                            placeholder="Email"
                         />
                         {getErrorMessage("email") && (
                             <span className="mandatory-error">{getErrorMessage("email")}</span>
@@ -250,6 +253,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             className="w-full mt-1"
                             value={formData.gstNumber}
                             onChange={(e) => handleChange("gstNumber", e.target.value)}
+                            placeholder="GST number"
                         />
                     </div>
                 </div>
@@ -262,6 +266,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             className="w-full mt-1"
                             value={formData.address}
                             onChange={(e) => handleChange("address", e.target.value)}
+                            placeholder="Address"
                         />
                     </div>
 
@@ -271,6 +276,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             className="w-full mt-1"
                             value={formData.city}
                             onChange={(e) => handleChange("city", e.target.value)}
+                            placeholder="City"
                         />
                     </div>
 
@@ -284,6 +290,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             onChange={(e) => handleChange("countryId", e.value)}
                             showClear
                             filter
+                            placeholder="Select country"
                         />
                     </div>
 
@@ -297,6 +304,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             onChange={(e) => handleChange("stateId", e.value)}
                             showClear
                             filter
+                            placeholder="Select state"
                         />
                     </div>
 
@@ -310,6 +318,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             onChange={(e) => handleChange("districtId", e.value ?? null)}
                             showClear
                             filter
+                            placeholder="Select district"
                         />
                     </div>
 
@@ -319,6 +328,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             className="w-full mt-1"
                             value={formData.postalCode}
                             onChange={(e) => handleChange("postalCode", e.target.value)}
+                            placeholder="Postal code"
                         />
                     </div>
 
@@ -338,7 +348,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             outlined onClick={onCancel} className="p-button-sm custom-xs" />
                     )}
                     {isEditSidebar && (
-                        <Button type="submit" label="Save" icon="pi pi-save" severity="success" className="p-button-sm custom-xs"/>
+                        <Button type="submit" label="Save" icon="pi pi-save" severity="success" className="p-button-sm custom-xs" />
                     )}
                 </div>
             </fieldset>

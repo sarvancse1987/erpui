@@ -178,6 +178,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               className={`w-full mt-1 ${getErrorMessage("productName") ? "mandatory-border" : ""}`}
               value={formData.productName}
               onChange={(e) => handleChange("productName", e.target.value)}
+              placeholder="Product name"
             />
             {getErrorMessage("productName") && <span className="mandatory-error">{getErrorMessage("productName")}</span>}
           </div>
@@ -196,6 +197,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               filter
               showClear
               filterBy="label,value"
+              placeholder="Select category"
             />
             {getErrorMessage("productCategoryId") && <span className="mandatory-error">{getErrorMessage("productCategoryId")}</span>}
           </div>
@@ -215,6 +217,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               filter
               showClear
               filterBy="label,value"
+              placeholder="Select group"
             />
             {getErrorMessage("productGroupId") && <span className="mandatory-error">{getErrorMessage("productGroupId")}</span>}
           </div>
@@ -233,6 +236,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               filter
               showClear
               filterBy="label,value"
+              placeholder="Select brand"
             />
             {getErrorMessage("productBrandId") && <span className="mandatory-error">{getErrorMessage("productBrandId")}</span>}
           </div>
@@ -249,6 +253,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               filter
               showClear
               filterBy="label,value"
+              placeholder="select unit"
             />
             {getErrorMessage("primaryUnitId") && <span className="mandatory-error">{getErrorMessage("primaryUnitId")}</span>}
           </div>
@@ -265,6 +270,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               currency="INR"
               locale="en-IN"
               onValueChange={(e) => handleChange("purchasePrice", e.value)}
+              placeholder="Purchase price"
             />
             {getErrorMessage("purchasePrice") && <span className="mandatory-error">{getErrorMessage("purchasePrice")}</span>}
           </div>
@@ -278,6 +284,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               currency="INR"
               locale="en-IN"
               onValueChange={(e) => handleChange("salePrice", e.value)}
+              placeholder="Sale price"
             />
             {getErrorMessage("salePrice") && <span className="mandatory-error">{getErrorMessage("salePrice")}</span>}
           </div>
@@ -296,6 +303,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               minFractionDigits={0}
               maxFractionDigits={2}
               onValueChange={(e) => handleChange("cgstRate", e.value)}
+              placeholder="CGST%"
             />
           </div>
 
@@ -308,6 +316,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               minFractionDigits={0}
               maxFractionDigits={2}
               onValueChange={(e) => handleChange("sgstRate", e.value)}
+              placeholder="SGST%"
             />
           </div>
         </div>
@@ -323,6 +332,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               minFractionDigits={0}
               maxFractionDigits={2}
               onValueChange={(e) => handleChange("igstRate", e.value)}
+              placeholder="IGST%"
             />
           </div>
 
@@ -332,6 +342,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               className={`w-full mt-1 ${getErrorMessage("hsnCode") ? "mandatory-border" : ""}`}
               value={formData.hsnCode}
               onChange={(e) => handleChange("hsnCode", e.target.value)}
+              placeholder="HSN Code"
             />
             {getErrorMessage("hsnCode") && <span className="mandatory-error">{getErrorMessage("hsnCode")}</span>}
           </div>
@@ -348,6 +359,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               filter
               showClear
               filterBy="label,value"
+              placeholder="Select supplier"
             />
           </div>
 

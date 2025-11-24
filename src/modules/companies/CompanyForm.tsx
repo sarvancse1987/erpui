@@ -118,10 +118,27 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
         const updated = { ...formData, [field]: value };
         setFormData(updated);
 
-        const key = getErrorKey(field);
-        if (isEditSidebar && localValidationErrors[key]) onClearError(key);
+        const errorKey = getErrorKey(field);
 
-        if (!isEditSidebar && !isAddNewCompany) onSave(updated);
+        const key = getErrorKey(field);
+        if (isEditSidebar && localValidationErrors[key])
+            onClearError(key);
+
+
+        if (isEditSidebar) {
+            if (localValidationErrors[errorKey]) {
+                const newErrors = { ...localValidationErrors };
+                delete newErrors[errorKey];
+                setLocalValidationErrors(newErrors);
+            }
+        } else {
+            if (validationErrors[errorKey]) {
+                validationErrors[errorKey] = "";
+                onClearError(errorKey);
+            }
+        }
+        if (!isEditSidebar)
+            onSave(updated);
     };
 
     const validateForm = (): boolean => {

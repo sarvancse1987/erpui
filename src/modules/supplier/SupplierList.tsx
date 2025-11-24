@@ -189,8 +189,8 @@ export default function SupplierList() {
                     </div>
                 }>
                     <div className="flex gap-2 mb-4">
-                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewSupplier} className="p-button-sm custom-xs"/>
-                        <Button label="Save" icon="pi pi-save" onClick={handleSaveSuppliers} disabled={!newSuppliers.length} className="p-button-sm custom-xs"/>
+                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewSupplier} className="p-button-sm custom-xs" />
+                        <Button label="Save" icon="pi pi-save" onClick={handleSaveSuppliers} disabled={!newSuppliers.length} className="p-button-sm custom-xs" />
                     </div>
 
                     {newSuppliers.length === 0 ? (
@@ -215,8 +215,8 @@ export default function SupplierList() {
                 visible={sidebarVisible}
                 position="right"
                 onHide={() => setSidebarVisible(false)}
-                header="Edit Supplier"
-                style={{ width: "70rem" }}
+                style={{ width: '75rem', height: '100%' }}
+                showCloseIcon={false}
             >
                 {selectedSupplier ? (
                     <SupplierForm

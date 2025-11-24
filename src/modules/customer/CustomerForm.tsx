@@ -4,6 +4,7 @@ import { Button } from "primereact/button";
 import { Dropdown } from "primereact/dropdown";
 import apiService from "../../services/apiService";
 import { CustomerModel } from "../../models/customer/CustomerModel";
+import { InputMask } from "primereact/inputmask";
 
 interface CustomerFormProps {
     customer: CustomerModel;
@@ -113,8 +114,24 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
     };
 
     const handleChange = (field: keyof CustomerModel, value: any) => {
-        const updated = { ...formData, [field]: value };
+        // const updated = { ...formData, [field]: value };
 
+        // if (field === "countryId") {
+        //     updated.stateId = null;
+        //     updated.districtId = null;
+        // }
+        // if (field === "stateId") {
+        //     updated.districtId = null;
+        // }
+
+        // setFormData(updated);
+
+        // const key = getErrorKey(field);
+        // if (isEditSidebar && localValidationErrors[key]) onClearError(key);
+
+        // if (!isEditSidebar && !isAddNewCustomer) onSave(updated);
+
+        const updated = { ...formData, [field]: value };
         if (field === "countryId") {
             updated.stateId = null;
             updated.districtId = null;
@@ -122,13 +139,29 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
         if (field === "stateId") {
             updated.districtId = null;
         }
-
         setFormData(updated);
 
-        const key = getErrorKey(field);
-        if (isEditSidebar && localValidationErrors[key]) onClearError(key);
+        const errorKey = getErrorKey(field);
 
-        if (!isEditSidebar && !isAddNewCustomer) onSave(updated);
+        const key = getErrorKey(field);
+        if (isEditSidebar && localValidationErrors[key])
+            onClearError(key);
+
+
+        if (isEditSidebar) {
+            if (localValidationErrors[errorKey]) {
+                const newErrors = { ...localValidationErrors };
+                delete newErrors[errorKey];
+                setLocalValidationErrors(newErrors);
+            }
+        } else {
+            if (validationErrors[errorKey]) {
+                validationErrors[errorKey] = "";
+                onClearError(errorKey);
+            }
+        }
+        if (!isEditSidebar)
+            onSave(updated);
     };
 
     const validateForm = (): boolean => {
@@ -170,6 +203,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             className={`w-full mt-1 ${getErrorMessage("customerName") ? "mandatory-border" : ""}`}
                             value={formData.customerName}
                             onChange={(e) => handleChange("customerName", e.target.value)}
+                            placeholder="Customer name"
                         />
                         {getErrorMessage("customerName") && (
                             <span className="mandatory-error">{getErrorMessage("customerName")}</span>
@@ -179,10 +213,12 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                     {/* Phone */}
                     <div className="flex-1 min-w-[160px]">
                         <strong>Phone<span className="mandatory-asterisk"></span></strong>
-                        <InputText
-                            className={`w-full mt-1}`}
-                            value={formData.phone ?? ""}
+                        <InputMask
+                            mask="+99-9999999999"
+                            value={formData.phone}
                             onChange={(e) => handleChange("phone", e.target.value)}
+                            placeholder="+91-9999999999"
+                            className={`w-full mt-1}`}
                         />
                     </div>
 
@@ -193,6 +229,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             className={`w-full mt-1 ${getErrorMessage("email") ? "mandatory-border" : ""}`}
                             value={formData.email ?? ""}
                             onChange={(e) => handleChange("email", e.target.value)}
+                            placeholder="Email"
                         />
                         {getErrorMessage("email") && (
                             <span className="mandatory-error">{getErrorMessage("email")}</span>
@@ -206,6 +243,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             className="w-full mt-1"
                             value={formData.gstNumber ?? ""}
                             onChange={(e) => handleChange("gstNumber", e.target.value)}
+                            placeholder="GST number"
                         />
                     </div>
                 </div>
@@ -218,6 +256,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             className="w-full mt-1"
                             value={formData.address ?? ""}
                             onChange={(e) => handleChange("address", e.target.value)}
+                            placeholder="Address"
                         />
                     </div>
 
@@ -227,6 +266,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             className="w-full mt-1"
                             value={formData.city ?? ""}
                             onChange={(e) => handleChange("city", e.target.value)}
+                            placeholder="City"
                         />
                     </div>
 
@@ -240,6 +280,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             onChange={(e) => handleChange("countryId", e.value)}
                             filter
                             showClear
+                            placeholder="Select country"
                         />
                     </div>
 
@@ -253,6 +294,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             onChange={(e) => handleChange("stateId", e.value)}
                             filter
                             showClear
+                            placeholder="Select state"
                         />
                     </div>
 
@@ -266,6 +308,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             onChange={(e) => handleChange("districtId", e.value)}
                             filter
                             showClear
+                            placeholder="Select district"
                         />
                     </div>
 
@@ -276,6 +319,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             className="w-full mt-1"
                             value={formData.postalCode ?? ""}
                             onChange={(e) => handleChange("postalCode", e.target.value)}
+                            placeholder="Postal code"
                         />
                     </div>
 

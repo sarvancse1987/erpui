@@ -15,8 +15,8 @@ export default function UserType() {
 
     const baseColumns: ColumnMeta<UserTypeModel>[] = [
         { field: "id", header: "ID", editable: false, hidden: true },
-        { field: "name", header: "User Type Name", editable: true, required: true },
-        { field: "description", header: "Description", editable: true },
+        { field: "name", header: "User Type Name", editable: true, required: true, placeholder: "Usertype name" },
+        { field: "description", header: "Description", editable: true, placeholder: "description" },
         { field: "isActive", header: "Active", editable: true, type: "checkbox" },
     ];
 
@@ -45,7 +45,8 @@ export default function UserType() {
 
     const saveRoles = async (
         updatedRoles: UserTypeModel[],
-        isActiveTab: boolean
+        isActiveTab: boolean,
+        isDelete: boolean
     ): Promise<void> => {
         try {
             // Save categories via API
@@ -59,7 +60,10 @@ export default function UserType() {
             setActiveRoles(latestRoles.filter(c => c.isActive));
             setInActiveRoles(latestRoles.filter(c => !c.isActive));
             setRoles(latestRoles);
-            showSuccess("UserTypes saved successfully!");
+            if (!isDelete)
+                showSuccess("User type saved successfully!");
+            else
+                showSuccess("User type deleted successfully!");
         } catch (error) {
             console.error("Failed to save role", error);
             showError("Error saving UserTypes. Please try again.");
@@ -69,16 +73,16 @@ export default function UserType() {
     // ✅ Make handlers async and await save
     const onActiveSave = async (updated: UserTypeModel[]) => {
         const updatedWithActive = updated.map(c => ({ ...c, isActive: true }));
-        await saveRoles(updatedWithActive, true);
+        await saveRoles(updatedWithActive, true, false);
     };
 
     const onInactiveSave = async (updated: UserTypeModel[]) => {
-        await saveRoles(updated, false);
+        await saveRoles(updated, false, false);
     };
 
     const onActiveDelete = async (toDelete: UserTypeModel[]) => {
         const updatedWithActive = toDelete.map(c => ({ ...c, isActive: false }));
-        await saveRoles(updatedWithActive, true);
+        await saveRoles(updatedWithActive, true, true);
     }
 
     return (
@@ -106,9 +110,9 @@ export default function UserType() {
 
                 <TabPanel header={
                     <div className="flex items-center gap-2" style={{ color: 'red' }}>
-                    <i className="pi pi-times-circle" />
-                    <span>Inactive</span>
-                </div>}>
+                        <i className="pi pi-times-circle" />
+                        <span>Inactive</span>
+                    </div>}>
                     <TTypeDatatable<UserTypeModel>
                         columns={inactiveColumns}
                         data={inActiveRoles}

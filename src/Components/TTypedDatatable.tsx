@@ -204,6 +204,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
             optionValue="value"
             onChange={(e) => options.editorCallback(e.value)}
             {...commonProps}
+            placeholder={col.placeholder}
           />
         );
 
@@ -214,6 +215,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
             onChange={(e) => options.editorCallback(e.value)}
             dateFormat="yy-mm-dd"
             {...commonProps}
+            placeholder={col.placeholder}
           />
         );
 
@@ -243,6 +245,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
             currency="INR"
             locale="en-IN"
             {...commonProps}
+            placeholder={col.placeholder}
           />
         );
 
@@ -255,6 +258,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
             minFractionDigits={0}
             maxFractionDigits={2}
             {...commonProps}
+            placeholder={col.placeholder}
           />
         );
 
@@ -270,6 +274,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
             maxFractionDigits={2}
             useGrouping={false}
             {...commonProps}
+            placeholder={col.placeholder}
           />
         )
 
@@ -279,6 +284,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
             value={options.value || ""}
             onChange={(e) => options.editorCallback(e.target.value)}
             {...commonProps}
+            placeholder={col.placeholder}
           />
         );
     }

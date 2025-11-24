@@ -204,8 +204,8 @@ export default function LocationList() {
                 visible={sidebarVisible}
                 position="right"
                 onHide={() => setSidebarVisible(false)}
-                header="Edit Location"
-                style={{ width: "50rem" }}
+                style={{ width: '75rem', height: '100%' }}
+                showCloseIcon={false}
             >
                 {selectedLocation ? (
                     <LocationForm

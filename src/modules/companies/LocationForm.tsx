@@ -120,10 +120,22 @@ export const LocationForm: React.FC<LocationFormProps> = ({
         const updated = { ...formData, [field]: value };
         setFormData(updated);
 
-        const key = getErrorKey(field);
-        if (isEditSidebar && localValidationErrors[key]) onClearError(key);
+        const errorKey = getErrorKey(field);
 
-        if (!isEditSidebar && !isAddNewLocation) onSave(updated);
+        if (isEditSidebar) {
+            if (localValidationErrors[errorKey]) {
+                const newErrors = { ...localValidationErrors };
+                delete newErrors[errorKey];
+                setLocalValidationErrors(newErrors);
+            }
+        } else {
+            if (validationErrors[errorKey]) {
+                validationErrors[errorKey] = "";
+                onClearError(errorKey);
+            }
+        }
+        if (!isEditSidebar)
+            onSave(updated);
     };
 
     const validateForm = () => {
@@ -165,7 +177,7 @@ export const LocationForm: React.FC<LocationFormProps> = ({
 
                     {/* Country */}
                     <div className="flex-1 min-w-[160px]">
-                        <strong>Country</strong>
+                        <strong>Company Name<span className="mandatory-asterisk">*</span></strong>
                         <Dropdown
                             className={`w-full mt-1 ${getErrorMessage("companyId") ? "mandatory-border" : ""}`}
                             value={formData.companyId ?? null}
@@ -176,6 +188,7 @@ export const LocationForm: React.FC<LocationFormProps> = ({
                             filter
                             showClear
                             filterBy="label,value"
+                            placeholder="Company name"
                         />
                         {getErrorMessage("companyId") && <span className="mandatory-error">{getErrorMessage("companyId")}</span>}
                     </div>
@@ -200,6 +213,7 @@ export const LocationForm: React.FC<LocationFormProps> = ({
                             value={formData.phone}
                             onChange={(e) => handleChange("phone", e.value)}
                             className={`w-full mt-1 ${getErrorMessage("phone") ? "mandatory-border" : ""}`}
+                            placeholder="Phone"
                         />
                         {getErrorMessage("phone") && (
                             <span className="mandatory-error">{getErrorMessage("phone")}</span>
@@ -248,6 +262,7 @@ export const LocationForm: React.FC<LocationFormProps> = ({
                             onChange={(e) => handleChange("countryId", e.value)}
                             filter
                             showClear
+                            placeholder="Select country"
                         />
                     </div>
 
@@ -261,6 +276,7 @@ export const LocationForm: React.FC<LocationFormProps> = ({
                             onChange={(e) => handleChange("stateId", e.value)}
                             filter
                             showClear
+                            placeholder="Select state"
                         />
                     </div>
 
@@ -274,6 +290,7 @@ export const LocationForm: React.FC<LocationFormProps> = ({
                             onChange={(e) => handleChange("districtId", e.value)}
                             filter
                             showClear
+                            placeholder="Select district"
                         />
                     </div>
 

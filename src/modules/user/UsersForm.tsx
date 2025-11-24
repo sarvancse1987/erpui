@@ -5,6 +5,7 @@ import { Button } from "primereact/button";
 import { Dropdown } from "primereact/dropdown";
 import { UserModel } from "../../models/UserModel";
 import apiService from "../../services/apiService";
+import { InputMask } from "primereact/inputmask";
 
 interface UsersFormProps {
     user: UserModel;
@@ -100,22 +101,26 @@ export const UsersForm: React.FC<UsersFormProps> = ({
     };
 
     const handleChange = (field: keyof UserModel, value: any) => {
-        setFormData(prev => {
-            const updated: any = { ...prev, [field]: value };
+        const updated = { ...formData, [field]: value };
 
-            // Reset location if company changes
-            if (field === "companyId") {
-                updated.locationId = null;
+        setFormData(updated);
+
+        const errorKey = getErrorKey(field);
+
+        if (isEditSidebar) {
+            if (localValidationErrors[errorKey]) {
+                const newErrors = { ...localValidationErrors };
+                delete newErrors[errorKey];
+                setLocalValidationErrors(newErrors);
             }
-
-            // Only call onSave if you want live updates, pass updated state
-            if (!isEditSidebar && !isAddNewUser) onSave(updated);
-
-            return updated;
-        });
-
-        const key = getErrorKey(field);
-        if (isEditSidebar && localValidationErrors[key]) onClearError(key);
+        } else {
+            if (validationErrors[errorKey]) {
+                validationErrors[errorKey] = "";
+                onClearError(errorKey);
+            }
+        }
+        if (!isEditSidebar)
+            onSave(updated);
     };
 
     const handleCompanyChange = (companyId: number | null) => {
@@ -235,11 +240,12 @@ export const UsersForm: React.FC<UsersFormProps> = ({
                     {/* Phone */}
                     <div className="flex-1 min-w-[160px]">
                         <strong>Phone</strong>
-                        <InputText
+                        <InputMask
+                            mask="+99-9999999999"
+                            value={formData.phone}
+                            onChange={(e) => handleChange("phone", e.target.value)}
+                            placeholder="+91-9999999999"
                             className="w-full mt-1"
-                            value={formData.phone ?? ""}
-                            onChange={e => handleChange("phone", e.target.value)}
-                            placeholder="Phone"
                         />
                     </div>
 
@@ -339,6 +345,6 @@ export const UsersForm: React.FC<UsersFormProps> = ({
                     )}
                 </div>
             </fieldset>
-        </form>
+        </form >
     );
 };

@@ -170,8 +170,8 @@ export default function CustomerList() {
                     </div>
                 }>
                     <div className="flex gap-2 mb-4">
-                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewCustomer} className="p-button-sm custom-xs"/>
-                        <Button label="Save" icon="pi pi-save" onClick={handleSaveCustomers} disabled={!newCustomers.length} className="p-button-sm custom-xs"/>
+                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewCustomer} className="p-button-sm custom-xs" />
+                        <Button label="Save" icon="pi pi-save" onClick={handleSaveCustomers} disabled={!newCustomers.length} className="p-button-sm custom-xs" />
                     </div>
 
                     {newCustomers.length === 0 ? (
@@ -196,8 +196,8 @@ export default function CustomerList() {
                 visible={sidebarVisible}
                 position="right"
                 onHide={() => setSidebarVisible(false)}
-                header="Edit Customer"
-                style={{ width: "70rem" }}
+                style={{ width: '75rem', height: '100%' }}
+                showCloseIcon={false}
             >
                 {selectedCustomer ? (
                     <CustomerForm

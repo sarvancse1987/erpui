@@ -15,8 +15,8 @@ export default function Role() {
 
     const baseColumns: ColumnMeta<RoleModel>[] = [
         { field: "id", header: "ID", editable: false, hidden: true },
-        { field: "name", header: "Role Name", editable: true, required: true },
-        { field: "description", header: "Description", editable: true },
+        { field: "name", header: "Role Name", editable: true, required: true, placeholder: "Role name" },
+        { field: "description", header: "Description", editable: true, placeholder: "Description" },
         { field: "isActive", header: "Active", editable: true, type: "checkbox" },
     ];
 
@@ -45,7 +45,8 @@ export default function Role() {
 
     const saveRoles = async (
         updatedRoles: RoleModel[],
-        isActiveTab: boolean
+        isActiveTab: boolean,
+        isDelete: boolean
     ): Promise<void> => {
         try {
             // Save categories via API
@@ -59,7 +60,10 @@ export default function Role() {
             setActiveRoles(latestRoles.filter(c => c.isActive));
             setInActiveRoles(latestRoles.filter(c => !c.isActive));
             setRoles(latestRoles);
-            showSuccess("Roles saved successfully!");
+            if (!isDelete)
+                showSuccess("Role saved successfully!");
+            else
+                showSuccess("Role deleted successfully!");
         } catch (error) {
             console.error("Failed to save role", error);
             showError("Error saving roles. Please try again.");
@@ -69,16 +73,16 @@ export default function Role() {
     // ✅ Make handlers async and await save
     const onActiveSave = async (updated: RoleModel[]) => {
         const updatedWithActive = updated.map(c => ({ ...c, isActive: true }));
-        await saveRoles(updatedWithActive, true);
+        await saveRoles(updatedWithActive, true, false);
     };
 
     const onInactiveSave = async (updated: RoleModel[]) => {
-        await saveRoles(updated, false);
+        await saveRoles(updated, false, false);
     };
 
     const onActiveDelete = async (toDelete: RoleModel[]) => {
         const updatedWithActive = toDelete.map(c => ({ ...c, isActive: false }));
-        await saveRoles(updatedWithActive, true);
+        await saveRoles(updatedWithActive, true, true);
     }
 
     return (
@@ -106,9 +110,9 @@ export default function Role() {
 
                 <TabPanel header={
                     <div className="flex items-center gap-2" style={{ color: 'red' }}>
-                    <i className="pi pi-times-circle" />
-                    <span>Inactive</span>
-                </div>}>
+                        <i className="pi pi-times-circle" />
+                        <span>Inactive</span>
+                    </div>}>
                     <TTypeDatatable<RoleModel>
                         columns={inactiveColumns}
                         data={inActiveRoles}
