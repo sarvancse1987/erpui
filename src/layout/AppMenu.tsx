@@ -35,6 +35,14 @@ const AppMenu: React.FC = () => {
             { label: "User Types", icon: "pi pi-fw pi-id-card", to: "/users/usertypes" },
           ],
         },
+        {
+          label: "Companies",
+          icon: "pi pi-fw pi-building",
+          items: [
+            { label: "Companies", icon: "pi pi-fw pi-sitemap", to: "/companies" },
+            { label: "Locations", icon: "pi pi-fw pi-map-marker", to: "/companies/locations" },
+          ],
+        },
       ],
     },
     {

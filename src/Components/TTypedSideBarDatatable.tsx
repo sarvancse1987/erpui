@@ -673,18 +673,20 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
           />
 
           <DataTable
-            value={products.filter((p) => {
-              const nameMatch =
-                sidebarSearchText.trim() === "" ||
-                p.productName?.toLowerCase().includes(sidebarSearchText.toLowerCase());
+            value={
+              products.filter((p) => {
+                const nameMatch =
+                  sidebarSearchText.trim() === "" ||
+                  p.productName?.toLowerCase().includes(sidebarSearchText.toLowerCase());
 
-              const supplierMatch =
-                selectedSupplier === null ||
-                selectedSupplier === undefined ||
-                Number(p.supplierId) === Number(selectedSupplier);
+                const supplierMatch =
+                  selectedSupplier === null ||
+                  selectedSupplier === undefined ||
+                  Number(p.supplierId) === Number(selectedSupplier);
 
-              return nameMatch && supplierMatch;
-            })}
+                return nameMatch && supplierMatch;
+              })
+            }
             selection={sidebarSelectedProducts}
             onSelectionChange={(e) => setSidebarSelectedProducts(e.value)}
             dataKey="productId"

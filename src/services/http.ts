@@ -32,8 +32,8 @@ const createHttpClient = (baseURL: string, includeAuth = true): AxiosInstance =>
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    const companyId = getCookie("companyId") || "1"; // or from context/state
-    const locationId = getCookie("locationId") || "1";
+    const companyId = localStorage.getItem("companyId") || "1"; // or from context/state
+    const locationId = localStorage.getItem("locationId") || "1";
     config.headers["CompanyId"] = Number(companyId);
     config.headers["LocationId"] = Number(locationId);
 

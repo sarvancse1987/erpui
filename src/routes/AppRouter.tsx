@@ -19,8 +19,8 @@ const SalesList = React.lazy(() => import("../modules/sales/SalesList"));
 const InventoryList = React.lazy(() => import("../modules/inventory/InventoryList"));
 const InventoryAdjust = React.lazy(() => import("../modules/inventory/InventoryAdjust"));
 const UserList = React.lazy(() => import("../modules/user/UserList"));
-const RoleList = React.lazy(() => import("../modules/settings/pages/RoleList"));
 const Login = React.lazy(() => import("../modules/auth/Login"));
+const CompanyList = React.lazy(() => import("../modules/companies/CompanyList"));
 
 export default function AppRouter() {
     return (
@@ -85,10 +85,14 @@ export default function AppRouter() {
                     <Route path="adjust" element={<InventoryAdjust />} />
                 </Route>
 
+                {/* Inventory Module */}
+                <Route path="companies">
+                    <Route index element={<CompanyList />} />
+                </Route>
+
                 {/* Settings Module */}
                 <Route path="settings">
                     <Route path="users" element={<UserList />} />
-                    <Route path="roles" element={<RoleList />} />
                 </Route>
             </Route>
 

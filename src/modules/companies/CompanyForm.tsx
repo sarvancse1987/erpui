@@ -1,31 +1,35 @@
 import React, { useState, useEffect } from "react";
 import { InputText } from "primereact/inputtext";
+import { Checkbox } from "primereact/checkbox";
 import { Button } from "primereact/button";
+import { CompanyModel } from "../../models/companies/CompanyModel";
 import { Dropdown } from "primereact/dropdown";
 import apiService from "../../services/apiService";
-import { CustomerModel } from "../../models/customer/CustomerModel";
+import { InputMask } from "primereact/inputmask";
 
-interface CustomerFormProps {
-    customer: CustomerModel;
+interface CompanyFormProps {
+    company: CompanyModel;
     index?: number;
     validationErrors?: Record<string, string>;
-    onSave: (customer: CustomerModel) => void;
+    onSave: (company: CompanyModel) => void;
     onCancel?: () => void;
     isEditSidebar?: boolean;
-    isAddNewCustomer?: boolean;
+    isAddNewCompany?: boolean;
 }
 
-export const CustomerForm: React.FC<CustomerFormProps> = ({
-    customer,
+export const CompanyForm: React.FC<CompanyFormProps> = ({
+    company,
     index = 0,
     validationErrors = {},
     onSave,
     onCancel,
     isEditSidebar = false,
-    isAddNewCustomer = false
+    isAddNewCompany = false
 }) => {
-    const [formData, setFormData] = useState<CustomerModel>({ ...customer });
-    const [localValidationErrors, setLocalValidationErrors] = useState<Record<string, string>>({});
+
+    const [formData, setFormData] = useState<CompanyModel>({ ...company });
+    const [localValidationErrors, setLocalValidationErrors] =
+        useState<Record<string, string>>({});
 
     const [allCountries, setAllCountries] = useState<{ label: string; value: number }[]>([]);
     const [allStates, setAllStates] = useState<{ label: string; value: number; countryId: number }[]>([]);
@@ -63,8 +67,8 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
     }, []);
 
     useEffect(() => {
-        setFormData({ ...customer });
-    }, [customer]);
+        setFormData({ ...company });
+    }, [company]);
 
     useEffect(() => {
         if (allCountries.length === 0 || allStates.length === 0) return;
@@ -93,49 +97,44 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
         });
     }, [allCountries, allStates]);
 
-    const getErrorKey = (field: string) => `customer-${index}-${field}`;
+    const getErrorKey = (field: string) => `company-${index}-${field}`;
+
     const getErrorMessage = (field: string) => {
         const key = getErrorKey(field);
 
-        if (isEditSidebar || isAddNewCustomer) {
-            return localValidationErrors[key];
-        }
-
+        if (isEditSidebar || isAddNewCompany) return localValidationErrors[key];
         return validationErrors[key];
     };
 
     const onClearError = (fieldKey: string) => {
-        setLocalValidationErrors((prev) => {
+        setLocalValidationErrors(prev => {
             const copy = { ...prev };
             delete copy[fieldKey];
             return copy;
         });
     };
 
-    const handleChange = (field: keyof CustomerModel, value: any) => {
+    const handleChange = (field: keyof CompanyModel, value: any) => {
         const updated = { ...formData, [field]: value };
-
-        if (field === "countryId") {
-            updated.stateId = null;
-            updated.districtId = null;
-        }
-        if (field === "stateId") {
-            updated.districtId = null;
-        }
-
         setFormData(updated);
 
         const key = getErrorKey(field);
         if (isEditSidebar && localValidationErrors[key]) onClearError(key);
 
-        if (!isEditSidebar && !isAddNewCustomer) onSave(updated);
+        if (!isEditSidebar && !isAddNewCompany) onSave(updated);
     };
 
     const validateForm = (): boolean => {
         const errors: Record<string, string> = {};
 
-        if (!formData.customerName?.trim() || formData.customerName?.trim().length == 0)
-            errors[getErrorKey("customerName")] = "Customer Name is required";
+        if (!formData.name?.trim())
+            errors[getErrorKey("name")] = "Company Name is required";
+
+        if (!formData.phone?.trim())
+            errors[getErrorKey("phone")] = "Phone is required";
+
+        if (!formData.email?.trim())
+            errors[getErrorKey("email")] = "Email is required";
 
         if (formData.email?.trim()) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -151,7 +150,6 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!validateForm()) return;
-
         onSave(formData);
     };
 
@@ -159,78 +157,79 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
         <form onSubmit={handleSubmit}>
             <fieldset className="border border-gray-300 rounded-md p-2 bg-white mb-2">
                 <legend className="text-sm font-semibold px-2 text-gray-700">
-                    {formData.customerId ? "Edit Customer" : "Add Customer"}
+                    {formData.id ? "Edit Company" : "Add Company"}
                 </legend>
 
+                {/* Input Fields */}
                 <div className="flex flex-wrap gap-3 p-1">
-                    {/* Customer Name */}
+
+                    {/* Company Name */}
                     <div className="flex-1 min-w-[160px]">
-                        <strong>Customer Name <span className="mandatory-asterisk">*</span></strong>
+                        <strong>Company Name <span className="mandatory-asterisk">*</span></strong>
                         <InputText
-                            className={`w-full mt-1 ${getErrorMessage("customerName") ? "mandatory-border" : ""}`}
-                            value={formData.customerName}
-                            onChange={(e) => handleChange("customerName", e.target.value)}
+                            className={`w-full mt-1 ${getErrorMessage("name") ? "mandatory-border" : ""}`}
+                            value={formData.name ?? ""}
+                            onChange={e => handleChange("name", e.target.value)}
+                            placeholder="Company name"
                         />
-                        {getErrorMessage("customerName") && (
-                            <span className="mandatory-error">{getErrorMessage("customerName")}</span>
+                        {getErrorMessage("name") && (
+                            <span className="mandatory-error">{getErrorMessage("name")}</span>
                         )}
                     </div>
 
                     {/* Phone */}
                     <div className="flex-1 min-w-[160px]">
-                        <strong>Phone<span className="mandatory-asterisk"></span></strong>
-                        <InputText
-                            className={`w-full mt-1}`}
-                            value={formData.phone ?? ""}
+                        <strong>Phone <span className="mandatory-asterisk">*</span></strong>
+                        <InputMask
+                            mask="+99-9999999999"
+                            value={formData.phone}
                             onChange={(e) => handleChange("phone", e.target.value)}
+                            placeholder="+91-9999999999"
+                            className={`w-full mt-1 ${getErrorMessage("phone") ? "mandatory-border" : ""}`}
                         />
+                        {getErrorMessage("phone") && (
+                            <span className="mandatory-error">{getErrorMessage("phone")}</span>
+                        )}
                     </div>
 
                     {/* Email */}
                     <div className="flex-1 min-w-[160px]">
-                        <strong>Email</strong>
+                        <strong>Email <span className="mandatory-asterisk">*</span></strong>
                         <InputText
                             className={`w-full mt-1 ${getErrorMessage("email") ? "mandatory-border" : ""}`}
                             value={formData.email ?? ""}
-                            onChange={(e) => handleChange("email", e.target.value)}
+                            onChange={e => handleChange("email", e.target.value)}
+                            placeholder="Email"
                         />
                         {getErrorMessage("email") && (
                             <span className="mandatory-error">{getErrorMessage("email")}</span>
                         )}
                     </div>
 
-                    {/* GST */}
-                    <div className="flex-1 min-w-[160px]">
-                        <strong>GST Number</strong>
-                        <InputText
-                            className="w-full mt-1"
-                            value={formData.gstNumber ?? ""}
-                            onChange={(e) => handleChange("gstNumber", e.target.value)}
-                        />
-                    </div>
-                </div>
-
-                {/* Address Section */}
-                <div className="flex flex-wrap gap-3 p-1">
+                    {/* Address */}
                     <div className="flex-1 min-w-[160px]">
                         <strong>Address</strong>
                         <InputText
                             className="w-full mt-1"
                             value={formData.address ?? ""}
-                            onChange={(e) => handleChange("address", e.target.value)}
+                            onChange={e => handleChange("address", e.target.value)}
+                            placeholder="Address"
                         />
                     </div>
+                </div>
 
+                <div className="flex flex-wrap gap-3 p-1">
+                    {/* City */}
                     <div className="flex-1 min-w-[160px]">
                         <strong>City</strong>
                         <InputText
                             className="w-full mt-1"
                             value={formData.city ?? ""}
-                            onChange={(e) => handleChange("city", e.target.value)}
+                            onChange={e => handleChange("city", e.target.value)}
+                            placeholder="City"
                         />
                     </div>
 
-                    {/* Country */}
                     <div className="flex-1 min-w-[160px]">
                         <strong>Country</strong>
                         <Dropdown
@@ -240,6 +239,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             onChange={(e) => handleChange("countryId", e.value)}
                             filter
                             showClear
+                            placeholder="Country"
                         />
                     </div>
 
@@ -253,6 +253,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             onChange={(e) => handleChange("stateId", e.value)}
                             filter
                             showClear
+                            placeholder="State"
                         />
                     </div>
 
@@ -266,28 +267,56 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             onChange={(e) => handleChange("districtId", e.value)}
                             filter
                             showClear
+                            placeholder="District"
                         />
                     </div>
-
-                    {/* Postal Code */}
-                    <div className="flex-1 min-w-[160px]">
-                        <strong>Postal Code</strong>
-                        <InputText
-                            className="w-full mt-1"
-                            value={formData.postalCode ?? ""}
-                            onChange={(e) => handleChange("postalCode", e.target.value)}
-                        />
-                    </div>
-
                 </div>
 
+                <div className="flex flex-wrap gap-3 p-1">
+                    {/* GST */}
+                    <div className="flex-1 min-w-[160px]">
+                        <strong>GST Number</strong>
+                        <InputText
+                            className="w-full mt-1"
+                            value={formData.gstNumber ?? ""}
+                            onChange={e => handleChange("gstNumber", e.target.value)}
+                            placeholder="Gst Number"
+                        />
+                    </div>
+
+                    {/* Website */}
+                    <div className="flex-1 min-w-[160px]">
+                        <strong>Website</strong>
+                        <InputText
+                            className="w-full mt-1"
+                            value={formData.website ?? ""}
+                            onChange={e => handleChange("website", e.target.value)}
+                            placeholder="Website"
+                        />
+                    </div>
+
+                    {/* Active */}
+                    <div className="flex items-center gap-2 mt-3">
+                        <Checkbox
+                            checked={formData.isActive ?? false}
+                            onChange={e => handleChange("isActive", e.checked)}
+                        />
+                        <strong>Is Active</strong>
+                    </div>
+                </div>
+
+                {/* Buttons */}
                 <div className="flex justify-end gap-2 mt-4">
-                    {onCancel && !isAddNewCustomer && (
-                        <Button type="button" label="Cancel" icon="pi pi-times-circle" style={{ color: 'red' }}
-                            outlined onClick={onCancel} className="p-button-sm custom-xs" />
+                    {onCancel && !isAddNewCompany && (
+                        <Button type="button" label="Cancel" icon="pi pi-times"
+                            outlined onClick={onCancel}
+                            className="p-button-sm custom-xs" />
                     )}
+
                     {isEditSidebar && (
-                        <Button type="submit" label="Save" icon="pi pi-save" severity="success" className="p-button-sm custom-xs" />
+                        <Button type="submit" label="Save" icon="pi pi-save"
+                            severity="success"
+                            className="p-button-sm custom-xs" />
                     )}
                 </div>
             </fieldset>

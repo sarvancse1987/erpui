@@ -30,7 +30,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
   onDelete,
   sortableColumns = [],
 }: TTypeDatatableProps<T>) {
-  const [tableData, setTableData] = useState<T[]>(data);
+  const [tableData, setTableData] = useState<T[]>(Array.isArray(data) ? data : []);
   const [editingRows, setEditingRows] = useState<{ [key: string]: boolean }>({});
   const [errors, setErrors] = useState<{ [rowId: string]: { [field: string]: string } }>({});
   const [globalFilter, setGlobalFilter] = useState<string>("");
@@ -58,9 +58,9 @@ export function TTypeDatatable<T extends Record<string, any>>({
     setFilters(f);
   }, [columns]);
 
-  useEffect(() => {
-    setTableData(data.map((d) => ({ ...d }))); // clone initial data
-  }, [data]);
+useEffect(() => {
+  setTableData(Array.isArray(data) ? data.map(d => ({ ...d })) : []);
+}, [data]);
 
   const getNextPrimaryKey = (): string => {
     const maxId = Math.max(
