@@ -140,13 +140,13 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
         const errors: Record<string, string> = {};
 
         if (!formData.supplierName?.trim())
-            errors[getErrorKey("supplierName")] = "Supplier Name is required";
+            errors[getErrorKey("supplierName")] = "Supplier name required";
 
         if (!formData.contactPerson?.trim())
-            errors[getErrorKey("contactPerson")] = "Contact Person is required";
+            errors[getErrorKey("contactPerson")] = "Contact person  required";
 
         if (!formData.phone?.trim())
-            errors[getErrorKey("phone")] = "Phone number is required";
+            errors[getErrorKey("phone")] = "Phone number required";
 
         // Optional email but validate if given
         if (formData.email?.trim()) {

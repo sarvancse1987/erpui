@@ -202,8 +202,17 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
 
     const cashPurchaseTypeId = 1;
     if (formData.purchaseTypeId === cashPurchaseTypeId) {
+
       if ((formData.invoiceAmount ?? 0) !== (formData.paidAmount ?? 0)) {
-        errors.paidAmount = "For Cash Purchase, Paid Amount must equal Invoice Amount.";
+        errors.paidAmount =
+          "For Cash Purchase, Paid Amount must equal Invoice Amount.";
+      }
+
+      if ((formData.invoiceAmount ?? 0) !== (formData.grandTotal ?? 0)) {
+        errors.invoiceAmount =
+          "For Cash Purchase, Invoice Amount must be equal to Grand Total.";
+        errors.paidAmount =
+          "For Cash Purchase, Grand Total must equal Invoice Amount.";
       }
     }
 
@@ -329,6 +338,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             placeholder="Invoice Number"
             onChange={(e) => handleChange("invoiceNumber", e.target.value)}
             className={`w-full mt-1 text-sm ${validationErrors?.invoiceNumber ? "p-invalid" : ""}`}
+            style={{ width: "150px" }}
           />
           {validationErrors?.invoiceNumber && <span className="mandatory-error text-xs">{validationErrors.invoiceNumber}</span>}
         </div>
@@ -345,6 +355,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             maxFractionDigits={2}
             onChange={(e) => handleChange("invoiceAmount", e.value)}
             className={`w-full mt-1 text-sm ${validationErrors?.invoiceAmount ? "p-invalid" : ""}`}
+            inputStyle={{ width: "120px" }}
           />
           {validationErrors?.invoiceAmount && <span className="mandatory-error text-xs">{validationErrors.invoiceAmount}</span>}
         </div>
@@ -361,6 +372,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             maxFractionDigits={2}
             onChange={(e) => handleChange("paidAmount", e.value)}
             className="w-full mt-1 text-sm"
+            inputStyle={{ width: "120px" }}
           />
           {validationErrors?.paidAmount && <span className="mandatory-error text-xs">{validationErrors.paidAmount}</span>}
         </div>

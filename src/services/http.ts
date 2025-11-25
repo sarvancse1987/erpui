@@ -2,9 +2,12 @@ import axios from "axios";
 import type { AxiosInstance } from "axios";
 import { handleApiError } from "./handleApiError";
 import { getCookie } from "../common/common";
+import { useContext } from "react";
+import { ToastContext } from "../components/ToastContext";
 
 let setLoadingGlobal: ((loading: boolean) => void) | null = null;
 let activeRequests = 0;
+const toastRef = (ToastContext as any)._currentValue;
 
 export const setLoaderHandler = (fn: (loading: boolean) => void) => {
   setLoadingGlobal = fn;
@@ -51,9 +54,17 @@ const createHttpClient = (baseURL: string, includeAuth = true): AxiosInstance =>
       const resData = response.data;
       if ("status" in resData && "message" in resData) {
         if (resData.status === false) {
-          const apiError = new Error(resData.message);
-          handleApiError(apiError);
-          return Promise.reject(apiError);
+          toastRef?.current?.show({
+            severity: "error",
+            summary: "Error",
+            detail: resData.message,
+            life: 3000,
+          });
+
+          return Promise.resolve({
+            status: false,
+            error: resData.message
+          });
         }
         return resData;
       }

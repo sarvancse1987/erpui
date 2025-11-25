@@ -22,6 +22,7 @@ interface ParentChildTableProps<ParentType, ChildType> {
     rowKey: keyof ParentType;
     expandAllInitially?: boolean;
     onEdit?: (row: ParentType) => void;
+    sortableColumns?: (keyof ParentType)[];
 }
 
 export function ParentChildTable<
@@ -34,7 +35,8 @@ export function ParentChildTable<
     childField,
     rowKey,
     expandAllInitially = false,
-    onEdit
+    onEdit,
+    sortableColumns = []
 }: ParentChildTableProps<ParentType, ChildType>) {
 
     const [expandedRows, setExpandedRows] = useState<any>(
@@ -161,15 +163,21 @@ export function ParentChildTable<
             >
                 <Column expander style={{ width: "3rem" }} />
 
-                {parentColumns.map((col, idx) => (
-                    <Column
-                        key={idx}
-                        field={col.field as string}
-                        header={col.header}
-                        body={col.body}
-                        style={{ width: col.width }}
-                    />
-                ))}
+                {parentColumns.map((col, idx) => {
+                    const isSortable = sortableColumns.includes(col.field as keyof ParentType);
+
+                    return (
+                        <Column
+                            key={idx}
+                            field={col.field as string}
+                            header={col.header}
+                            body={col.body}
+                            sortable={isSortable}
+                            sortField={isSortable ? (col.field as string) : undefined}
+                            style={{ width: col.width }}
+                        />
+                    );
+                })}
 
                 {onEdit && (
                     <Column

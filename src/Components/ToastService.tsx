@@ -26,3 +26,10 @@ export const useToast = () => {
 
   return { showSuccess, showError };
 };
+
+
+let toastHandler: ((msg: string) => void) | null = null;
+
+export const setToastHandler = (fn: (msg: string) => void) => {
+  toastHandler = fn;
+};

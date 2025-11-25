@@ -13,6 +13,8 @@ import { useAuth } from "../auth/AuthProvider";
 import { Badge } from "primereact/badge";
 import appLogo from "../Images/jobsnap_logo.png";
 import { AppTopbarRef } from "./layoutprops";
+import { Menu } from "primereact/menu";
+import { Avatar } from "primereact/avatar";
 
 const AppTopbar = forwardRef<AppTopbarRef>((_props, ref) => {
   const { layoutState, onMenuToggle, showProfileSidebar } = useContext(LayoutContext);
@@ -77,19 +79,31 @@ const AppTopbar = forwardRef<AppTopbarRef>((_props, ref) => {
           "layout-topbar-menu-mobile-active": layoutState.profileSidebarVisible,
         })}
       >
+        {/* Bell icon */}
         <button type="button" className="p-link layout-topbar-button">
           <i className="pi pi-bell p-overlay-badge">
             <Badge value="2"></Badge>
           </i>
         </button>
-        <button
-          type="button"
-          className="p-link layout-topbar-button"
-          onClick={(e) => profileOverlayRef.current?.toggle(e)}
-        >
-          <i className="pi pi-user"></i>
-          <span>Profile</span>
-        </button>
+
+        {/* Profile pill */}
+        <div className="profile-wrapper">
+          <div
+            className="profile"
+            onClick={(e) => profileOverlayRef.current?.toggle(e)}
+          >
+            <div className="avatar-circle">
+              <i className="pi pi-user"></i>
+            </div>
+
+            <span className="profile-name">
+              {localStorage.getItem("userProfileName")}
+            </span>
+          </div>
+        </div>
+
+
+        {/* Overlay Panel */}
         <OverlayPanel
           ref={profileOverlayRef}
           dismissable
@@ -105,6 +119,7 @@ const AppTopbar = forwardRef<AppTopbarRef>((_props, ref) => {
             <i className="pi pi-user" style={{ marginRight: "0.5rem" }}></i>
             My Profile
           </button>
+
           <button
             type="button"
             className="p-link p-button-text"
@@ -116,6 +131,7 @@ const AppTopbar = forwardRef<AppTopbarRef>((_props, ref) => {
           </button>
         </OverlayPanel>
       </div>
+
     </div>
   );
 });

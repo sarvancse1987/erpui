@@ -316,7 +316,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         </div>
 
         <div className="flex-1 min-w-[140px]">
-          <Button label="Add" icon="pi pi-plus" onClick={c => { setShowCustomerAdd(true); }} className="p-button-sm custom-md mt-4" />
+          <Button icon="pi pi-plus" onClick={c => { setShowCustomerAdd(true); }} className="p-button-sm custom-md mt-4" />
         </div>
 
         <div className="flex-1 min-w-[140px]">

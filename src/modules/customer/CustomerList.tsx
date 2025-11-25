@@ -131,8 +131,8 @@ export default function CustomerList() {
     const columns: ColumnMeta<CustomerModel>[] = [
         { field: "customerId", header: "ID", width: "80px", editable: false, hidden: true },
         { field: "customerName", header: "Name", width: "220px", required: true },
-        { field: "phone", header: "Phone", width: "110px" },
-        { field: "email", header: "Email", width: "150px" },
+        { field: "phone", header: "Phone", width: "140px" },
+        { field: "email", header: "Email", width: "170px" },
         { field: "gstNumber", header: "GST", width: "130px" },
         { field: "city", header: "City", width: "110px" },
         { field: "districtName", header: "District", width: "150px" },

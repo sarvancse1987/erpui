@@ -523,6 +523,7 @@ export default function PurchaseList() {
                             onDelete={handleDeletePurchase}
                             isNew={false}
                             isSave={false}
+                             sortableColumns={["grandTotal", "purchaseDate"]}
                         />
                     ) : (
                         <div className="space-y-2">
@@ -534,6 +535,7 @@ export default function PurchaseList() {
                                 rowKey={"purchaseId" as keyof PurchaseModel}
                                 expandAllInitially={false}
                                 onEdit={handleParentEdit}
+                                sortableColumns={["grandTotal", "purchaseDate"]}
                             />
                         </div>
                     )}

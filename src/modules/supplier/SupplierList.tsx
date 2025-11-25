@@ -75,7 +75,7 @@ export default function SupplierList() {
         newSuppliers.forEach((s, idx) => {
             if (!s.supplierName.trim()) errors[`supplier-${idx}-supplierName`] = "Supplier name required";
             if (!s.phone.trim()) errors[`supplier-${idx}-phone`] = "Phone required";
-            if (!s.contactPerson.trim()) errors[`supplier-${idx}-contactPerson`] = "Contact Person required";
+            if (!s.contactPerson.trim()) errors[`supplier-${idx}-contactPerson`] = "Contact person required";
             if (s.email?.trim()) {
                 if (s.email?.trim() != undefined && s.email?.trim() !== "") {
                     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

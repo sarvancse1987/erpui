@@ -31,6 +31,10 @@ const LoginPage: React.FC = () => {
         localStorage.setItem("authToken", response.token);
         localStorage.setItem("companyId", String(response.companyId));
         localStorage.setItem("locationId", String(response.locationId));
+        localStorage.setItem(
+          "userProfileName",
+          response.lastName ? `${response.firstName} ${response.lastName}` : response.firstName
+        );
         setToken(response.token);
         navigate("/", { replace: true });
       } else {
