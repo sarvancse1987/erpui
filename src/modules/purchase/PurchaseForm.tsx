@@ -182,10 +182,10 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     items.forEach(item => {
       const key = item.purchaseItemId;
       errors[key] = {};
-      if (!item.productId) errors[key].productId = "Item Name is required";
-      if (!item.unitPrice || item.unitPrice <= 0) errors[key].unitPrice = "Rate is required";
-      if (!item.quantity || item.quantity <= 0) errors[key].quantity = "Qty is required";
-      if (item.gstPercent == null || item.gstPercent < 0) errors[key].gstPercent = "GST % is required";
+      if (!item.productId) errors[key].productId = "Item Name required";
+      if (!item.unitPrice || item.unitPrice <= 0) errors[key].unitPrice = "Rate required";
+      if (!item.quantity || item.quantity <= 0) errors[key].quantity = "Qty required";
+      if (item.gstPercent == null || item.gstPercent < 0) errors[key].gstPercent = "GST % required";
       if (Object.keys(errors[key]).length === 0) delete errors[key];
     });
     return errors;
@@ -193,26 +193,26 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
 
   const runLocalValidation = () => {
     const errors: Record<string, string> = {};
-    if (!formData.supplierId) errors.supplierId = "Supplier is required";
-    if (!formData.invoiceNumber?.trim()) errors.invoiceNumber = "Invoice Number is required";
-    if (!formData.invoiceAmount || formData.invoiceAmount <= 0) errors.invoiceAmount = "Invoice Amount is required";
-    if (!formData.invoiceDate) errors.invoiceDate = "Invoice Date is required";
-    if (!formData.purchaseDate) errors.purchaseDate = "Purchase Date is required";
-    if (!formData.purchaseTypeId) errors.purchaseTypeId = "Purchase Type is required";
+    if (!formData.supplierId) errors.supplierId = "Supplier required";
+    if (!formData.invoiceNumber?.trim()) errors.invoiceNumber = "Invoice number required";
+    if (!formData.invoiceAmount || formData.invoiceAmount <= 0) errors.invoiceAmount = "Invoice amount required";
+    if (!formData.invoiceDate) errors.invoiceDate = "Invoice date required";
+    if (!formData.purchaseDate) errors.purchaseDate = "Purchase date required";
+    if (!formData.purchaseTypeId) errors.purchaseTypeId = "Purchase type required";
 
     const cashPurchaseTypeId = 1;
     if (formData.purchaseTypeId === cashPurchaseTypeId) {
 
       if ((formData.invoiceAmount ?? 0) !== (formData.paidAmount ?? 0)) {
         errors.paidAmount =
-          "For Cash Purchase, Paid Amount must equal Invoice Amount.";
+          "Paid Amount must equal invoice amount.";
       }
 
       if ((formData.invoiceAmount ?? 0) !== (formData.grandTotal ?? 0)) {
         errors.invoiceAmount =
-          "For Cash Purchase, Invoice Amount must be equal to Grand Total.";
+          "Invoice amount must be equal to grand total.";
         errors.paidAmount =
-          "For Cash Purchase, Grand Total must equal Invoice Amount.";
+          "Grand total must equal invoice amount.";
       }
     }
 

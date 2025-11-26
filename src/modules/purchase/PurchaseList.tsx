@@ -105,6 +105,7 @@ export default function PurchaseList() {
                         value={row.purchaseTypeName}
                         severity={severity}
                         className="purchase-type-tag"
+                        style={{ width: "90px" }}
                     />
                 );
             },
@@ -168,7 +169,7 @@ export default function PurchaseList() {
                     severity = "danger";
                     displayValue = -balance;
                     displayValue = `${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(displayValue)}`;
-                    return <Tag value={displayValue} severity={severity} className="amount-tag" />;
+                    return <Tag value={displayValue} severity={severity} className="amount-tag" style={{ width: "90px" }} />;
                 } else {
                     severity = "warning";
                 }
@@ -178,6 +179,7 @@ export default function PurchaseList() {
                         value={new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(displayValue)}
                         severity={severity}
                         className="amount-tag"
+                        style={{ width: "90px" }}
                     />
                 );
             },
@@ -205,7 +207,7 @@ export default function PurchaseList() {
                     displayValue = `${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(balance)}`;
                 }
 
-                return <Tag value={displayValue} severity={severity} className="amount-tag" />;
+                return <Tag value={displayValue} severity={severity} className="amount-tag" style={{ width: "90px" }} />;
             },
         },
         {
@@ -242,7 +244,7 @@ export default function PurchaseList() {
         { field: "supplierName", header: "Supplier", width: "130px" },
         { field: "invoiceNumber", header: "Invoice No", width: "130px" },
         { field: "purchaseRefNo", header: "Ref No", width: "180px" },
-        { field: "purchaseDate", header: "Purchase Date", width: "130px" },
+        { field: "purchaseDate", header: "Pur Date", width: "130px" },
         {
             field: "purchaseTypeName",
             header: "Pur Type",
@@ -269,6 +271,7 @@ export default function PurchaseList() {
                         value={row.purchaseTypeName}
                         severity={severity}
                         className="purchase-type-tag"
+                        style={{ width: "90px" }}
                     />
                 );
             },
@@ -331,7 +334,7 @@ export default function PurchaseList() {
                     severity = "danger";
                     displayValue = -balance;
                     displayValue = `${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(displayValue)}`;
-                    return <Tag value={displayValue} severity={severity} className="amount-tag" />;
+                    return <Tag value={displayValue} severity={severity} className="amount-tag" style={{ width: "90px" }} />;
                 } else {
                     severity = "warning";
                 }
@@ -341,6 +344,7 @@ export default function PurchaseList() {
                         value={new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(displayValue)}
                         severity={severity}
                         className="amount-tag"
+                        style={{ width: "90px" }}
                     />
                 );
             },
@@ -366,12 +370,12 @@ export default function PurchaseList() {
                     displayValue = `${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(balance)}`;
                 }
 
-                return <Tag value={displayValue} severity={severity} className="amount-tag" />;
+                return <Tag value={displayValue} severity={severity} className="amount-tag" style={{ width: "90px" }} />;
             },
         },
         {
             field: "grandTotal",
-            header: "Grand Total",
+            header: "Total",
             width: "120px",
             body: (row: PurchaseModel) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.grandTotal)
         }
@@ -523,7 +527,7 @@ export default function PurchaseList() {
                             onDelete={handleDeletePurchase}
                             isNew={false}
                             isSave={false}
-                             sortableColumns={["grandTotal", "purchaseDate"]}
+                            sortableColumns={["grandTotal", "purchaseDate"]}
                         />
                     ) : (
                         <div className="space-y-2">
@@ -555,6 +559,7 @@ export default function PurchaseList() {
                             onSaveSuccess={() => {
                                 setActiveIndex(0);
                                 loadAllData();
+                                setIsSidebarOpen(false);
                             }}
                             onCancel={closeEditSidebar}
                         />
@@ -575,6 +580,7 @@ export default function PurchaseList() {
                         onSaveSuccess={() => {
                             setActiveIndex(0);
                             loadAllData();
+                            setIsSidebarOpen(false);
                         }}
                         onCancel={closeEditSidebar}
                     />
@@ -596,6 +602,7 @@ export default function PurchaseList() {
                         onSaveSuccess={() => {
                             setActiveIndex(0);
                             loadAllData();
+                            setIsSidebarOpen(false);
                         }}
                         onCancel={closeEditSidebar}
                     />

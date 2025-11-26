@@ -20,6 +20,7 @@ import { CategoryModel } from "../models/product/CategoryModel";
 import apiService from "../services/apiService";
 import { MultiSelect } from "primereact/multiselect";
 import { useToast } from "./ToastService";
+import { storage } from "../services/storageService";
 
 export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
   columns,
@@ -58,9 +59,30 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
   const [errorTextbox, setErrorTextbox] = useState(false);
   const [activeCategories, setActiveCategories] = useState<CategoryModel[]>([]);
   const { showSuccess, showError } = useToast();
+  const [adjustmentOptions, setAdjustmentOptions] = useState<{ label: string; value: number }[]>([]);
+  const [selectedAdjustment, setSelectedAdjustment] = useState<string | null>(null);
+  const [adjustmentValue, setAdjustmentValue] = useState<number>(0);
+  const [adjustments, setAdjustments] = useState<Record<number, number>>({});
+  const user = storage.getUser();
+
+
+  const loadFreightData = async () => {
+    try {
+      const response = await apiService.get(`/Adjustments/${Number(user?.companyId)}/${Number(user?.locationId)}`);
+      const typeOptions = (response ?? []).map((pt: any) => ({
+        label: pt.adjustmentName,
+        value: pt.adjustmentId
+      }));
+      setAdjustmentOptions(typeOptions);
+    } catch (err) {
+      console.error(err);
+    } finally {
+    }
+  };
 
   useEffect(() => {
     fetchCategories();
+    loadFreightData();
   }, []);
 
   useEffect(() => {
@@ -150,6 +172,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
     const amount = parseFloat((unitPrice * quantity).toFixed(2));
 
     updatedRow.amount = amount;
+    updatedRow.totalAmount = amount;
     updatedRow.totalAmount = amount;
 
     setTableData(prev => {
@@ -269,7 +292,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
                     const unitPrice = parseFloat(updated.unitPrice) || 0;
                     const quantity = parseFloat(updated.quantity) || 0;
                     updated.amount = parseFloat((unitPrice * quantity).toFixed(2));
-                    updated.totalAmount = updated.amount; // or include GST logic if needed
+                    updated.totalAmount = updated.amount;
                     updated._edited = true;
 
                     // Call onChange callback if needed
@@ -385,20 +408,6 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
     />
   );
 
-  const adjustmentOptions = [
-    { label: "Freight Charge", value: "freightAmount" },
-    { label: "Round Off (+)", value: "roundOffAdd" },
-    { label: "Round Off (-)", value: "roundOffSub" },
-  ];
-
-  const [selectedAdjustment, setSelectedAdjustment] = useState<string | null>(null);
-  const [adjustmentValue, setAdjustmentValue] = useState<number>(0);
-  const [adjustments, setAdjustments] = useState({
-    freightAmount: 0,
-    roundOffAdd: 0,
-    roundOffSub: 0,
-  });
-
   const onRowEditComplete = (e: any) => {
     const updatedRow = { ...e.data };
     const unitPrice = parseFloat(updatedRow.unitPrice);
@@ -472,7 +481,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
                     setSelectedAdjustment(e.value);
                     setErrorDropdown(false);
                   }}
-                  placeholder="Select Adjustment"
+                  placeholder="Adjustment"
                   className={errorDropdown ? "p-invalid" : ""}
                   style={{ fontSize: '0.85rem' }}
                 />
@@ -482,13 +491,13 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
                   mode="currency"
                   currency="INR"
                   locale="en-IN"
-                  style={{ width: '60%', fontSize: '0.85rem' }}
-                  className={errorDropdown ? "p-invalid" : ""}
+                  inputStyle={{ width: "100px", fontSize: "0.85rem" }}
+                  className={errorTextbox ? "p-invalid" : ""}
                 />
                 <Button
                   label=""
                   icon="pi pi-check"
-                  severity="success"
+                  severity="info"
                   style={{ fontSize: '0.85rem', padding: '2px 2px', height: '36px' }}
                   onClick={() => {
 
@@ -515,7 +524,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
 
                     if (!selectedAdjustment) return;
 
-                    const updatedAdjustments = {
+                    const updatedAdjustments: any = {
                       ...adjustments,
                       [selectedAdjustment]: adjustmentValue,
                     };
@@ -523,10 +532,8 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
                     setAdjustments(updatedAdjustments);
 
                     const finalAdjustmentResult = {
-                      freightAmount: updatedAdjustments.freightAmount || 0,
-                      roundOff:
-                        (updatedAdjustments.roundOffAdd || 0) -
-                        (updatedAdjustments.roundOffSub || 0),
+                      freightAmount: updatedAdjustments[1] || 0,
+                      roundOff: (updatedAdjustments[2] || 0) - (updatedAdjustments[3] || 0),
                     };
 
                     onAdjustmentsChange?.(finalAdjustmentResult);
@@ -539,85 +546,63 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
               </div>
 
               <div className="flex items-center gap-1 flex-wrap">
-                {adjustments.freightAmount > 0 && (
-                  <span
-                    className="flex items-center justify-start text-left gap-2 px-2 py-0.5 text-sm font-semibold"
-                    style={{ background: "#7e7976ff", color: "white", borderRadius: "4px" }}
-                  >
-                    Freight: ₹{adjustments.freightAmount}
-                    <i
-                      className="pi pi-times cursor-pointer ml-1"
-                      onClick={() => {
-                        const updated = { ...adjustments, freightAmount: 0 };
-                        setAdjustments(updated);
-                        onAdjustmentsChange?.({
-                          freightAmount: 0,
-                          roundOff: (updated.roundOffAdd || 0) - (updated.roundOffSub || 0)
-                        });
-                      }}
-                    ></i>
-                  </span>
-                )}
+                {adjustmentOptions.map((opt: any) => {
+                  const value = adjustments[opt.value] || 0;
+                  if (value <= 0) return null;
 
-                {adjustments.roundOffAdd > 0 && (
-                  <span
-                    className="flex items-center gap-2 px-2 py-0.5 text-sm font-semibold"
-                    style={{ background: "#7e7976ff", color: "white", borderRadius: "4px" }}
-                  >
-                    Round Off (+): ₹{adjustments.roundOffAdd}
-                    <i
-                      className="pi pi-times cursor-pointer ml-1"
-                      onClick={() => {
-                        const updated = { ...adjustments, roundOffAdd: 0 };
-                        setAdjustments(updated);
-                        onAdjustmentsChange?.({
-                          freightAmount: updated.freightAmount || 0,
-                          roundOff: (updated.roundOffAdd || 0) - (updated.roundOffSub || 0)
-                        });
+                  return (
+                    <span
+                      key={opt.value}
+                      className="flex items-center gap-1 px-2 py-0.5 text-sm font-semibold"
+                      style={{
+                        background: opt.value === 3 ? "#ff4d4d" : "#f39494ff",
+                        color: "white",
+                        borderRadius: 0,
+                        minWidth: 130,
+                        height: "87%",
                       }}
-                    ></i>
-                  </span>
-                )}
-
-                {adjustments.roundOffSub > 0 && (
-                  <span
-                    className="flex items-center gap-2 px-2 py-0.5 text-sm font-semibold"
-                    style={{ background: "#7e7976ff", color: "white", borderRadius: "4px" }}
-                  >
-                    Round Off (-): ₹{adjustments.roundOffSub}
-                    <i
-                      className="pi pi-times cursor-pointer ml-1"
-                      onClick={() => {
-                        const updated = { ...adjustments, roundOffSub: 0 };
-                        setAdjustments(updated);
-                        onAdjustmentsChange?.({
-                          freightAmount: updated.freightAmount || 0,
-                          roundOff: (updated.roundOffAdd || 0) - (updated.roundOffSub || 0)
-                        });
-                      }}
-                    ></i>
-                  </span>
-                )}
+                    >
+                      <span style={{ alignSelf: "center" }}>
+                        {opt.label}: ₹{value}
+                      </span>
+                      <i
+                        className="pi pi-times-circle cursor-pointer"
+                        style={{ fontSize: "14px", alignSelf: "center" }}
+                        onClick={() => {
+                          const updated = { ...adjustments, [opt.value]: 0 };
+                          setAdjustments(updated);
+                          onAdjustmentsChange?.({
+                            freightAmount: updated[1] || 0,
+                            roundOff: (updated[2] || 0) - (updated[3] || 0),
+                          });
+                        }}
+                      />
+                    </span>
+                  );
+                })}
               </div>
 
               <div className="flex items-center gap-1 flex-wrap">
                 <div
                   className="flex items-center justify-start px-2 py-0.5 text-sm font-semibold"
-                  style={{ background: "#2ecc71", color: "white", borderRadius: 0, minWidth: 130, height: '87%' }}
+                  style={{ background: "#3498db", color: "white", borderRadius: 0, minWidth: 130, height: '87%' }}
                 >
-                  <span>Total Amt: ₹{tableData.reduce((a, r) => a + (r.amount || 0), 0).toFixed(2)}</span>
+                  <span style={{ alignSelf: "center" }}>Total Amt: ₹{tableData.reduce((a, r) => a + (r.amount || 0), 0).toFixed(2)}</span>
                 </div>
 
                 <div
                   className="flex items-center justify-center px-2 py-0.5 text-sm font-semibold"
                   style={{ background: "#3498db", color: "white", borderRadius: 0, minWidth: 130, height: '87%' }}
                 >
-                  <span>Grand Total: ₹{(
-                    tableData.reduce((a, r) => a + (r.totalAmount || 0), 0)
-                    + adjustments.freightAmount
-                    + adjustments.roundOffAdd
-                    - adjustments.roundOffSub
-                  ).toFixed(2)}</span>
+                  <span style={{ alignSelf: "center" }}>
+                    Grand Total: ₹
+                    {(
+                      tableData.reduce((sum, row) => sum + (row.totalAmount || 0), 0)
+                      + (adjustments[1] || 0)
+                      + (adjustments[2] || 0)
+                      - (adjustments[3] || 0)
+                    ).toFixed(2)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -691,12 +676,26 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
           />
 
           <DataTable
-            value={products.filter(p =>
-              p.productName.toLowerCase().includes(sidebarSearchText.toLowerCase()) &&
-              (selectedCategory === null ||
-                selectedCategory.length === 0 ||
-                selectedCategory.includes(p.productCategoryId))
-            )}
+            value={
+              products.filter((p) => {
+                const search = sidebarSearchText.trim().toLowerCase();
+
+                const nameMatch =
+                  search === "" ||
+                  p.productName?.toLowerCase().includes(search);
+
+                const priceMatch =
+                  search === "" ||
+                  p.salePrice?.toString().includes(search);
+
+                const categoryMatch =
+                  selectedCategory === null ||
+                  selectedCategory.length === 0 ||
+                  selectedCategory.includes(p.productCategoryId);
+
+                return (nameMatch || priceMatch) && categoryMatch;
+              })
+            }
             selection={sidebarSelectedProducts}
             onSelectionChange={(e) => setSidebarSelectedProducts(e.value)}
             dataKey="productId"
@@ -706,15 +705,16 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
             size="normal"
           >
             <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
-            <Column field="productName" header="Name" style={{ minWidth: "200px" }} />
-            <Column field="salePrice" header="Rate" style={{ minWidth: "120px" }} body={(row: any) =>
+            <Column field="productName" header="Name" style={{ minWidth: "200px" }} sortable />
+            <Column field="salePrice" header="Rate" style={{ minWidth: "120px" }} sortable body={(row: any) =>
               new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.salePrice)
             } />
-            <Column field="brandName" header="Brand" style={{ minWidth: "200px" }} />
+            <Column field="brandName" header="Brand" style={{ minWidth: "200px" }} sortable />
             <Column
               field="quantity"
               header="Quantity"
               style={{ minWidth: "120px" }}
+              sortable
               body={(row: any) => {
                 const value = row.quantity;
 
@@ -752,7 +752,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
 
             <Column
               field="inventoryPurchasePrice"
-              header="Inv Price"
+              header="Pur. Price"
               style={{ minWidth: "120px" }}
               body={(row: any) => {
                 const value = row.inventoryPurchasePrice;
@@ -789,7 +789,8 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
                     productId: p.productId,
                     productName: p.productName,
                     salePrice: p.salePrice,
-                    unitPrice: 0,
+                    unitPrice: p.salePrice,
+                    supplierId: p.supplierId,
                     quantity: 0,
                     amount: 0,
                     totalAmount: 0,

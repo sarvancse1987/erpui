@@ -101,6 +101,7 @@ export const CustomerSelector: React.FC<CustomerSelectorProps> = ({
                         setShowTable(true);
                     }
                 }}
+               style={{ width: "100%" }}
             />
 
             {showTable && (
@@ -117,8 +118,8 @@ export const CustomerSelector: React.FC<CustomerSelectorProps> = ({
                             tableStyle={{ width: '100%' }}
                         >
                             <Column header="Select" body={radioBodyTemplate} style={{ width: '60px' }} />
-                            <Column field="customerName" header="Supplier Name" style={{ minWidth: '200px' }} />
-                            <Column field="phone" header="Phone" style={{ minWidth: '140px' }} />
+                            <Column field="customerName" header="Supplier Name" style={{ minWidth: '200px' }} sortable />
+                            <Column field="phone" header="Phone" style={{ minWidth: '140px' }} sortable />
                             <Column field="city" header="City" style={{ minWidth: '180px' }} />
                             <Column field="address" header="Address" style={{ minWidth: '180px' }} />
                         </DataTable>

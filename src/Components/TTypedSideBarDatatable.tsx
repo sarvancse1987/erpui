@@ -565,14 +565,14 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
               <div className="flex items-center gap-1 flex-wrap">
                 <div
                   className="flex items-center justify-start px-2 py-0.5 text-sm font-semibold"
-                  style={{ background: "#9872d5", color: "black", borderRadius: 0, minWidth: 130, height: '87%' }}
+                  style={{ background: "#3498db", color: "white", borderRadius: 0, minWidth: 130, height: '87%' }}
                 >
                   <span style={{ alignSelf: "center" }}>Total Amt: ₹{tableData.reduce((a, r) => a + (r.amount || 0), 0).toFixed(2)}</span>
                 </div>
 
                 <div
                   className="flex items-center justify-center px-2 py-0.5 text-sm font-semibold"
-                  style={{ background: "#f1c40f", color: "black", borderRadius: 0, minWidth: 130, height: '87%' }}
+                  style={{ background: "#9799e9ff", color: "white", borderRadius: 0, minWidth: 130, height: '87%' }}
                 >
                   <span style={{ alignSelf: "center" }}>GST Amt: ₹{tableData.reduce((a, r) => a + (r.gstAmount || 0), 0).toFixed(2)}</span>
                 </div>

@@ -15,6 +15,7 @@ import { Sidebar } from "primereact/sidebar";
 import { TTypedSaleSideBarDatatable } from "../../components/TTypedSaleSideBarDatatable";
 import { Dropdown } from "primereact/dropdown";
 import { SaleTypeModel } from "../../models/sale/SaleTypeModel";
+import { PaymentTypeModel } from "../../models/sale/PaymentTypeModel";
 
 interface SalesFormProps {
   isEditSidebar: boolean;
@@ -61,6 +62,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
 
   const [customers, setCustomers] = useState<CustomerModel[]>([]);
   const [saleTypes, setSaleTypes] = useState<SaleTypeModel[]>([]);
+  const [paymentTypes, setPaymentTypes] = useState<SaleTypeModel[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const { showSuccess, showError } = useToast();
   const [showCustomerAdd, setShowCustomerAdd] = useState(false);
@@ -80,6 +82,13 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         value: pt.saleTypeId
       }));
       setSaleTypes(saleTypeOptions ?? []);
+
+      const paymentTypes = await apiService.get("/PaymentType");
+      const paymentTypesOptions = (paymentTypes ?? []).map((pt: PaymentTypeModel) => ({
+        label: pt.paymentTypeName,
+        value: pt.paymentTypeId
+      }));
+      setPaymentTypes(paymentTypesOptions ?? []);
     } catch (err) {
       console.error(err);
     }
@@ -188,8 +197,8 @@ export const SalesForm: React.FC<SalesFormProps> = ({
     setFormData(prev => ({
       ...prev,
       saleItems: items,
-      totalAmount,
-      grandTotal
+      totalAmount: totalAmount,
+      grandTotal: grandTotal
     }));
   };
 
@@ -208,8 +217,12 @@ export const SalesForm: React.FC<SalesFormProps> = ({
 
   const runLocalValidation = () => {
     const errors: Record<string, string> = {};
-    if (!formData.customerId) errors.customerId = "Customer is required";
-    if (!formData.saleTypeId) errors.saleTypeId = "Sale type is required";
+    if (!formData.customerId) errors.customerId = "Customer required";
+    if (!formData.saleTypeId) errors.saleTypeId = "Sale type required";
+    if (formData.paidAmount == 0) errors.paidAmount = "Paid amount required";
+    if (!formData.paymentTypeId) errors.paymentTypeId = "Payment type required";
+    if (!formData.saleDate) errors.saleDate = "Sale Date required";
+
     const paidAmountRequired =
       formData.saleTypeId === 1 || formData.saleTypeId === 3;
 
@@ -218,7 +231,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         errors.paidAmount = "Paid Amount is required";
       } else {
         if (formData.saleTypeId === 1 && formData.paidAmount !== formData.grandTotal) {
-          errors.paidAmount = `For Cash sales, Paid Amount must match the Grand Total (${formData.grandTotal.toFixed(2)}).`;
+          errors.paidAmount = `Paid Amount must match the Grand Total (${formData.grandTotal.toFixed(2)}).`;
         }
       }
     }
@@ -291,6 +304,27 @@ export const SalesForm: React.FC<SalesFormProps> = ({
     }
   };
 
+  const handleAdjustmentsChange = (adjustments: any) => {
+    setFormData(prev => {
+      const totalItemsAmount = prev.saleItems?.reduce(
+        (sum, item) => sum + (item.totalAmount || 0),
+        0
+      ) || 0;
+
+      const grandTotal =
+        totalItemsAmount +
+        (adjustments.freightAmount || 0) +
+        (adjustments.roundOff || 0);
+
+      return {
+        ...prev,
+        freightAmount: adjustments.freightAmount,
+        roundOff: adjustments.roundOff,
+        grandTotal: parseFloat(grandTotal.toFixed(2)),
+      };
+    });
+  };
+
   return (
     <div className={`border border-gray-200 rounded-md p-1 ${isEditSidebar ? "max-w-[800px]" : "w-full"}`}>
       {!isEditSidebar && (
@@ -300,7 +334,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
       )}
 
       <div className="flex flex-wrap gap-2 mb-2 items-end">
-        <div className="flex-1 min-w-[140px]">
+        <div className="flex-1 min-w-[200px]">
           <strong className="text-sm">Customer <span className="mandatory-asterisk">*</span></strong>
           <CustomerSelector
             customers={customers}
@@ -315,11 +349,11 @@ export const SalesForm: React.FC<SalesFormProps> = ({
           )}
         </div>
 
-        <div className="flex-1 min-w-[140px]">
-          <Button icon="pi pi-plus" onClick={c => { setShowCustomerAdd(true); }} className="p-button-sm custom-md mt-4" />
+        <div className="min-w-[50px] mt-4">
+          <Button icon="pi pi-plus" onClick={() => setShowCustomerAdd(true)} className="p-button-sm custom-md" />
         </div>
 
-        <div className="flex-1 min-w-[140px]">
+        <div className="flex-1 min-w-[200px]">
           <strong className="text-sm">Sale Type <span className="mandatory-asterisk">*</span></strong>
           <Dropdown
             value={formData.saleTypeId}
@@ -333,7 +367,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
           {validationErrors?.saleTypeId && <span className="mandatory-error text-xs">{validationErrors.saleTypeId}</span>}
         </div>
 
-        <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[140px]"}>
+        <div className="flex-1 min-w-[140px]">
           <strong className="text-sm">Paid Amount <span className="mandatory-asterisk">*</span></strong>
           <InputNumber
             value={formData.paidAmount}
@@ -345,7 +379,21 @@ export const SalesForm: React.FC<SalesFormProps> = ({
           {validationErrors?.paidAmount && <span className="mandatory-error text-xs">{validationErrors.paidAmount}</span>}
         </div>
 
-        <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[120px]"}>
+        <div className="flex-1 min-w-[140px]">
+          <strong className="text-sm">Payment Type <span className="mandatory-asterisk">*</span></strong>
+          <Dropdown
+            value={formData.paymentTypeId}
+            options={paymentTypes}
+            onChange={(e) => handleChange("paymentTypeId", e.value)}
+            placeholder="Select Payment Type"
+            showClear
+            filter
+            className={`w-full mt-1 text-sm ${validationErrors?.paymentTypeId ? "p-invalid" : ""}`}
+          />
+          {validationErrors?.paymentTypeId && <span className="mandatory-error text-xs">{validationErrors.paymentTypeId}</span>}
+        </div>
+
+        <div className="flex-1 min-w-[140px]">
           <strong className="text-sm">Sale Date <span className="mandatory-asterisk">*</span></strong>
           <Calendar
             value={formData.saleDate ? new Date(formData.saleDate) : null}
@@ -358,7 +406,9 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         </div>
 
         <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[120px]"}>
-          <strong className="mb-2">GST Include</strong>
+          <div className="mb-2">
+            <strong className="text-sm">GST Include</strong>
+          </div>
           <Checkbox
             checked={formData.isGst}
             onChange={(e) => handleChange("isGst", e.checked)}
@@ -376,6 +426,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
           onChange={handleItemsChange}
           isDelete={true}
           isNew={isEditSidebar}
+          onAdjustmentsChange={handleAdjustmentsChange}
         />
       </div>
 
@@ -388,6 +439,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
           customer={newcustomer}
           onSave={handleSaveCustomer}
           isAddNewCustomer={true}
+          isEditSidebar={true}
           onCancel={() => setShowCustomerAdd(false)}
         />
       </Sidebar>

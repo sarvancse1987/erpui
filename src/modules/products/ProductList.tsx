@@ -167,7 +167,7 @@ export default function ProductList() {
           p.productId === updatedProduct.productId ? { ...updatedProduct } : p
         )
       );
-
+      await loadAllData();
       showSuccess('Product updated successfully!');
 
       // ✅ Close sidebar only after API and state update

@@ -64,4 +64,6 @@ export interface ProductSearchModel {
 
     productBrandId?: number;
     brandName?: string;
+
+    supplierId?: number;
 }

@@ -69,7 +69,8 @@ export function ParentChildTable<
 
         const freightAmount = parent.freightAmount ?? 0;
         const roundOff = parent.roundOff ?? 0;
-        const showFooter = freightAmount !== 0 || roundOff !== 0;
+        const brokarageAmount = parent.brokerageAmount ?? 0;
+        const showFooter = freightAmount !== 0 || roundOff !== 0 || brokarageAmount !== 0;
 
         const footerTemplate = showFooter ? (
             <div className="flex justify-content-end gap-1 font-bold pr-2 py-1">
@@ -92,6 +93,23 @@ export function ParentChildTable<
                             }}
                         >
                             ₹{roundOff.toFixed(2)}
+                        </span>
+                    </span>
+                )}
+
+                {brokarageAmount !== 0 && (
+                    <span>
+                        Brokarage:{" "}
+                        <span
+                            style={{
+                                backgroundColor: brokarageAmount > 0 ? "green" : "red",
+                                color: "white",
+                                fontWeight: "bold",
+                                padding: "2px 6px",
+                                borderRadius: "4px"
+                            }}
+                        >
+                            ₹{brokarageAmount.toFixed(2)}
                         </span>
                     </span>
                 )}

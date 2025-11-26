@@ -160,8 +160,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                 onClearError(errorKey);
             }
         }
-        if (!isEditSidebar)
-            onSave(updated);
+        if (!isEditSidebar && !isAddNewCustomer) onSave(updated);
     };
 
     const validateForm = (): boolean => {
@@ -326,7 +325,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                 </div>
 
                 <div className="flex justify-end gap-2 mt-4">
-                    {onCancel && !isAddNewCustomer && (
+                    {onCancel && !isAddNewCustomer && isEditSidebar || (
                         <Button type="button" label="Cancel" icon="pi pi-times-circle" style={{ color: 'red' }}
                             outlined onClick={onCancel} className="p-button-sm custom-xs" />
                     )}

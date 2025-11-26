@@ -25,7 +25,7 @@ export default function SaleList() {
     setLoading(true);
     try {
       const res = await apiService.get(`/Sale/saledetails`);
-      const mapped = res.sale .map((p: any) => ({
+      const mapped = res.sale.map((p: any) => ({
         ...p,
         saleItems: res.saleItems.filter((i: any) => i.saleId === p.saleId),
       }));
@@ -102,20 +102,21 @@ export default function SaleList() {
             value={row.saleTypeName}
             severity={severity}
             className="purchase-type-tag"
+            style={{ width: "90px" }}
           />
         );
       },
     },
     {
-      field: "totalAmount",
-      header: "Total Amt",
+      field: "grandTotal",
+      header: "Total",
       width: "110px",
-      body: (row: SaleModel) => (
+      body: (row) =>
         <Tag
           value={new Intl.NumberFormat("en-IN", {
             style: "currency",
             currency: "INR"
-          }).format(row.totalAmount)}
+          }).format(row.grandTotal)}
           className="amount-tag"
           style={{
             backgroundColor: "#3498db",
@@ -129,7 +130,6 @@ export default function SaleList() {
             width: "90px"
           }}
         />
-      )
     },
     {
       field: "paidAmount",
@@ -137,11 +137,11 @@ export default function SaleList() {
       width: "110px",
       body: (row) => {
         if (row.paidAmount == null) return "";
-        const isPaidFull = row.paidAmount === row.paidAmount;
+        const isPaidFull = row.paidAmount === row.paidAmount || row.paidAmount > row.totalAmount;
         return (
           <Tag
             value={new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.paidAmount)}
-            severity={isPaidFull ? "success" : "danger"}
+            severity={isPaidFull ? "info" : "danger"}
             className="amount-tag"
             style={{ width: "90px" }}
           />
@@ -154,7 +154,7 @@ export default function SaleList() {
       width: "110px",
       body: (row: SaleModel) => {
         const paid = row.paidAmount ?? 0;
-        let balance = row.totalAmount - paid;
+        let balance = row.grandTotal - paid;
 
         let severity: "success" | "warning" | "danger" = "warning";
         let displayValue: any = balance;
@@ -165,7 +165,7 @@ export default function SaleList() {
           severity = "danger";
           displayValue = -balance;
           displayValue = `${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(displayValue)}`;
-          return <Tag value={displayValue} severity={severity} className="amount-tag" />;
+          return <Tag value={displayValue} severity={severity} className="amount-tag" style={{ width: "90px" }} />;
         } else {
           severity = "warning";
         }
@@ -175,6 +175,7 @@ export default function SaleList() {
             value={new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(displayValue)}
             severity={severity}
             className="amount-tag"
+            style={{ width: "90px" }}
           />
         );
       },
@@ -190,7 +191,7 @@ export default function SaleList() {
         let displayValue: string;
 
         if (balance === 0) {
-          severity = "warning"; // fully settled
+          severity = "success"; // fully settled
           displayValue = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(balance);
         } else if (balance < 0) {
           // We need to pay buyer → red
@@ -202,17 +203,8 @@ export default function SaleList() {
           displayValue = `${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(balance)}`;
         }
 
-        return <Tag value={displayValue} severity={severity} className="amount-tag" />;
+        return <Tag value={displayValue} severity={severity} className="amount-tag" style={{ width: "90px" }} />;
       },
-    },
-    {
-      field: "grandTotal",
-      header: "Grand Total",
-      width: "110px",
-      body: (row) =>
-        row.grandTotal != null
-          ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.grandTotal)
-          : "",
     }
   ];
 
@@ -246,20 +238,21 @@ export default function SaleList() {
             value={row.saleTypeName}
             severity={severity}
             className="purchase-type-tag"
+            style={{ width: "90px" }}
           />
         );
       },
     },
     {
-      field: "totalAmount",
-      header: "Total Amt",
-      width: "130px",
-      body: (row: SaleModel) => (
+      field: "grandTotal",
+      header: "Total",
+      width: "110px",
+      body: (row: SaleModel) =>
         <Tag
           value={new Intl.NumberFormat("en-IN", {
             style: "currency",
             currency: "INR"
-          }).format(row.totalAmount)}
+          }).format(row.grandTotal)}
           className="amount-tag"
           style={{
             backgroundColor: "#3498db",
@@ -273,7 +266,6 @@ export default function SaleList() {
             width: "90px"
           }}
         />
-      )
     },
     {
       field: "paidAmount",
@@ -285,7 +277,7 @@ export default function SaleList() {
             style: "currency",
             currency: "INR"
           }).format(row.paidAmount)}
-          severity={row.paidAmount === row.totalAmount ? "success" : "danger"}
+          severity={row.paidAmount === row.grandTotal ? "info" : "danger"}
           className="amount-tag"
           style={{ width: "90px" }}
         />
@@ -297,7 +289,7 @@ export default function SaleList() {
       width: "120px",
       body: (row: SaleModel) => {
         const paid = row.paidAmount ?? 0;
-        let balance = row.totalAmount - paid;
+        let balance = row.grandTotal - paid;
 
         let severity: "success" | "warning" | "danger" = "warning";
         let displayValue: any = balance;
@@ -308,7 +300,7 @@ export default function SaleList() {
           severity = "danger";
           displayValue = -balance;
           displayValue = `${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(displayValue)}`;
-          return <Tag value={displayValue} severity={severity} className="amount-tag" />;
+          return <Tag value={displayValue} severity={severity} className="amount-tag" style={{ width: "90px" }} />;
         } else {
           severity = "warning";
         }
@@ -318,6 +310,7 @@ export default function SaleList() {
             value={new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(displayValue)}
             severity={severity}
             className="amount-tag"
+            style={{ width: "90px" }}
           />
         );
       },
@@ -333,7 +326,7 @@ export default function SaleList() {
         let displayValue: string;
 
         if (balance === 0) {
-          severity = "warning";
+          severity = "success";
           displayValue = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(balance);
         } else if (balance < 0) {
           severity = "success";
@@ -343,14 +336,8 @@ export default function SaleList() {
           displayValue = `${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(balance)}`;
         }
 
-        return <Tag value={displayValue} severity={severity} className="amount-tag" />;
+        return <Tag value={displayValue} severity={severity} className="amount-tag" style={{ width: "90px" }} />;
       },
-    },
-    {
-      field: "grandTotal",
-      header: "Grand Total",
-      width: "120px",
-      body: (row: SaleModel) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.grandTotal)
     }
   ];
 
@@ -377,7 +364,7 @@ export default function SaleList() {
         <div
           className="flex items-center justify-center py-2 px-2 text-sm font-semibold"
           style={{
-            background: "#2ecc71",
+            background: "#3b82f6",
             color: "white",
             borderRadius: "0px",
             minWidth: "90px",
@@ -488,6 +475,7 @@ export default function SaleList() {
               onSaveSuccess={() => {
                 setActiveIndex(0);
                 loadAllData();
+                setIsSidebarOpen(false);
               }}
               onCancel={closeEditSidebar}
             />
@@ -508,6 +496,7 @@ export default function SaleList() {
             onSaveSuccess={() => {
               setActiveIndex(0);
               loadAllData();
+              setIsSidebarOpen(false);
             }}
             onCancel={closeEditSidebar}
           />
@@ -529,6 +518,7 @@ export default function SaleList() {
             onSaveSuccess={() => {
               setActiveIndex(0);
               loadAllData();
+              setIsSidebarOpen(false);
             }}
             onCancel={closeEditSidebar}
           />
