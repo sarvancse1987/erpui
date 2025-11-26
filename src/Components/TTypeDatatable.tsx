@@ -58,9 +58,9 @@ export function TTypeDatatable<T extends Record<string, any>>({
     setFilters(f);
   }, [columns]);
 
-useEffect(() => {
-  setTableData(Array.isArray(data) ? data.map(d => ({ ...d })) : []);
-}, [data]);
+  useEffect(() => {
+    setTableData(Array.isArray(data) ? data.map(d => ({ ...d })) : []);
+  }, [data]);
 
   const getNextPrimaryKey = (): string => {
     const maxId = Math.max(
@@ -411,6 +411,7 @@ useEffect(() => {
       <ConfirmDialog />
 
       <DataTable
+        scrollHeight="300px"
         value={tableData}
         dataKey={primaryKey as string}
         selection={selectedRows}
@@ -420,7 +421,6 @@ useEffect(() => {
         editingRows={editingRows}
         onRowEditChange={(e) => setEditingRows(e.data)}
         rowEditValidator={rowEditorValidator}
-        scrollHeight="600px"
         frozenWidth="250px"
         size="small"
         scrollable

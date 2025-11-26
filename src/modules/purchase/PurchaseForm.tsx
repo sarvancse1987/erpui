@@ -49,6 +49,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
   const [saveTrigger, setSaveTrigger] = useState(0);
   const { showSuccess, showError } = useToast();
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [savedAdjustments, setSavedAdjustments] = useState<Record<number, number | undefined>>({});
 
   // ---------------- LOAD DATA ----------------
   const loadAllData = async () => {
@@ -84,6 +85,11 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
         purchaseItems: purchase.purchaseItems ?? [],
         invoiceDate: isEditSidebar ? parseDate(purchase.invoiceDate) : parseDate(new Date()),
         purchaseDate: isEditSidebar ? parseDate(purchase.purchaseDate) : parseDate(new Date()),
+      }));
+      setSavedAdjustments(prev => ({
+        ...prev,
+        1: purchase.freightAmount,
+        2: purchase.roundOff
       }));
     }
   }, [purchase]);
@@ -442,6 +448,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             isDelete={true}
             isNew={isEditSidebar}
             onAdjustmentsChange={handleAdjustmentsChange}
+            savedAdjustments={savedAdjustments}
           />
         </div>
 

@@ -330,3 +330,7 @@ code {
     font-size: 15px;
 }
 
+.p-datatable-wrapper {
+  max-height: 300px;
+  overflow-y: auto !important;
+}

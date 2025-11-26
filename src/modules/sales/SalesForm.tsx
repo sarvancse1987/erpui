@@ -432,7 +432,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
           </div>
         </div>
 
-        <div className={`${isEditSidebar ? "max-w-[800px]" : "w-full"}`}>
+        <div className={`${isEditSidebar ? "max-w-[800px]" : "w-full"} max-h-[300px] overflow-y-auto`}>
           <TTypedSaleSideBarDatatable<SaleItemModel>
             columns={saleColumns}
             data={formData.saleItems}

@@ -199,7 +199,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
     const fieldError = errors[key]?.[col.field as string];
 
     const showError =
-      (col.required && (options.value === null || options.value === "")) ||
+      (col.required && (options.value === null || options.value === "" || options.value === 0)) ||
       !!errors[key]?.[col.field as string];
 
     const updateValue = (value: any) => {
@@ -437,6 +437,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
 
       <div className="flex-1 min-h-0">
         <DataTable
+          scrollHeight="300px"
           value={tableData}
           paginator={false}
           rows={10}
@@ -453,7 +454,6 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
           onSelectionChange={(e: any) => setSelectedRows(e.value)}
           rowClassName={(options) => (options.index % 2 === 0 ? "bg-gray-50" : "bg-white")}
           emptyMessage="No records found."
-          scrollHeight="100%"
           footer={
             <div className="custom-footer flex justify-between items-center gap-1 flex-wrap px-2 py-1">
               {/* Left: Dropdown + Input + Button */}

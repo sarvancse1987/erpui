@@ -35,6 +35,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
   suppliers = [] as SupplierModel[],
   onChange,
   onAdjustmentsChange,
+  savedAdjustments
 }: TTypedDatatableProps<T> & { products?: ProductModel[] } & { suppliers?: SupplierModel[] }) {
   const [tableData, setTableData] = useState<T[]>([]);
   const [editingRows, setEditingRows] = useState<{ [key: string]: boolean }>({});
@@ -60,7 +61,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
   const [adjustmentOptions, setAdjustmentOptions] = useState<{ label: string; value: number }[]>([]);
   const [selectedAdjustment, setSelectedAdjustment] = useState<string | null>(null);
   const [adjustmentValue, setAdjustmentValue] = useState<number>(0);
-  const [adjustments, setAdjustments] = useState<Record<number, number>>({});
+  const [adjustments, setAdjustments] = useState<Record<number, number | undefined>>({});
   const user = storage.getUser();
 
   const loadFreightData = async () => {
@@ -84,6 +85,15 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
   useEffect(() => {
     setTableData(data.map((d) => ({ ...d })));
   }, [data]);
+
+  useEffect(() => {
+    if (!savedAdjustments) return;
+
+    setAdjustments(prev => ({
+      ...prev,
+      ...savedAdjustments,
+    }));
+  }, [savedAdjustments]);
 
   useEffect(() => {
     const f: any = { global: { value: null, matchMode: FilterMatchMode.CONTAINS } };
@@ -174,7 +184,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
     const fieldError = errors[key]?.[col.field as string];
 
     const showError =
-      (col.required && (options.value === null || options.value === "")) ||
+      (col.required && (options.value === null || options.value === "" || options.value === 0)) ||
       !!errors[key]?.[col.field as string];
 
     const updateValue = (value: any) => {
@@ -432,6 +442,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
 
       <div className="flex-1 min-h-0">
         <DataTable
+          scrollHeight="280px"
           value={tableData}
           paginator={false}
           rows={10}
@@ -449,7 +460,6 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
           onSelectionChange={(e: any) => setSelectedRows(e.value)}
           rowClassName={(options) => (options.index % 2 === 0 ? "bg-gray-50" : "bg-white")}
           emptyMessage="No records found."
-          scrollHeight="100%"
           footer={
             <div className="custom-footer flex justify-between items-center gap-1 flex-wrap px-2 py-1">
               {/* Left: Dropdown + Input + Button */}
@@ -528,7 +538,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
               <div className="flex items-center gap-1 flex-wrap">
                 {adjustmentOptions.map((opt: any) => {
                   const value = adjustments[opt.value] || 0;
-                  if (value <= 0) return null;
+                  if (value == null || value == 0) return null;
 
                   return (
                     <span
