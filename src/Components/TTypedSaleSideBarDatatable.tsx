@@ -35,14 +35,16 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
   products = [] as ProductModel[],
   onChange,
   onAdjustmentsChange,
-}: TTypedDatatableProps<T> & { products?: ProductModel[] }) {
+  savedAdjustments
+}: TTypedDatatableProps<T> & {
+  products?: ProductModel[]
+}) {
   const [tableData, setTableData] = useState<T[]>([]);
   const [editingRows, setEditingRows] = useState<{ [key: string]: boolean }>({});
   const [errors, setErrors] = useState<{ [rowId: string]: { [field: string]: string } }>({});
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [filters, setFilters] = useState<any>({});
-  const [editedValues, setEditedValues] = useState({});
 
   // For Product search per row
   const [showTableMap, setShowTableMap] = useState<{ [key: string]: boolean }>({});
@@ -62,7 +64,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
   const [adjustmentOptions, setAdjustmentOptions] = useState<{ label: string; value: number }[]>([]);
   const [selectedAdjustment, setSelectedAdjustment] = useState<string | null>(null);
   const [adjustmentValue, setAdjustmentValue] = useState<number>(0);
-  const [adjustments, setAdjustments] = useState<Record<number, number>>({});
+  const [adjustments, setAdjustments] = useState<Record<number, number | undefined>>({});
   const user = storage.getUser();
 
 
@@ -88,6 +90,16 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
   useEffect(() => {
     setTableData(data.map((d) => ({ ...d })));
   }, [data]);
+
+
+  useEffect(() => {
+    if (!savedAdjustments) return;
+
+    setAdjustments(prev => ({
+      ...prev,
+      ...savedAdjustments,
+    }));
+  }, [savedAdjustments]);
 
   useEffect(() => {
     const f: any = { global: { value: null, matchMode: FilterMatchMode.CONTAINS } };
@@ -399,33 +411,6 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
 
   const isSaveEnabled = tableData.some((r) => r[primaryKey] === 0 || !!r._edited);
 
-  const actionBodyTemplate = (rowData: any) => (
-    <Button
-      icon="pi pi-pencil"
-      className="p-button-sm p-button-rounded p-button-outlined p-button-info"
-      style={{ width: '25px', height: '25px', padding: '0' }}
-      onClick={() => onEdit?.(rowData)}
-    />
-  );
-
-  const onRowEditComplete = (e: any) => {
-    const updatedRow = { ...e.data };
-    const unitPrice = parseFloat(updatedRow.unitPrice);
-    const qty = parseFloat(updatedRow.quantity);
-    const gstPercent = parseFloat(updatedRow.gstPercent);
-
-    updatedRow.amount = +(unitPrice * qty).toFixed(2);
-    updatedRow.gstAmount = +(updatedRow.amount * gstPercent / 100).toFixed(2);
-    updatedRow.totalAmount = updatedRow.amount + updatedRow.gstAmount;
-    updatedRow._edited = true;
-
-    const newTable = [...tableData];
-    newTable[e.index] = updatedRow;
-
-    setTableData(newTable);
-    onChange?.(newTable);
-  };
-
   return (
     <div className="card p-3 h-[calc(100vh-100px)] overflow-auto">
       <div className="flex justify-between items-center mb-1">
@@ -460,7 +445,6 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
           editMode="row"
           editingRows={editingRows}
           onRowEditChange={(e: DataTableRowEditEvent) => setEditingRows(e.data)}
-          //onRowEditComplete={onRowEditComplete}
           filters={filters}
           globalFilterFields={columns.map((c) => c.field as string)}
           size="small"
@@ -548,7 +532,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
               <div className="flex items-center gap-1 flex-wrap">
                 {adjustmentOptions.map((opt: any) => {
                   const value = adjustments[opt.value] || 0;
-                  if (value <= 0) return null;
+                  if (value == null || value == 0) return null;
 
                   return (
                     <span

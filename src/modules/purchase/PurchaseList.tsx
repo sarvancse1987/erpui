@@ -570,7 +570,7 @@ export default function PurchaseList() {
             <Sidebar visible={isSidebarOpen}
                 position="right"
                 onHide={() => setIsSidebarOpen(false)}
-                header="Edit Purchase"
+                showCloseIcon={false}
                 style={{ width: '70rem' }}>
                 {selectedPurchase ? (
                     <PurchaseForm
@@ -592,7 +592,7 @@ export default function PurchaseList() {
                     position="right"
                     visible={isSidebarOpen}
                     onHide={() => setIsSidebarOpen(false)}
-                    header="Edit Purchase"
+                    showCloseIcon={false}
                     style={{ width: '90rem' }}
                 >
                     <PurchaseForm

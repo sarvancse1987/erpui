@@ -21,6 +21,7 @@ export interface TTypedDatatableProps<T extends Record<string, any>> {
         roundOff: number;
     }) => void;
     sortableColumns?: (keyof T)[];
+    savedAdjustments?: Record<number, number | undefined>;
 }
 
 export interface TTypeDatatableProps<T extends Record<string, any>> {

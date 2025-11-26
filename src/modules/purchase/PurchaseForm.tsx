@@ -307,155 +307,160 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
   // ---------------- RENDER ----------------
   return (
     <div className={`border border-gray-200 rounded-md p-1 ${isEditSidebar ? "max-w-[800px]" : "w-full"}`}>
-      {!isEditSidebar && (
-        <div className="flex gap-2 mb-2">
-          <Button label="Save" icon="pi pi-save" onClick={handleSaveForm} className="p-button-sm custom-xs" />
-        </div>
-      )}
+      <fieldset className="border border-gray-300 rounded-md p-2 bg-white mb-2">
+        <legend className="text-sm font-semibold px-2 text-gray-700">
+          {formData.purchaseId ? "Edit Purchase" : "Add Purchase"}
+        </legend>
 
-      <div className={`flex flex-wrap gap-2 mb-2 items-end`}>
-        {/* Supplier */}
-        <div className={isEditSidebar ? "w-[45%]" : "flex-1 min-w-[140px]"}>
-          <strong className="text-sm">Supplier <span className="mandatory-asterisk">*</span></strong>
-          <SupplierSelector
-            suppliers={suppliers}
-            selectedSupplierId={formData.supplierId}
-            onSelect={s => handleChange("supplierId", s.supplierId)}
-            isValid={!!validationErrors?.supplierId}
-          />
-          {validationErrors?.supplierId && (
-            <span className="mandatory-error text-xs">
-              {validationErrors.supplierId}
-            </span>
-          )}
-        </div>
+        {!isEditSidebar && (
+          <div className="flex gap-2 mb-2">
+            <Button label="Save" icon="pi pi-save" onClick={handleSaveForm} className="p-button-sm custom-xs" />
+          </div>
+        )}
 
-        {/* Invoice Number */}
-        <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[120px]"}>
-          <strong className="text-sm">Invoice Number <span className="mandatory-asterisk">*</span></strong>
-          <InputText
-            value={formData.invoiceNumber}
-            placeholder="Invoice Number"
-            onChange={(e) => handleChange("invoiceNumber", e.target.value)}
-            className={`w-full mt-1 text-sm ${validationErrors?.invoiceNumber ? "p-invalid" : ""}`}
-            style={{ width: "150px" }}
-          />
-          {validationErrors?.invoiceNumber && <span className="mandatory-error text-xs">{validationErrors.invoiceNumber}</span>}
-        </div>
-
-        {/* Invoice Amount */}
-        <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[100px]"}>
-          <strong className="text-sm">Invoice Amount <span className="mandatory-asterisk">*</span></strong>
-          <InputNumber
-            value={formData.invoiceAmount}
-            mode="currency"
-            currency="INR"
-            locale="en-IN"
-            minFractionDigits={0}
-            maxFractionDigits={2}
-            onChange={(e) => handleChange("invoiceAmount", e.value)}
-            className={`w-full mt-1 text-sm ${validationErrors?.invoiceAmount ? "p-invalid" : ""}`}
-            inputStyle={{ width: "120px" }}
-          />
-          {validationErrors?.invoiceAmount && <span className="mandatory-error text-xs">{validationErrors.invoiceAmount}</span>}
-        </div>
-
-        {/* Paid Amount */}
-        <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[100px]"}>
-          <strong className="text-sm">Paid Amount</strong>
-          <InputNumber
-            value={formData.paidAmount}
-            mode="currency"
-            currency="INR"
-            locale="en-IN"
-            minFractionDigits={0}
-            maxFractionDigits={2}
-            onChange={(e) => handleChange("paidAmount", e.value)}
-            className="w-full mt-1 text-sm"
-            inputStyle={{ width: "120px" }}
-          />
-          {validationErrors?.paidAmount && <span className="mandatory-error text-xs">{validationErrors.paidAmount}</span>}
-        </div>
-
-        {/* Purchase Type */}
-        <div className={isEditSidebar ? "w-[45%]" : "flex-1 min-w-[120px]"}>
-          <strong className="text-sm">Purchase Type <span className="mandatory-asterisk">*</span></strong>
-          <Dropdown
-            value={formData.purchaseTypeId}
-            options={purchaseTypes}
-            onChange={(e) => handleChange("purchaseTypeId", e.value)}
-            placeholder="Select Type"
-            showClear
-            filter
-            className={`w-full mt-1 text-sm ${validationErrors?.purchaseTypeId ? "p-invalid" : ""}`}
-          />
-          {validationErrors?.purchaseTypeId && <span className="mandatory-error text-xs">{validationErrors.purchaseTypeId}</span>}
-        </div>
-
-        {/* Invoice Date */}
-        <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[120px]"}>
-          <strong className="text-sm">Invoice Date <span className="mandatory-asterisk">*</span></strong>
-          <Calendar
-            value={formData.invoiceDate ? new Date(formData.invoiceDate) : null}
-            onChange={(e) => handleChange("invoiceDate", e.value ?? null)}
-            placeholder="Select Date"
-            dateFormat="dd-mm-yy"
-            showIcon
-            showButtonBar
-            className="w-full h-8 text-sm p-1"
-          />
-          {validationErrors?.invoiceDate && <span className="mandatory-error text-xs">{validationErrors.invoiceDate}</span>}
-        </div>
-
-        {/* Purchase Date */}
-        <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[120px]"}>
-          <strong className="text-sm">Purchase Date <span className="mandatory-asterisk">*</span></strong>
-          <Calendar
-            value={formData.purchaseDate ? new Date(formData.purchaseDate) : null}
-            onChange={(e) => handleChange("purchaseDate", e.value ?? null)}
-            placeholder="Select Date"
-            dateFormat="dd-mm-yy"
-            showIcon
-            showButtonBar
-            className="w-full h-8 text-sm p-1"
-          />
-          {validationErrors?.purchaseDate && <span className="mandatory-error text-xs">{validationErrors.purchaseDate}</span>}
-        </div>
-      </div>
-
-      {/* Purchase Items Table */}
-      <div className={`${isEditSidebar ? "max-w-[800px]" : "w-full"}`}>
-        <TTypedSideBarDatatable<PurchaseItemModel>
-          columns={newEntrycolumns}
-          data={formData.purchaseItems}
-          primaryKey="purchaseItemId"
-          products={products}
-          suppliers={suppliers}
-          isSave={false}
-          itemsSaveTrigger={saveTrigger}
-          onChange={handleItemsChange}
-          isDelete={true}
-          isNew={isEditSidebar}
-          onAdjustmentsChange={handleAdjustmentsChange}
-        />
-      </div>
-
-      {isEditSidebar && (
-        <div className="flex justify-end gap-2 mt-4">
-          {<Button type="button" label="Cancel" icon="pi pi-times-circle" style={{ color: 'red' }} outlined onClick={onCancelSideBar} className="p-button-sm custom-xs" />}
-          {isEditSidebar && (
-            <Button
-              type="submit"
-              label="Update"
-              icon="pi pi-save"
-              severity="success"
-              className="p-button-sm custom-xs"
-              onClick={handleUpdateForm}
+        <div className={`flex flex-wrap gap-2 mb-2 items-end`}>
+          {/* Supplier */}
+          <div className={isEditSidebar ? "w-[45%]" : "flex-1 min-w-[140px]"}>
+            <strong className="text-sm">Supplier <span className="mandatory-asterisk">*</span></strong>
+            <SupplierSelector
+              suppliers={suppliers}
+              selectedSupplierId={formData.supplierId}
+              onSelect={s => handleChange("supplierId", s.supplierId)}
+              isValid={!!validationErrors?.supplierId}
             />
-          )}
-        </div>
-      )}
+            {validationErrors?.supplierId && (
+              <span className="mandatory-error text-xs">
+                {validationErrors.supplierId}
+              </span>
+            )}
+          </div>
 
+          {/* Invoice Number */}
+          <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[120px]"}>
+            <strong className="text-sm">Invoice Number <span className="mandatory-asterisk">*</span></strong>
+            <InputText
+              value={formData.invoiceNumber}
+              placeholder="Invoice Number"
+              onChange={(e) => handleChange("invoiceNumber", e.target.value)}
+              className={`w-full mt-1 text-sm ${validationErrors?.invoiceNumber ? "p-invalid" : ""}`}
+              style={{ width: "150px" }}
+            />
+            {validationErrors?.invoiceNumber && <span className="mandatory-error text-xs">{validationErrors.invoiceNumber}</span>}
+          </div>
+
+          {/* Invoice Amount */}
+          <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[100px]"}>
+            <strong className="text-sm">Invoice Amount <span className="mandatory-asterisk">*</span></strong>
+            <InputNumber
+              value={formData.invoiceAmount}
+              mode="currency"
+              currency="INR"
+              locale="en-IN"
+              minFractionDigits={0}
+              maxFractionDigits={2}
+              onChange={(e) => handleChange("invoiceAmount", e.value)}
+              className={`w-full mt-1 text-sm ${validationErrors?.invoiceAmount ? "p-invalid" : ""}`}
+              inputStyle={{ width: "120px" }}
+            />
+            {validationErrors?.invoiceAmount && <span className="mandatory-error text-xs">{validationErrors.invoiceAmount}</span>}
+          </div>
+
+          {/* Paid Amount */}
+          <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[100px]"}>
+            <strong className="text-sm">Paid Amount</strong>
+            <InputNumber
+              value={formData.paidAmount}
+              mode="currency"
+              currency="INR"
+              locale="en-IN"
+              minFractionDigits={0}
+              maxFractionDigits={2}
+              onChange={(e) => handleChange("paidAmount", e.value)}
+              className="w-full mt-1 text-sm"
+              inputStyle={{ width: "120px" }}
+            />
+            {validationErrors?.paidAmount && <span className="mandatory-error text-xs">{validationErrors.paidAmount}</span>}
+          </div>
+
+          {/* Purchase Type */}
+          <div className={isEditSidebar ? "w-[45%]" : "flex-1 min-w-[120px]"}>
+            <strong className="text-sm">Purchase Type <span className="mandatory-asterisk">*</span></strong>
+            <Dropdown
+              value={formData.purchaseTypeId}
+              options={purchaseTypes}
+              onChange={(e) => handleChange("purchaseTypeId", e.value)}
+              placeholder="Select Type"
+              showClear
+              filter
+              className={`w-full mt-1 text-sm ${validationErrors?.purchaseTypeId ? "p-invalid" : ""}`}
+            />
+            {validationErrors?.purchaseTypeId && <span className="mandatory-error text-xs">{validationErrors.purchaseTypeId}</span>}
+          </div>
+
+          {/* Invoice Date */}
+          <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[120px]"}>
+            <strong className="text-sm">Invoice Date <span className="mandatory-asterisk">*</span></strong>
+            <Calendar
+              value={formData.invoiceDate ? new Date(formData.invoiceDate) : null}
+              onChange={(e) => handleChange("invoiceDate", e.value ?? null)}
+              placeholder="Select Date"
+              dateFormat="dd-mm-yy"
+              showIcon
+              showButtonBar
+              className="w-full h-8 text-sm p-1"
+            />
+            {validationErrors?.invoiceDate && <span className="mandatory-error text-xs">{validationErrors.invoiceDate}</span>}
+          </div>
+
+          {/* Purchase Date */}
+          <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[120px]"}>
+            <strong className="text-sm">Purchase Date <span className="mandatory-asterisk">*</span></strong>
+            <Calendar
+              value={formData.purchaseDate ? new Date(formData.purchaseDate) : null}
+              onChange={(e) => handleChange("purchaseDate", e.value ?? null)}
+              placeholder="Select Date"
+              dateFormat="dd-mm-yy"
+              showIcon
+              showButtonBar
+              className="w-full h-8 text-sm p-1"
+            />
+            {validationErrors?.purchaseDate && <span className="mandatory-error text-xs">{validationErrors.purchaseDate}</span>}
+          </div>
+        </div>
+
+        {/* Purchase Items Table */}
+        <div className={`${isEditSidebar ? "max-w-[800px]" : "w-full"}`}>
+          <TTypedSideBarDatatable<PurchaseItemModel>
+            columns={newEntrycolumns}
+            data={formData.purchaseItems}
+            primaryKey="purchaseItemId"
+            products={products}
+            suppliers={suppliers}
+            isSave={false}
+            itemsSaveTrigger={saveTrigger}
+            onChange={handleItemsChange}
+            isDelete={true}
+            isNew={isEditSidebar}
+            onAdjustmentsChange={handleAdjustmentsChange}
+          />
+        </div>
+
+        {isEditSidebar && (
+          <div className="flex justify-end gap-2 mt-4">
+            {<Button type="button" label="Cancel" icon="pi pi-times-circle" style={{ color: 'red' }} outlined onClick={onCancelSideBar} className="p-button-sm custom-xs" />}
+            {isEditSidebar && (
+              <Button
+                type="submit"
+                label="Update"
+                icon="pi pi-save"
+                severity="success"
+                className="p-button-sm custom-xs"
+                onClick={handleUpdateForm}
+              />
+            )}
+          </div>
+        )}
+      </fieldset>
     </div>
   );
 };
