@@ -15,6 +15,7 @@ import appLogo from "../Images/jobsnap_logo.png";
 import { AppTopbarRef } from "./layoutprops";
 import { Menu } from "primereact/menu";
 import { Avatar } from "primereact/avatar";
+import { storage } from "../services/storageService";
 
 const AppTopbar = forwardRef<AppTopbarRef>((_props, ref) => {
   const { layoutState, onMenuToggle, showProfileSidebar } = useContext(LayoutContext);
@@ -25,6 +26,7 @@ const AppTopbar = forwardRef<AppTopbarRef>((_props, ref) => {
   const profileOverlayRef = useRef<OverlayPanel>(null);
   const navigate = useNavigate();
   const { token, setToken } = useAuth();
+  const user = storage.getUser();
 
   useImperativeHandle(ref, () => ({
     menubutton: menubuttonRef.current,
@@ -39,7 +41,12 @@ const AppTopbar = forwardRef<AppTopbarRef>((_props, ref) => {
   };
 
   const onMyProfile = () => {
-    navigate("/Myprofile");
+    navigate("/myprofile");
+    profileOverlayRef.current?.hide();
+  };
+
+  const onChangePassword = () => {
+    navigate("/changepassword");
     profileOverlayRef.current?.hide();
   };
 
@@ -97,7 +104,7 @@ const AppTopbar = forwardRef<AppTopbarRef>((_props, ref) => {
             </div>
 
             <span className="profile-name">
-              {localStorage.getItem("userProfileName")}
+              {user?.userProfileName}
             </span>
           </div>
         </div>
@@ -118,6 +125,16 @@ const AppTopbar = forwardRef<AppTopbarRef>((_props, ref) => {
           >
             <i className="pi pi-user" style={{ marginRight: "0.5rem" }}></i>
             My Profile
+          </button>
+
+          <button
+            type="button"
+            className="p-link p-button-text"
+            onClick={onChangePassword}
+            style={{ width: "100%", textAlign: "left", padding: "0.5rem 1rem" }}
+          >
+            <i className="pi pi-lock" style={{ marginRight: "0.5rem" }}></i>
+            Change Password
           </button>
 
           <button

@@ -1,0 +1,282 @@
+import React, { useEffect, useRef, useState } from "react";
+import { InputText } from "primereact/inputtext";
+import { InputMask } from "primereact/inputmask";
+import { Dropdown } from "primereact/dropdown";
+import { Button } from "primereact/button";
+import apiService from "../../services/apiService";
+import { UserModel } from "../../models/UserModel";
+import { FileUpload, FileUploadSelectEvent } from "primereact/fileupload";
+import '../../asset/style/MyProfileFileUpload.css';
+import CustomWebcam from "../webcam/CustomWebcam";
+import { MyProfileModel } from "../../models/MyProfileModel";
+import { useToast } from "../../components/ToastService";
+import { storage } from "../../services/storageService";
+
+export const MyProfile: React.FC = () => {
+    const [profile, setProfile] = useState<UserModel>({} as UserModel);
+    const [loading, setLoading] = useState(false);
+    const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const uploadRef = useRef<FileUpload>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const { showSuccess, showError } = useToast();
+
+    const salutationsOptions = [
+        { label: "Mr.", value: "Mr." },
+        { label: "Mrs.", value: "Mrs." },
+        { label: "Ms.", value: "Ms." },
+        { label: "Dr.", value: "Dr." }
+    ];
+
+    const loadProfile = async () => {
+        const user = storage.getUser();
+        try {
+            const res = await apiService.get(`/Users/${Number(user?.userId)}`);
+            setProfile(res.data);
+            if (res.data.userImage) {
+                const apiBaseUrl = process.env.REACT_APP_SERVICE_API_BASE_URL?.replace("/api", "") || "";
+                setPreviewUrl(`${apiBaseUrl}${res.data.userImage}`);
+            }
+        } catch (err) {
+            console.error("Error loading profile", err);
+        }
+    };
+
+    useEffect(() => {
+        loadProfile();
+    }, []);
+
+    const handleChange = (field: keyof UserModel, value: any) => {
+        setProfile(prev => ({ ...prev, [field]: value }));
+        if (validationErrors[field]) {
+            setValidationErrors(prev => {
+                const copy = { ...prev };
+                delete copy[field];
+                return copy;
+            });
+        }
+    };
+
+    const validateForm = () => {
+        const errors: Record<string, string> = {};
+        if (!profile.firstName?.trim()) errors.firstName = "First name is required";
+        if (!profile.email?.trim()) errors.email = "Email is required";
+        if (profile.email?.trim()) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(profile.email.trim())) {
+                errors.email = "Invalid email format";
+            }
+        }
+        setValidationErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
+    const handleSave = async () => {
+        if (!validateForm()) return;
+
+        setLoading(true);
+
+        try {
+            let uploadedFileUrl = profile.userImage ?? null; // keep old photo if no new file
+
+            // ---- Upload photo only when Save is clicked ----
+            if (selectedFile) {
+                const formData = new FormData();
+                formData.append("file", selectedFile);
+
+                // 🔥 Use apiService.upload() (NOT document)
+                const uploadRes: any = await apiService.upload("/users/upload/image", formData);
+
+                uploadedFileUrl = uploadRes?.fileUrl || uploadedFileUrl;
+            }
+
+            // ---- Save profile ----
+            const updatedProfile: MyProfileModel = {
+                email: profile.email,
+                firstName: profile.firstName,
+                salutation: profile.salutation,
+                id: profile.id,
+                lastName: profile.lastName,
+                phone: profile.phone,
+                userImage: uploadedFileUrl
+            };
+
+            await apiService.put(`/users/updateprofile/${updatedProfile.id}`, updatedProfile);
+            showSuccess("Profile update successfully");
+            storage.updateUserProfileName(profile.firstName, profile.lastName);
+
+        } catch (err) {
+            console.error("Error saving profile", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    const onSelect = (e: FileUploadSelectEvent) => {
+        const file = e.files[0];
+
+        setSelectedFile(file);
+        setPreviewUrl(URL.createObjectURL(file));
+
+        uploadRef.current?.clear(); // allow re-selection immediately
+    };
+
+    const openFileDialog = () => {
+        const input = uploadRef.current?.getInput();
+        input?.click();
+    };
+
+
+    return (
+        <form className="p-4 max-w-2xl mx-auto">
+            <fieldset className="border border-gray-300 rounded-md p-4 bg-white mb-4">
+                <legend className="text-lg font-semibold px-2 text-gray-700">My Profile</legend>
+
+                <div className="flex flex-wrap gap-4">
+                    {/* Salutation */}
+                    <div className="flex-1 min-w-[120px]">
+                        <strong>Salutation</strong>
+                        <Dropdown
+                            value={profile.salutation}
+                            options={salutationsOptions}
+                            onChange={e => handleChange("salutation", e.value)}
+                            placeholder="Select Salutation"
+                            className="w-full mt-1"
+                        />
+                    </div>
+
+                    {/* First Name */}
+                    <div className="flex-1 min-w-[160px]">
+                        <strong>First Name <span className="mandatory-asterisk">*</span></strong>
+                        <InputText
+                            value={profile.firstName ?? ""}
+                            onChange={e => handleChange("firstName", e.target.value)}
+                            className={`w-full mt-1 ${validationErrors.firstName ? "mandatory-border" : ""}`}
+                            placeholder="First Name"
+                        />
+                        {validationErrors.firstName && <span className="mandatory-error">{validationErrors.firstName}</span>}
+                    </div>
+
+                    {/* Last Name */}
+                    <div className="flex-1 min-w-[160px]">
+                        <strong>Last Name</strong>
+                        <InputText
+                            value={profile.lastName ?? ""}
+                            onChange={e => handleChange("lastName", e.target.value)}
+                            className="w-full mt-1"
+                            placeholder="Last Name"
+                        />
+                    </div>
+
+                    {/* Email */}
+                    <div className="flex-1 min-w-[160px]">
+                        <strong>Email <span className="mandatory-asterisk">*</span></strong>
+                        <InputText
+                            value={profile.email ?? ""}
+                            onChange={e => handleChange("email", e.target.value)}
+                            className={`w-full mt-1 ${validationErrors.email ? "mandatory-border" : ""}`}
+                            placeholder="Email"
+                        />
+                        {validationErrors.email && <span className="mandatory-error">{validationErrors.email}</span>}
+                    </div>
+
+                    <div className="flex-1 min-w-[160px]">
+                        {/* Phone */}
+                        <strong>Phone</strong>
+                        <InputMask
+                            mask="+99-9999999999"
+                            value={profile.phone}
+                            onChange={e => handleChange("phone", e.target.value)}
+                            placeholder="+91-9999999999"
+                            className="w-full mt-1"
+                        />
+                    </div>
+
+                </div>
+                {/* Fixed-size preview box: always 176x176 (w-44 h-44) */}
+                <div className="flex justify-end mt-4">
+                    <div className="flex flex-col gap-4">
+
+                        {/* Dropzone */}
+                        {!previewUrl && (
+                            <div className="upload-dropzone" onClick={openFileDialog}>
+                                <i className="pi pi-upload"></i>
+                                <p className="text-main">Upload Image</p>
+                                <p className="text-sub">PNG / JPG / JPEG</p>
+                            </div>
+                        )}
+
+                        {/* Hidden FileUpload */}
+                        <FileUpload
+                            ref={uploadRef}
+                            name="file"
+                            mode="basic"
+                            customUpload
+                            auto={false}
+                            accept="image/*"
+                            maxFileSize={2_000_000}
+                            onSelect={onSelect}
+                            className="hidden"
+                        />
+
+                        {/* <CustomWebcam /> */}
+
+                        {/* PREVIEW: fixed box 176x176 */}
+                        {previewUrl && (
+                            <div
+                                className="relative"
+                                style={{
+                                    width: 176,
+                                    height: 176,
+                                }}
+                            >
+                                {/* container ensures fixed size and centers the image */}
+                                <div className="block" style={{ width: 160, height: 160, border: "1px dotted #999" }}>
+                                    <div className="relative w-full h-full">
+                                        <img
+                                            src={previewUrl}
+                                            alt="preview"
+                                            className="w-full h-full rounded-lg object-cover border"
+                                        />
+                                        <Button
+                                            type="button"
+                                            icon="pi pi-times-circle"
+                                            severity="danger"
+                                            text
+                                            className="absolute -top-2 -right-2 p-2 rounded-full shadow-md 
+                                            !text-red-600 
+                                            !hover:text-red-600 
+                                            !hover:bg-transparent 
+                                            transition"
+                                            onClick={() => {
+                                                setPreviewUrl(null);
+                                                setSelectedFile(null);
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+
+                <div className="w-full">
+                    <div className="flex justify-end gap-2 mt-4">
+                        <Button
+                            type="button"
+                            label="Save"
+                            icon="pi pi-save"
+                            severity="success"
+                            className="p-button-sm custom-xs"
+                            onClick={handleSave}
+                            loading={loading}
+                        />
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+    );
+};

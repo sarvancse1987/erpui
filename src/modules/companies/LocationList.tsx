@@ -8,6 +8,7 @@ import { ColumnMeta } from "../../models/component/ColumnMeta";
 import { TTypeDatatable } from "../../components/TTypeDatatable";
 import { LocationForm } from "./LocationForm";
 import { LocationModel } from "../../models/LocationModel";
+import { storage } from "../../services/storageService";
 
 export default function LocationList() {
     const [locations, setLocations] = useState<LocationModel[]>([]);
@@ -17,11 +18,12 @@ export default function LocationList() {
     const [selectedLocation, setSelectedLocation] = useState<LocationModel | null>(null);
     const [sidebarVisible, setSidebarVisible] = useState(false);
     const { showSuccess, showError } = useToast();
+    const user = storage.getUser();
 
     const loadLocations = async () => {
         setLoading(true);
         try {
-            const res = await apiService.get(`/Location/details/${Number(localStorage.getItem("companyId"))}`);
+            const res = await apiService.get(`/Location/details/${Number(user?.companyId)}`);
             setLocations(res.locations ?? []);
         } catch (err) {
             console.error("Error loading locations:", err);

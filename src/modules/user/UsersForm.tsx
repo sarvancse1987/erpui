@@ -6,6 +6,7 @@ import { Dropdown } from "primereact/dropdown";
 import { UserModel } from "../../models/UserModel";
 import apiService from "../../services/apiService";
 import { InputMask } from "primereact/inputmask";
+import { storage } from "../../services/storageService";
 
 interface UsersFormProps {
     user: UserModel;
@@ -43,7 +44,8 @@ export const UsersForm: React.FC<UsersFormProps> = ({
 
     const loadMasterData = async () => {
         try {
-            const res = await apiService.get(`/users/getusermaster/${Number(localStorage.getItem("companyId"))}`);
+            const user = storage.getUser();
+            const res = await apiService.get(`/users/getusermaster/${Number(user?.companyId)}`);
 
             const companies = (res.companies ?? []).map((c: any) => ({ label: c.name, value: c.id }));
             const locations = (res.locations ?? []).map((l: any) => ({ label: l.name, value: l.id, parentId: l.parentId }));

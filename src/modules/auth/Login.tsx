@@ -10,6 +10,7 @@ import { useAuth } from "../../auth/AuthProvider";
 import TetrosoftLofo from "../../Images/Client/tetrosoft_logo.png";
 import appLogo from "../../Images/erp.png";
 import { setCookie, validateForm } from "../../common/common";
+import { storage, UserData } from "../../services/storageService";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -29,12 +30,20 @@ const LoginPage: React.FC = () => {
       );
       if (response && response.status) {
         localStorage.setItem("authToken", response.token);
-        localStorage.setItem("companyId", String(response.companyId));
-        localStorage.setItem("locationId", String(response.locationId));
-        localStorage.setItem(
-          "userProfileName",
-          response.lastName ? `${response.firstName} ${response.lastName}` : response.firstName
-        );
+        const userData: UserData = {
+          authToken: response.token,
+          companyId: response.companyId,
+          locationId: response.locationId,
+          userId: response.userId,
+          userProfileName: response.lastName
+            ? `${response.firstName} ${response.lastName}`
+            : response.firstName,
+          firstName: response.firstName,
+          lastName: response.lastName,
+          userImage: response.userImage
+        };
+
+        storage.setUser(userData);
         setToken(response.token);
         navigate("/", { replace: true });
       } else {

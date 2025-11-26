@@ -8,6 +8,7 @@ import apiService from "../../services/apiService";
 import { ColumnMeta } from "../../models/component/ColumnMeta";
 import { TTypeDatatable } from "../../components/TTypeDatatable";
 import { UserModel } from "../../models/UserModel";
+import { storage } from "../../services/storageService";
 
 export default function UserList() {
     const [users, setUsers] = useState<UserModel[]>([]);
@@ -20,8 +21,9 @@ export default function UserList() {
 
     const loadUsers = async () => {
         setLoading(true);
+        const user = storage.getUser();
         try {
-            const res = await apiService.get(`/Users/getallusers/${Number(localStorage.getItem("companyId"))}`);
+            const res = await apiService.get(`/Users/getallusers/${Number(user?.companyId)}`);
             setUsers(res.users ?? []);
         } catch (err) {
             console.error("Error loading users:", err);

@@ -19,6 +19,7 @@ import { InputIcon } from "primereact/inputicon";
 import { SupplierModel } from "../models/supplier/SupplierModel";
 import { useToast } from "./ToastService";
 import apiService from "../services/apiService";
+import { storage } from "../services/storageService";
 
 export function TTypedSideBarDatatable<T extends Record<string, any>>({
   columns,
@@ -60,10 +61,11 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
   const [selectedAdjustment, setSelectedAdjustment] = useState<string | null>(null);
   const [adjustmentValue, setAdjustmentValue] = useState<number>(0);
   const [adjustments, setAdjustments] = useState<Record<number, number>>({});
+  const user = storage.getUser();
 
   const loadFreightData = async () => {
     try {
-      const response = await apiService.get(`/Adjustments/${Number(localStorage.getItem("companyId"))}/${Number(localStorage.getItem("locationId"))}`);
+      const response = await apiService.get(`/Adjustments/${Number(user?.companyId)}/${Number(user?.locationId)}`);
       const typeOptions = (response ?? []).map((pt: any) => ({
         label: pt.adjustmentName,
         value: pt.adjustmentId

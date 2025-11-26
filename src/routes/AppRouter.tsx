@@ -13,6 +13,8 @@ import CustomerList from "../modules/customer/CustomerList";
 import Role from "../modules/user/Role";
 import UserType from "../modules/user/UserType";
 import LocationList from "../modules/companies/LocationList";
+import { MyProfile } from "../modules/user/MyProfile";
+import { ChangePassword } from "../modules/user/ChangePassword";
 
 const Dashboard = React.lazy(() => import("../modules/dashboard/Dashboard"));
 const ProductList = React.lazy(() => import("../modules/products/ProductList"));
@@ -96,6 +98,10 @@ export default function AppRouter() {
                 <Route path="settings">
                     <Route path="users" element={<UserList />} />
                 </Route>
+
+                <Route path="myprofile" element={<MyProfile />} />
+                <Route path="changepassword" element={<ChangePassword />} />
+
             </Route>
 
             {/* Unknown paths redirect */}

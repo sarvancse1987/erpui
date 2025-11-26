@@ -6,6 +6,7 @@ import { Dropdown } from "primereact/dropdown";
 import { InputMask } from "primereact/inputmask";
 import apiService from "../../services/apiService";
 import { LocationModel } from "../../models/LocationModel";
+import { storage } from "../../services/storageService";
 
 interface LocationFormProps {
     location: LocationModel;
@@ -35,6 +36,7 @@ export const LocationForm: React.FC<LocationFormProps> = ({
     const [countries, setCountries] = useState<any[]>([]);
     const [states, setStates] = useState<any[]>([]);
     const [districts, setDistricts] = useState<any[]>([]);
+    const user = storage.getUser();
 
     const loadLocationMaster = async () => {
         try {
@@ -59,7 +61,7 @@ export const LocationForm: React.FC<LocationFormProps> = ({
     };
 
     const loadAllCompanies = async () => {
-        const res = await apiService.get(`/company/getallcompany/${Number(localStorage.getItem("companyId"))}`);
+        const res = await apiService.get(`/company/getallcompany/${Number(user?.companyId)}`);
         setCompanies((res.companies ?? []).map((c: any) => ({
             label: c.name, value: c.id
         })));

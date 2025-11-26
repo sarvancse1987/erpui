@@ -8,6 +8,7 @@ import apiService from "../../services/apiService";
 import { ColumnMeta } from "../../models/component/ColumnMeta";
 import { TTypeDatatable } from "../../components/TTypeDatatable";
 import { CompanyModel } from "../../models/companies/CompanyModel";
+import { storage } from "../../services/storageService";
 
 export default function CompanyList() {
     const [companies, setCompanies] = useState<CompanyModel[]>([]);
@@ -17,11 +18,12 @@ export default function CompanyList() {
     const [selectedCompany, setSelectedCompany] = useState<CompanyModel | null>(null);
     const [sidebarVisible, setSidebarVisible] = useState(false);
     const { showSuccess, showError } = useToast();
+    const user = storage.getUser();
 
     const loadCompanies = async () => {
         setLoading(true);
         try {
-            const res = await apiService.get(`/Company/getcompany/${Number(localStorage.getItem("companyId"))}`);
+            const res = await apiService.get(`/Company/getcompany/${Number(user?.companyId)}`);
             setCompanies(res.companies ?? []);
         } catch (err) {
             console.error("Error loading companies:", err);
@@ -78,7 +80,7 @@ export default function CompanyList() {
     const handleSaveCompanies = async () => {
         const errors: Record<string, string> = {};
         newCompanies.forEach((c, idx) => {
-            c.companyId = Number(localStorage.getItem("companyId"));
+            c.companyId = Number(user?.companyId);
             if (c.name.trim().length === 0) {
                 errors[`company-${idx}-name`] = "Company name required";
             }

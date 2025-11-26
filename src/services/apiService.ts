@@ -36,16 +36,29 @@ export async function document(
   const finalConfig: AxiosRequestConfig = {
     ...config,
     responseType: "blob",
+    headers: {
+      ...(config.headers ?? {}), // always defined
+    },
   };
+
+  // 🔥 Safe check — no TypeScript error
+  if (data instanceof FormData) {
+    delete finalConfig.headers!["Content-Type"];
+  }
 
   const response = await client.post(url, data, finalConfig);
 
-  // At this point, response is already a Blob
-  if (!(response instanceof Blob)) {
-    throw new Error("Expected a Blob but got: " + typeof response);
-  }
+  return response.data as Blob;
+}
 
-  return response;
+export async function upload(url: string, formData: FormData) {
+  const client = getHttpClient();
+
+  return await client.post(url, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  });
 }
 
 export default {
@@ -56,4 +69,5 @@ export default {
   //postImage,
   del,
   document,
+  upload,
 };

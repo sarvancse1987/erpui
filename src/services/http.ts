@@ -4,10 +4,12 @@ import { handleApiError } from "./handleApiError";
 import { getCookie } from "../common/common";
 import { useContext } from "react";
 import { ToastContext } from "../components/ToastContext";
+import { storage } from "./storageService";
 
 let setLoadingGlobal: ((loading: boolean) => void) | null = null;
 let activeRequests = 0;
 const toastRef = (ToastContext as any)._currentValue;
+const user = storage.getUser();
 
 export const setLoaderHandler = (fn: (loading: boolean) => void) => {
   setLoadingGlobal = fn;
@@ -35,8 +37,8 @@ const createHttpClient = (baseURL: string, includeAuth = true): AxiosInstance =>
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    const companyId = localStorage.getItem("companyId") || "1"; // or from context/state
-    const locationId = localStorage.getItem("locationId") || "1";
+    const companyId = user?.companyId || "1"; // or from context/state
+    const locationId = user?.locationId || "1";
     config.headers["CompanyId"] = Number(companyId);
     config.headers["LocationId"] = Number(locationId);
 
