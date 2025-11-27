@@ -38,20 +38,22 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     grandTotal: 0,
     isActive: true,
     purchaseTypeId: 0,
-    paidAmount: 0,
+    cash: 0,
+    upi: 0,
     freightAmount: 0,
     roundOff: 0,
     purchaseItems: [],
   });
   const [suppliers, setSuppliers] = useState<SupplierModel[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const [purchaseTypes, setPurchaseTypes] = useState<{ label: string; value: number }[]>([]);
+  const [purchaseTypes, setPurchaseTypes] = useState<{ label: string; value: number, text: string }[]>([]);
   const [saveTrigger, setSaveTrigger] = useState(0);
   const { showSuccess, showError } = useToast();
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [savedAdjustments, setSavedAdjustments] = useState<Record<number, number | undefined>>({});
+  const [showCash, setShowCash] = useState(false);
+  const [showUpi, setShowUpi] = useState(false);
 
-  // ---------------- LOAD DATA ----------------
   const loadAllData = async () => {
     try {
       const suppliersRes = await apiService.get("/Supplier/getallsupplier");
@@ -63,7 +65,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
       const purchaseTypesRes = await apiService.get("/PurchaseType") as PurchaseTypeModel[];
       const purchaseTypeOptions = (purchaseTypesRes ?? []).map(pt => ({
         label: pt.purchaseTypeName,
-        value: pt.purchaseTypeId
+        value: pt.purchaseTypeId,
+        text: pt.purchaseTypeValue
       }));
       setPurchaseTypes(purchaseTypeOptions);
     } catch (err) {
@@ -75,7 +78,6 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
   useEffect(() => {
     loadAllData();
   }, []);
-
 
   useEffect(() => {
     if (purchase) {
@@ -108,8 +110,6 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     return new Date(year, month, day);
   };
 
-
-  // ---------------- TABLE COLUMNS ----------------
   const newEntrycolumns: ColumnMeta<PurchaseItemModel>[] = [
     {
       field: "productId",
@@ -167,7 +167,6 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     },
   ];
 
-  // ---------------- FORM CHANGE ----------------
   const handleChange = (field: keyof PurchaseModel, value: any) => {
     const updated = { ...formData, [field]: value };
     setFormData(updated);
@@ -182,7 +181,6 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     setFormData(updatedFormData);
   };
 
-  // ---------------- VALIDATION ----------------
   const validateChildItems = (items: PurchaseItemModel[]) => {
     const errors: Record<string, Record<string, string>> = {};
     items.forEach(item => {
@@ -206,24 +204,67 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     if (!formData.purchaseDate) errors.purchaseDate = "Purchase date required";
     if (!formData.purchaseTypeId) errors.purchaseTypeId = "Purchase type required";
 
-    const cashPurchaseTypeId = 1;
-    if (formData.purchaseTypeId === cashPurchaseTypeId) {
+    const grandTotal = formData.grandTotal ?? 0;
 
-      if ((formData.invoiceAmount ?? 0) !== (formData.paidAmount ?? 0)) {
-        errors.paidAmount =
-          "Paid Amount must equal invoice amount.";
-      }
+    const cash = formData.cash ?? 0;
+    const upi = formData.upi ?? 0;
+    const totalPaid = cash + upi;
 
-      if ((formData.invoiceAmount ?? 0) !== (formData.grandTotal ?? 0)) {
-        errors.invoiceAmount =
-          "Invoice amount must be equal to grand total.";
-        errors.paidAmount =
-          "Grand total must equal invoice amount.";
-      }
+    const text: string | undefined = purchaseTypes.find(item => item.value == formData.purchaseTypeId)?.text;
+
+    // Switch based on purchaseTypeId
+    switch (text?.toLocaleLowerCase()) {
+      case "cash":
+        if (cash <= 0) {
+          errors.cash = "Cash amount required.";
+        }
+        if (cash !== grandTotal) {
+          errors.cash = "Cash amount must equal grand total.";
+        }
+        break;
+      case "credit":
+        if (totalPaid > 0) {
+          errors.credit = "No payment allowed for Credit purchase.";
+        }
+        break;
+      case "partial":
+        if (cash <= 0 && upi <= 0) {
+          if (cash <= 0) errors.cash = "Cash amount required.";
+        }
+        if (totalPaid !== grandTotal) {
+          errors.cash = "Cash/UPI must equal grand total.";
+        }
+        break;
+      case "mixed":
+        if (cash <= 0) errors.cash = "Cash amount required.";
+        if (upi <= 0) errors.upi = "UPI amount required.";
+
+        if (totalPaid !== grandTotal) {
+          errors.cash = "Cash + Upi must equal grand total.";
+        }
+        if (totalPaid !== grandTotal) {
+          errors.upi = "Cash + Upi must equal grand total.";
+        }
+        break;
+      case "upi":
+        if (upi <= 0) {
+          errors.upi = "UPI amount required.";
+        }
+        if (upi !== grandTotal) {
+          errors.upi = "UPI amount must equal grand total.";
+        }
+        break;
+
+      default:
+        break;
     }
 
     const itemErrs = validateChildItems(formData.purchaseItems);
     setValidationErrors(errors);
+
+    if (formData.purchaseItems.length === 0) {
+      showError("Add atleast one product in the purchase");
+    }
 
     return Object.keys(errors).length === 0 && Object.keys(itemErrs).length === 0 && formData.purchaseItems.length > 0;
   };
@@ -300,7 +341,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     grandTotal: 0,
     isActive: true,
     purchaseTypeId: 0,
-    paidAmount: 0,
+    cash: 0,
+    upi: 0,
     freightAmount: 0,
     roundOff: 0,
     purchaseItems: [],
@@ -309,6 +351,50 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
   const onCancelSideBar = () => {
     if (onCancel) onCancel();
   }
+
+  const onChangeCashType = (purchaseTypeId: number) => {
+    const selected: string | undefined = purchaseTypes.find(item => item.value == purchaseTypeId)?.text;
+
+    if (!selected) return;
+
+    const type = selected.toLowerCase();
+
+    switch (type) {
+      case "cash":
+        setShowCash(true);
+        setShowUpi(false);
+        setFormData(prev => ({ ...prev, upi: 0 }));
+        break;
+
+      case "upi":
+        setShowCash(false);
+        setShowUpi(true);
+        setFormData(prev => ({ ...prev, cash: 0 }));
+        break;
+
+      case "partially":
+        setShowCash(true);
+        setShowUpi(true);
+        setFormData(prev => ({ ...prev, upi: 0 }));
+        break;
+
+      case "mixed":
+        setShowCash(true);
+        setShowUpi(true);
+        break;
+
+      case "credit":
+        setShowCash(false);
+        setShowUpi(false);
+        setFormData(prev => ({ ...prev, cash: 0, upi: 0 }));
+        break;
+
+      default:
+        setShowCash(false);
+        setShowUpi(false);
+    }
+  };
+
 
   // ---------------- RENDER ----------------
   return (
@@ -362,30 +448,12 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
               mode="currency"
               currency="INR"
               locale="en-IN"
-              minFractionDigits={0}
-              maxFractionDigits={2}
               onChange={(e) => handleChange("invoiceAmount", e.value)}
               className={`w-full mt-1 text-sm ${validationErrors?.invoiceAmount ? "p-invalid" : ""}`}
               inputStyle={{ width: "120px" }}
+              placeholder="Invoice amount"
             />
             {validationErrors?.invoiceAmount && <span className="mandatory-error text-xs">{validationErrors.invoiceAmount}</span>}
-          </div>
-
-          {/* Paid Amount */}
-          <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[100px]"}>
-            <strong className="text-sm">Paid Amount</strong>
-            <InputNumber
-              value={formData.paidAmount}
-              mode="currency"
-              currency="INR"
-              locale="en-IN"
-              minFractionDigits={0}
-              maxFractionDigits={2}
-              onChange={(e) => handleChange("paidAmount", e.value)}
-              className="w-full mt-1 text-sm"
-              inputStyle={{ width: "120px" }}
-            />
-            {validationErrors?.paidAmount && <span className="mandatory-error text-xs">{validationErrors.paidAmount}</span>}
           </div>
 
           {/* Purchase Type */}
@@ -394,7 +462,10 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             <Dropdown
               value={formData.purchaseTypeId}
               options={purchaseTypes}
-              onChange={(e) => handleChange("purchaseTypeId", e.value)}
+              onChange={(e) => {
+                handleChange("purchaseTypeId", e.value);
+                onChangeCashType(e.value);
+              }}
               placeholder="Select Type"
               showClear
               filter
@@ -402,6 +473,40 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             />
             {validationErrors?.purchaseTypeId && <span className="mandatory-error text-xs">{validationErrors.purchaseTypeId}</span>}
           </div>
+
+          {showCash && (
+            <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[100px]"}>
+              <strong className="text-sm">Cash</strong>
+              <InputNumber
+                value={formData.cash}
+                mode="currency"
+                currency="INR"
+                locale="en-IN"
+                onChange={(e) => handleChange("cash", e.value)}
+                className="w-full mt-1 text-sm"
+                inputStyle={{ width: "120px" }}
+                placeholder="Cash"
+              />
+              {validationErrors?.cash && <span className="mandatory-error text-xs">{validationErrors.cash}</span>}
+            </div>
+          )}
+
+          {showUpi && (
+            <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[100px]"}>
+              <strong className="text-sm">UPI Amount</strong>
+              <InputNumber
+                value={formData.upi}
+                mode="currency"
+                currency="INR"
+                locale="en-IN"
+                onChange={(e) => handleChange("upi", e.value)}
+                className="w-full mt-1 text-sm"
+                inputStyle={{ width: "120px" }}
+                placeholder="Upi"
+              />
+              {validationErrors?.upi && <span className="mandatory-error text-xs">{validationErrors.upi}</span>}
+            </div>
+          )}
 
           {/* Invoice Date */}
           <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[120px]"}>

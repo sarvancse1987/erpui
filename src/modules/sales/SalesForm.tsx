@@ -14,8 +14,8 @@ import { CustomerForm } from "../customer/CustomerForm";
 import { Sidebar } from "primereact/sidebar";
 import { TTypedSaleSideBarDatatable } from "../../components/TTypedSaleSideBarDatatable";
 import { Dropdown } from "primereact/dropdown";
-import { SaleTypeModel } from "../../models/sale/SaleTypeModel";
 import { PaymentTypeModel } from "../../models/sale/PaymentTypeModel";
+import { InputText } from "primereact/inputtext";
 
 interface SalesFormProps {
   isEditSidebar: boolean;
@@ -31,17 +31,19 @@ export const SalesForm: React.FC<SalesFormProps> = ({
     saleId: 0,
     saleRefNo: "",
     customerId: 0,
-    saleTypeId: 0,
     paymentTypeId: 0,
     saleStatusId: 0,
     saleDate: new Date(),
     totalAmount: 0,
     totalGST: 0,
     grandTotal: 0,
-    paidAmount: 0,
+    cash: 0,
+    upi: 0,
     freightAmount: 0,
     roundOff: 0,
     isGst: false,
+    bankName: "",
+    chequeNo: "",
     saleItems: [],
   });
 
@@ -61,13 +63,17 @@ export const SalesForm: React.FC<SalesFormProps> = ({
   });
 
   const [customers, setCustomers] = useState<CustomerModel[]>([]);
-  const [saleTypes, setSaleTypes] = useState<SaleTypeModel[]>([]);
-  const [paymentTypes, setPaymentTypes] = useState<SaleTypeModel[]>([]);
+  const [paymentTypes, setPaymentTypes] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const { showSuccess, showError } = useToast();
   const [showCustomerAdd, setShowCustomerAdd] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [savedAdjustments, setSavedAdjustments] = useState<Record<number, number | undefined>>({});
+  const [showCash, setShowCash] = useState(true);
+  const [showUpi, setShowUpi] = useState(false);
+  const [showCheque, setShowCheque] = useState(false);
+  const [showBank, setShowBank] = useState(false);
+  const [cashType, setCashType] = useState<string>("Cash");
 
   const loadAllData = async () => {
     try {
@@ -77,17 +83,11 @@ export const SalesForm: React.FC<SalesFormProps> = ({
       const productsRes = await apiService.get("/Product/productdetails?isInventoryRequired=true");
       setProducts(productsRes?.data ?? []);
 
-      const saleTypes = await apiService.get("/SaleType");
-      const saleTypeOptions = (saleTypes ?? []).map((pt: SaleTypeModel) => ({
-        label: pt.saleTypeName,
-        value: pt.saleTypeId
-      }));
-      setSaleTypes(saleTypeOptions ?? []);
-
       const paymentTypes = await apiService.get("/PaymentType");
       const paymentTypesOptions = (paymentTypes ?? []).map((pt: PaymentTypeModel) => ({
         label: pt.paymentTypeName,
-        value: pt.paymentTypeId
+        value: pt.paymentTypeId,
+        text: pt.paymentTypeValue
       }));
       setPaymentTypes(paymentTypesOptions ?? []);
     } catch (err) {
@@ -226,27 +226,98 @@ export const SalesForm: React.FC<SalesFormProps> = ({
   const runLocalValidation = () => {
     const errors: Record<string, string> = {};
     if (!formData.customerId) errors.customerId = "Customer required";
-    if (!formData.saleTypeId) errors.saleTypeId = "Sale type required";
-    if (formData.paidAmount == 0) errors.paidAmount = "Paid amount required";
     if (!formData.paymentTypeId) errors.paymentTypeId = "Payment type required";
     if (!formData.saleDate) errors.saleDate = "Sale Date required";
 
-    const paidAmountRequired =
-      formData.saleTypeId === 1 || formData.saleTypeId === 3;
 
-    if (paidAmountRequired) {
-      if (!formData.paidAmount || formData.paidAmount <= 0) {
-        errors.paidAmount = "Paid Amount is required";
-      } else {
-        if (formData.saleTypeId === 1 && formData.paidAmount !== formData.grandTotal) {
-          errors.paidAmount = `Paid Amount must match the Grand Total (${formData.grandTotal.toFixed(2)}).`;
+    const grandTotal = formData.grandTotal ?? 0;
+
+    const cash = formData.cash ?? 0;
+    const upi = formData.upi ?? 0;
+    const totalPaid = cash + upi;
+
+    const text: string | undefined = paymentTypes.find(item => item.value == formData.paymentTypeId)?.text;
+    // Switch based on paymentTypeId
+    switch (text?.toLocaleLowerCase()) {
+
+      case "cash":
+        if (cash <= 0) {
+          errors.cash = "Cash required.";
         }
-      }
+        if (cash !== grandTotal) {
+          errors.cash = "Cash must equal grand total.";
+        }
+        break;
+      case "credit":
+        if (cash <= 0) {
+          errors.cash = "Amount required.";
+        }
+        if (cash !== grandTotal) {
+          errors.cash = "Amount must equal grand total.";
+        }
+        break;
+      case "partial":
+        if (cash <= 0 && upi <= 0) {
+          if (cash <= 0) errors.cash = "Cash required.";
+        }
+        if (totalPaid !== grandTotal) {
+          errors.cash = "Cash/UPI must equal grand total.";
+        }
+        break;
+      case "mixed":
+        if (cash <= 0) errors.cash = "Cash required.";
+        if (upi <= 0) errors.upi = "UPI amount required.";
+
+        if (totalPaid !== grandTotal) {
+          errors.cash = "Cash + Upi must equal grand total.";
+        }
+        if (totalPaid !== grandTotal) {
+          errors.upi = "Cash + Upi must equal grand total.";
+        }
+        break;
+      case "upi":
+        if (upi <= 0) {
+          errors.upi = "UPI amount required.";
+        }
+        if (upi !== grandTotal) {
+          errors.upi = "UPI amount must equal grand total.";
+        }
+        break;
+      case "cheque":
+        if (cash <= 0) {
+          errors.cash = "Amount required.";
+        }
+        if (cash !== grandTotal) {
+          errors.cash = "Amount must equal grand total.";
+        }
+        if (formData.chequeNo?.length == 0) {
+          errors.chequeNo = "Cheque no required.";
+        }
+        break;
+      case "bank":
+        if (cash <= 0) {
+          errors.cash = "Amount required.";
+        }
+        if (cash !== grandTotal) {
+          errors.cash = "Amount must equal grand total.";
+        }
+        if (formData.bankName?.length == 0) {
+          errors.bankName = "Bank name required.";
+        }
+        break;
+
+      default:
+        break;
     }
+
     if (!formData.saleDate) errors.saleDate = "Invoice Date is required";
 
     const itemErrs = validateChildItems(formData.saleItems);
     setValidationErrors(errors);
+
+    if (formData.saleItems.length === 0) {
+      showError("Add atleast one product to sale");
+    }
 
     return Object.keys(errors).length === 0 && Object.keys(itemErrs).length === 0 && formData.saleItems.length > 0;
   };
@@ -337,6 +408,67 @@ export const SalesForm: React.FC<SalesFormProps> = ({
     });
   };
 
+  const onChangeCashType = (purchaseTypeId: number) => {
+    const selected: string | undefined = paymentTypes.find(item => item.value == purchaseTypeId)?.text;
+
+    if (!selected) return;
+
+    const type = selected.toLowerCase();
+
+    switch (type) {
+      case "cash":
+        setShowCash(true);
+        setShowUpi(false);
+        setFormData(prev => ({ ...prev, upi: 0 }));
+        break;
+
+      case "upi":
+        setShowCash(false);
+        setShowUpi(true);
+        setFormData(prev => ({ ...prev, cash: 0 }));
+        break;
+
+      case "partially":
+        setShowCash(true);
+        setShowUpi(true);
+        setFormData(prev => ({ ...prev, upi: 0 }));
+        break;
+
+      case "mixed":
+        setShowCash(true);
+        setShowUpi(true);
+        break;
+
+      case "credit":
+        setShowCash(true);
+        setShowUpi(false);
+        setShowBank(false);
+        setCashType("Amount");
+        setFormData(prev => ({ ...prev, cash: 0, upi: 0 }));
+        break;
+
+      case "cheque":
+        setShowCash(true);
+        setShowUpi(false);
+        setShowCheque(true);
+        setCashType("Amount");
+        setFormData(prev => ({ ...prev, cash: 0, upi: 0 }));
+        break;
+
+      case "bank":
+        setShowCash(true);
+        setShowUpi(false);
+        setShowBank(true);
+        setCashType("Amount");
+        setFormData(prev => ({ ...prev, cash: 0, upi: 0 }));
+        break;
+
+      default:
+        setShowCash(false);
+        setShowUpi(false);
+    }
+  };
+
   return (
     <div className={`border border-gray-200 rounded-md p-1 ${isEditSidebar ? "max-w-[800px]" : "w-full"}`}>
       <fieldset className="border border-gray-300 rounded-md p-2 bg-white mb-2">
@@ -372,42 +504,72 @@ export const SalesForm: React.FC<SalesFormProps> = ({
           <div className="flex-1 min-w-[200px]">
             <strong className="text-sm">Sale Type <span className="mandatory-asterisk">*</span></strong>
             <Dropdown
-              value={formData.saleTypeId}
-              options={saleTypes}
-              onChange={(e) => handleChange("saleTypeId", e.value)}
-              placeholder="Select Type"
-              showClear
-              filter
-              className={`w-full mt-1 text-sm ${validationErrors?.saleTypeId ? "p-invalid" : ""}`}
-            />
-            {validationErrors?.saleTypeId && <span className="mandatory-error text-xs">{validationErrors.saleTypeId}</span>}
-          </div>
-
-          <div className="flex-1 min-w-[140px]">
-            <strong className="text-sm">Paid Amount <span className="mandatory-asterisk">*</span></strong>
-            <InputNumber
-              value={formData.paidAmount}
-              mode="currency"
-              currency="INR"
-              locale="en-IN"
-              onChange={e => handleChange("paidAmount", e.value)}
-            />
-            {validationErrors?.paidAmount && <span className="mandatory-error text-xs">{validationErrors.paidAmount}</span>}
-          </div>
-
-          <div className="flex-1 min-w-[140px]">
-            <strong className="text-sm">Payment Type <span className="mandatory-asterisk">*</span></strong>
-            <Dropdown
               value={formData.paymentTypeId}
               options={paymentTypes}
-              onChange={(e) => handleChange("paymentTypeId", e.value)}
-              placeholder="Select Payment Type"
+              onChange={(e) => { handleChange("paymentTypeId", e.value); onChangeCashType(e.value); }}
+              placeholder="Select Type"
               showClear
               filter
               className={`w-full mt-1 text-sm ${validationErrors?.paymentTypeId ? "p-invalid" : ""}`}
             />
             {validationErrors?.paymentTypeId && <span className="mandatory-error text-xs">{validationErrors.paymentTypeId}</span>}
           </div>
+
+          {showCash && (
+            <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[100px]"}>
+              <strong className="text-sm">{cashType}</strong>
+              <InputNumber
+                value={formData.cash}
+                mode="currency"
+                currency="INR"
+                locale="en-IN"
+                onChange={(e) => handleChange("cash", e.value)}
+                className="w-full mt-1 text-sm"
+                inputStyle={{ width: "120px" }}
+              />
+              {validationErrors?.cash && <span className="mandatory-error text-xs">{validationErrors.cash}</span>}
+            </div>
+          )}
+
+          {showUpi && (
+            <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[100px]"}>
+              <strong className="text-sm">UPI Amount</strong>
+              <InputNumber
+                value={formData.upi}
+                mode="currency"
+                currency="INR"
+                locale="en-IN"
+                onChange={(e) => handleChange("upi", e.value)}
+                className="w-full mt-1 text-sm"
+                inputStyle={{ width: "120px" }}
+              />
+              {validationErrors?.upi && <span className="mandatory-error text-xs">{validationErrors.upi}</span>}
+            </div>
+          )}
+
+          {showCheque && (
+            <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[100px]"}>
+              <strong className="text-sm">Cheque No</strong>
+              <InputText
+                value={formData.chequeNo}
+                onChange={(e) => handleChange("chequeNo", e.target.value)}
+                className="w-full mt-1 text-sm"
+              />
+              {validationErrors?.chequeNo && <span className="mandatory-error text-xs">{validationErrors.chequeNo}</span>}
+            </div>
+          )}
+
+          {showBank && (
+            <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[100px]"}>
+              <strong className="text-sm">Bank Name</strong>
+              <InputText
+                value={formData.bankName}
+                onChange={(e) => handleChange("bankName", e.target.value)}
+                className="w-full mt-1 text-sm"
+              />
+              {validationErrors?.bankName && <span className="mandatory-error text-xs">{validationErrors.bankName}</span>}
+            </div>
+          )}
 
           <div className="flex-1 min-w-[140px]">
             <strong className="text-sm">Sale Date <span className="mandatory-asterisk">*</span></strong>

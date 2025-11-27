@@ -13,7 +13,9 @@ export interface PurchaseModel {
     totalGST: number;
     grandTotal: number;
     purchaseTypeId: number;
-    paidAmount: number;
+    //paidAmount: number;
+    cash: number;
+    upi: number;
     purchaseRefNo?: string;
     remarks?: string;
     isActive: boolean;

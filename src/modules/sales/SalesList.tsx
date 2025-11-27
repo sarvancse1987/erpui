@@ -77,21 +77,27 @@ export default function SaleList() {
     { field: "saleRefNo", header: "Sale Ref No", width: "160px" },
     { field: "saleOnDate", header: "Sale Date", width: "100px" },
     {
-      field: "saleTypeName",
+      field: "paymentTypeName",
       header: "Sale Type",
       width: "90px",
       body: (row: SaleModel) => {
         let severity: "success" | "warning" | "info" | "danger" = "info";
 
-        switch (row.saleTypeName) {
-          case "Cash":
+        const paymentname = row.paymentTypeName?.toLocaleLowerCase();
+        switch (paymentname) {
+          case "cash":
+          case "card":
+          case "upi":
+          case "mixed":
+          case "bank":
+          case "cheque":
             severity = "success"; // green
             break;
-          case "Credit":
+          case "credit":
             severity = "danger"; // yellow
             break;
-          case "Partially Paid":
-            severity = "warning"; // red
+          case "partial":
+            severity = "warning";
             break;
           default:
             severity = "info"; // blue/neutral
@@ -99,7 +105,7 @@ export default function SaleList() {
 
         return (
           <Tag
-            value={row.saleTypeName}
+            value={row.paymentTypeName}
             severity={severity}
             className="purchase-type-tag"
             style={{ width: "90px" }}
@@ -132,19 +138,105 @@ export default function SaleList() {
         />
     },
     {
-      field: "paidAmount",
+      field: "cash",
       header: "Paid Amt",
-      width: "110px",
+      width: "140px",
       body: (row) => {
-        if (row.paidAmount == null) return "";
-        const isPaidFull = row.paidAmount === row.paidAmount || row.paidAmount > row.totalAmount;
+        const cash = row.cash ?? 0;
+        const upi = row.upi ?? 0;
+
+        const totalPaid = cash + upi;
+        if (!cash && !upi && row.paymentTypeName?.toLowerCase() !== "credit") return "";
+
+        const paymentType = row.paymentTypeName?.toLowerCase();
+
+        const format = (v: any) =>
+          new Intl.NumberFormat("en-IN", {
+            style: "currency",
+            currency: "INR",
+          }).format(v);
+
+        // Default severity based on full payment
+        let severity: "success" | "danger" | "warning" | "info" =
+          totalPaid >= row.totalAmount ? "success" : "danger";
+
+        // override by payment type
+        switch (paymentType) {
+          case "credit":
+            severity = "danger";   // Credit = red
+            break;
+
+          case "partial":
+          case "partially paid":
+            severity = "warning"; // yellow
+            break;
+
+          case "cash":
+          case "upi":
+          case "card":
+          case "bank":
+          case "cheque":
+          case "mixed":
+            // keep default severity
+            break;
+
+          default:
+            severity = "info";
+        }
+
+        // Build label list
+        const labels: string[] = [];
+
+        switch (paymentType) {
+          case "cash":
+            if (cash) labels.push(`Cash – ${format(cash)}`);
+            break;
+
+          case "upi":
+            if (upi) labels.push(`UPI – ${format(upi)}`);
+            break;
+
+          case "card":
+            if (cash) labels.push(`Card – ${format(cash)}`);
+            break;
+
+          case "bank":
+            if (cash) labels.push(`Bank – ${format(cash)}`);
+            break;
+
+          case "cheque":
+            if (cash) labels.push(`Cheque – ${format(cash)}`);
+            break;
+
+          case "credit":
+            // ✔ Your requirement applied here
+            if (cash) labels.push(`Credit – ${format(cash)}`);
+            else labels.push("Credit");
+            break;
+
+          case "mixed":
+            if (cash) labels.push(`Cash – ${format(cash)}`);
+            if (upi) labels.push(`UPI – ${format(upi)}`);
+            break;
+
+          default:
+            if (cash) labels.push(`Cash – ${format(cash)}`);
+            if (upi) labels.push(`UPI – ${format(upi)}`);
+            break;
+        }
+
         return (
           <Tag
-            value={new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.paidAmount)}
-            severity={isPaidFull ? "info" : "danger"}
+            severity={severity}
             className="amount-tag"
-            style={{ width: "90px" }}
-          />
+            style={{ width: "130px", padding: "4px" }}
+          >
+            <div className="flex flex-col leading-tight text-xs">
+              {labels.map((x, i) => (
+                <span key={i}>{x}</span>
+              ))}
+            </div>
+          </Tag>
         );
       },
     },
@@ -153,26 +245,49 @@ export default function SaleList() {
       header: "Bal Amt",
       width: "110px",
       body: (row: SaleModel) => {
-        const paid = row.paidAmount ?? 0;
-        let balance = row.grandTotal - paid;
+        const cash = row.cash ?? 0;
+        const upi = row.upi ?? 0;
+        const paid = cash + upi;
 
-        let severity: "success" | "warning" | "danger" = "warning";
-        let displayValue: any = balance;
+        const paymentName = row.paymentTypeName?.toLowerCase();
 
+        // --- BALANCE LOGIC ---
+        let balance =
+          paymentName === "credit"
+            ? row.grandTotal // full due
+            : row.grandTotal - paid;
+
+        // Format currency
+        const format = (v: number) =>
+          new Intl.NumberFormat("en-IN", {
+            style: "currency",
+            currency: "INR",
+          }).format(v);
+
+        let severity: "success" | "warning" | "danger";
+
+        // --- SEVERITY LOGIC ---
         if (balance === 0) {
-          severity = "success";
+          severity = "success"; // settled
         } else if (balance < 0) {
-          severity = "danger";
-          displayValue = -balance;
-          displayValue = `${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(displayValue)}`;
-          return <Tag value={displayValue} severity={severity} className="amount-tag" style={{ width: "90px" }} />;
+          severity = "danger"; // overpaid
+          return (
+            <Tag
+              value={format(-balance)}
+              severity={severity}
+              className="amount-tag"
+              style={{ width: "90px" }}
+            />
+          );
         } else {
-          severity = "warning";
+          severity = paymentName === "credit" ? "danger" : "warning";
+          // Credit due -> always red (danger)
+          // Partial due -> yellow (warning)
         }
 
         return (
           <Tag
-            value={new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(displayValue)}
+            value={format(balance)}
             severity={severity}
             className="amount-tag"
             style={{ width: "90px" }}
@@ -185,7 +300,7 @@ export default function SaleList() {
       header: "Run Amt",
       width: "100px",
       body: (row: SaleModel) => {
-        const balance = row.runningBalance ?? 0; // cumulative/current balance
+        const balance = row.runningBalance ?? 0;
 
         let severity: "success" | "warning" | "danger";
         let displayValue: string;
@@ -195,7 +310,7 @@ export default function SaleList() {
           displayValue = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(balance);
         } else if (balance < 0) {
           // We need to pay buyer → red
-          severity = "success";
+          severity = "warning";
           displayValue = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(-balance);
         } else {
           // Buyer needs to pay us → green
@@ -213,21 +328,27 @@ export default function SaleList() {
     { field: "saleRefNo", header: "Sale Ref No", width: "180px" },
     { field: "saleOnDate", header: "Sale Date", width: "130px" },
     {
-      field: "saleType",
+      field: "paymentTypeName",
       header: "Sale Type",
-      width: "110px",
+      width: "90px",
       body: (row: SaleModel) => {
         let severity: "success" | "warning" | "info" | "danger" = "info";
 
-        switch (row.saleTypeName) {
-          case "Cash":
+        const paymentname = row.paymentTypeName?.toLocaleLowerCase();
+        switch (paymentname) {
+          case "cash":
+          case "card":
+          case "upi":
+          case "mixed":
+          case "bank":
+          case "cheque":
             severity = "success"; // green
             break;
-          case "Credit":
+          case "credit":
             severity = "danger"; // yellow
             break;
-          case "Partially Paid":
-            severity = "warning"; // red
+          case "partial":
+            severity = "warning";
             break;
           default:
             severity = "info"; // blue/neutral
@@ -235,7 +356,7 @@ export default function SaleList() {
 
         return (
           <Tag
-            value={row.saleTypeName}
+            value={row.paymentTypeName}
             severity={severity}
             className="purchase-type-tag"
             style={{ width: "90px" }}
@@ -268,46 +389,156 @@ export default function SaleList() {
         />
     },
     {
-      field: "paidAmount",
+      field: "cash",
       header: "Paid Amt",
-      width: "130px",
-      body: (row: SaleModel) => (
-        <Tag
-          value={new Intl.NumberFormat("en-IN", {
-            style: "currency",
-            currency: "INR"
-          }).format(row.paidAmount)}
-          severity={row.paidAmount === row.grandTotal ? "info" : "danger"}
-          className="amount-tag"
-          style={{ width: "90px" }}
-        />
-      )
-    },
-    {
-      field: "balanceAmount",
-      header: "Bal Amt",
-      width: "120px",
+      width: "140px",
       body: (row: SaleModel) => {
-        const paid = row.paidAmount ?? 0;
-        let balance = row.grandTotal - paid;
+        const cash = row.cash ?? 0;
+        const upi = row.upi ?? 0;
 
-        let severity: "success" | "warning" | "danger" = "warning";
-        let displayValue: any = balance;
+        const totalPaid = cash + upi;
+        if (!cash && !upi && row.paymentTypeName?.toLowerCase() !== "credit") return "";
 
-        if (balance === 0) {
-          severity = "success";
-        } else if (balance < 0) {
-          severity = "danger";
-          displayValue = -balance;
-          displayValue = `${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(displayValue)}`;
-          return <Tag value={displayValue} severity={severity} className="amount-tag" style={{ width: "90px" }} />;
-        } else {
-          severity = "warning";
+        const paymentType = row.paymentTypeName?.toLowerCase();
+
+        const format = (v: any) =>
+          new Intl.NumberFormat("en-IN", {
+            style: "currency",
+            currency: "INR",
+          }).format(v);
+
+        // Default severity based on full payment
+        let severity: "success" | "danger" | "warning" | "info" =
+          totalPaid >= row.totalAmount ? "success" : "danger";
+
+        // override by payment type
+        switch (paymentType) {
+          case "credit":
+            severity = "danger";   // Credit = red
+            break;
+
+          case "partial":
+          case "partially paid":
+            severity = "warning"; // yellow
+            break;
+
+          case "cash":
+          case "upi":
+          case "card":
+          case "bank":
+          case "cheque":
+          case "mixed":
+            // keep default severity
+            break;
+
+          default:
+            severity = "info";
+        }
+
+        // Build label list
+        const labels: string[] = [];
+
+        switch (paymentType) {
+          case "cash":
+            if (cash) labels.push(`Cash – ${format(cash)}`);
+            break;
+
+          case "upi":
+            if (upi) labels.push(`UPI – ${format(upi)}`);
+            break;
+
+          case "card":
+            if (cash) labels.push(`Card – ${format(cash)}`);
+            break;
+
+          case "bank":
+            if (cash) labels.push(`Bank – ${format(cash)}`);
+            break;
+
+          case "cheque":
+            if (cash) labels.push(`Cheque – ${format(cash)}`);
+            break;
+
+          case "credit":
+            // ✔ Your requirement applied here
+            if (cash) labels.push(`Credit – ${format(cash)}`);
+            else labels.push("Credit");
+            break;
+
+          case "mixed":
+            if (cash) labels.push(`Cash – ${format(cash)}`);
+            if (upi) labels.push(`UPI – ${format(upi)}`);
+            break;
+
+          default:
+            if (cash) labels.push(`Cash – ${format(cash)}`);
+            if (upi) labels.push(`UPI – ${format(upi)}`);
+            break;
         }
 
         return (
           <Tag
-            value={new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(displayValue)}
+            severity={severity}
+            className="amount-tag"
+            style={{ width: "130px", padding: "4px" }}
+          >
+            <div className="flex flex-col leading-tight text-xs">
+              {labels.map((x, i) => (
+                <span key={i}>{x}</span>
+              ))}
+            </div>
+          </Tag>
+        );
+      },
+    },
+    {
+      field: "balanceAmount",
+      header: "Bal Amt",
+      width: "110px",
+      body: (row: SaleModel) => {
+        const cash = row.cash ?? 0;
+        const upi = row.upi ?? 0;
+        const paid = cash + upi;
+
+        const paymentName = row.paymentTypeName?.toLowerCase();
+
+        // --- BALANCE LOGIC ---
+        let balance =
+          paymentName === "credit"
+            ? row.grandTotal // full due
+            : row.grandTotal - paid;
+
+        // Format currency
+        const format = (v: number) =>
+          new Intl.NumberFormat("en-IN", {
+            style: "currency",
+            currency: "INR",
+          }).format(v);
+
+        let severity: "success" | "warning" | "danger";
+
+        // --- SEVERITY LOGIC ---
+        if (balance === 0) {
+          severity = "success"; // settled
+        } else if (balance < 0) {
+          severity = "danger"; // overpaid
+          return (
+            <Tag
+              value={format(-balance)}
+              severity={severity}
+              className="amount-tag"
+              style={{ width: "90px" }}
+            />
+          );
+        } else {
+          severity = paymentName === "credit" ? "danger" : "warning";
+          // Credit due -> always red (danger)
+          // Partial due -> yellow (warning)
+        }
+
+        return (
+          <Tag
+            value={format(balance)}
             severity={severity}
             className="amount-tag"
             style={{ width: "90px" }}
@@ -329,7 +560,7 @@ export default function SaleList() {
           severity = "success";
           displayValue = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(balance);
         } else if (balance < 0) {
-          severity = "success";
+          severity = "warning";
           displayValue = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(-balance);
         } else {
           severity = "danger";

@@ -6,9 +6,7 @@ export interface SaleModel {
     // Foreign Keys
     customerId: number;
     customerName?: string;
-    saleTypeId: number;
-    saleTypeName?: string;
-    paymentTypeId?: number;
+    paymentTypeId: number;
     paymentTypeName?: string;
     saleStatusId?: number;
     saleStatusName?: number;
@@ -18,7 +16,9 @@ export interface SaleModel {
     saleDate: string | Date | null;
     saleOnDate?: string;
     totalAmount: number;
-    paidAmount: number;
+    //paidAmount: number;
+    cash: number;
+    upi: number;
     brokerageAmount?: number;
     balanceAmount?: number;
     totalGST?: number;
@@ -26,6 +26,8 @@ export interface SaleModel {
     roundOff?: number;
     grandTotal: number;
     runningBalance?: number;
+    bankName?: string;
+    chequeNo?: string;
 
     noOfDays?: number;
     dueDate?: Date;

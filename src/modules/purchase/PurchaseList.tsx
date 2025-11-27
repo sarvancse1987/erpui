@@ -136,19 +136,38 @@ export default function PurchaseList() {
             )
         },
         {
-            field: "paidAmount",
+            field: "cash",
             header: "Paid Amt",
-            width: "110px",
+            width: "140px",
             body: (row) => {
-                if (row.paidAmount == null) return "";
-                const isPaidFull = row.paidAmount === row.invoiceAmount;
+                const cash = row.cash ?? 0;
+                const upi = row.upi ?? 0;
+
+                const totalPaid =
+                    (row.cash ?? 0) +
+                    (row.upi ?? 0);
+
+                if (!cash && !upi) return "";
+
+                const format = (v: any) =>
+                    new Intl.NumberFormat("en-IN", {
+                        style: "currency",
+                        currency: "INR"
+                    }).format(v);
+
+                const isPaidFull = totalPaid === row.invoiceAmount;
+
                 return (
                     <Tag
-                        value={new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.paidAmount)}
                         severity={isPaidFull ? "success" : "danger"}
                         className="amount-tag"
-                        style={{ width: "90px" }}
-                    />
+                        style={{ width: "130px", padding: "4px" }}
+                    >
+                        <div className="flex flex-col leading-tight text-xs">
+                            {cash ? <span>Cash – {format(cash)}</span> : null}
+                            {upi ? <span>UPI – {format(upi)}</span> : null}
+                        </div>
+                    </Tag>
                 );
             },
         },
@@ -157,7 +176,9 @@ export default function PurchaseList() {
             header: "Bal Amt",
             width: "120px",
             body: (row: PurchaseModel) => {
-                const paid = row.paidAmount ?? 0;
+                const cash = row.cash ?? 0;
+                const upi = row.upi ?? 0;
+                const paid = cash + upi;
                 let balance = row.invoiceAmount - paid;
 
                 let severity: "success" | "warning" | "danger" = "warning";
@@ -195,11 +216,11 @@ export default function PurchaseList() {
                 let displayValue: string;
 
                 if (balance === 0) {
-                    severity = "warning"; // fully settled
+                    severity = "success";
                     displayValue = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(balance);
                 } else if (balance < 0) {
                     // We need to pay buyer → red
-                    severity = "success";
+                    severity = "warning";
                     displayValue = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(-balance);
                 } else {
                     // Buyer needs to pay us → green
@@ -214,28 +235,76 @@ export default function PurchaseList() {
             field: "totalAmount",
             header: "Total Amt",
             width: "110px",
-            body: (row) =>
-                row.totalAmount != null
-                    ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.totalAmount)
-                    : "",
+            body: (row: PurchaseModel) => (
+                <Tag
+                    value={new Intl.NumberFormat("en-IN", {
+                        style: "currency",
+                        currency: "INR"
+                    }).format(row.totalAmount)}
+                    className="amount-tag"
+                    style={{
+                        backgroundColor: "#3498db",
+                        color: "white",
+                        fontWeight: "500",
+                        fontSize: "0.85rem",
+                        padding: "0.25rem 0.5rem",
+                        borderRadius: "0.25rem",
+                        display: "inline-block",
+                        textAlign: "center",
+                        width: "90px"
+                    }}
+                />
+            )
         },
         {
             field: "totalGST",
             header: "Gst Amt",
             width: "110px",
-            body: (row) =>
-                row.totalGST != null
-                    ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.totalGST)
-                    : "",
+            body: (row: PurchaseModel) => (
+                <Tag
+                    value={new Intl.NumberFormat("en-IN", {
+                        style: "currency",
+                        currency: "INR"
+                    }).format(row.totalGST)}
+                    className="amount-tag"
+                    style={{
+                        backgroundColor: "#d3db34ff",
+                        color: "white",
+                        fontWeight: "500",
+                        fontSize: "0.85rem",
+                        padding: "0.25rem 0.5rem",
+                        borderRadius: "0.25rem",
+                        display: "inline-block",
+                        textAlign: "center",
+                        width: "90px"
+                    }}
+                />
+            )
         },
         {
             field: "grandTotal",
             header: "Grand Total",
             width: "110px",
-            body: (row) =>
-                row.grandTotal != null
-                    ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.grandTotal)
-                    : "",
+            body: (row: PurchaseModel) => (
+                <Tag
+                    value={new Intl.NumberFormat("en-IN", {
+                        style: "currency",
+                        currency: "INR"
+                    }).format(row.grandTotal)}
+                    className="amount-tag"
+                    style={{
+                        backgroundColor: "#3498db",
+                        color: "white",
+                        fontWeight: "500",
+                        fontSize: "0.85rem",
+                        padding: "0.25rem 0.5rem",
+                        borderRadius: "0.25rem",
+                        display: "inline-block",
+                        textAlign: "center",
+                        width: "90px"
+                    }}
+                />
+            )
         },
         { field: "invoiceDate", header: "Invoice Date", width: "110px" },
     ];
@@ -302,27 +371,49 @@ export default function PurchaseList() {
             )
         },
         {
-            field: "paidAmount",
+            field: "cash",
             header: "Paid Amt",
-            width: "130px",
-            body: (row: PurchaseModel) => (
-                <Tag
-                    value={new Intl.NumberFormat("en-IN", {
+            width: "140px",
+            body: (row: PurchaseModel) => {
+                const cash = row.cash ?? 0;
+                const upi = row.upi ?? 0;
+
+                const totalPaid =
+                    (row.cash ?? 0) +
+                    (row.upi ?? 0);
+
+                if (!cash && !upi) return "";
+
+                const format = (v: any) =>
+                    new Intl.NumberFormat("en-IN", {
                         style: "currency",
                         currency: "INR"
-                    }).format(row.paidAmount)}
-                    severity={row.paidAmount === row.invoiceAmount ? "success" : "danger"}
-                    className="amount-tag"
-                    style={{ width: "90px" }}
-                />
-            )
+                    }).format(v);
+
+                const isPaidFull = totalPaid === row.invoiceAmount;
+
+                return (
+                    <Tag
+                        severity={isPaidFull ? "success" : "danger"}
+                        className="amount-tag"
+                        style={{ width: "130px", padding: "4px" }}
+                    >
+                        <div className="flex flex-col leading-tight text-xs">
+                            {cash ? <span>Cash – {format(cash)}</span> : null}
+                            {upi ? <span>UPI – {format(upi)}</span> : null}
+                        </div>
+                    </Tag>
+                );
+            },
         },
         {
             field: "balanceAmount",
             header: "Bal Amt",
             width: "120px",
             body: (row: PurchaseModel) => {
-                const paid = row.paidAmount ?? 0;
+                const cash = row.cash ?? 0;
+                const upi = row.upi ?? 0;
+                const paid = cash + upi;
                 let balance = row.invoiceAmount - paid;
 
                 let severity: "success" | "warning" | "danger" = "warning";
@@ -360,10 +451,10 @@ export default function PurchaseList() {
                 let displayValue: string;
 
                 if (balance === 0) {
-                    severity = "warning";
+                    severity = "success";
                     displayValue = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(balance);
                 } else if (balance < 0) {
-                    severity = "success";
+                    severity = "warning";
                     displayValue = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(-balance);
                 } else {
                     severity = "danger";
@@ -377,7 +468,26 @@ export default function PurchaseList() {
             field: "grandTotal",
             header: "Total",
             width: "120px",
-            body: (row: PurchaseModel) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.grandTotal)
+            body: (row: PurchaseModel) => (
+                <Tag
+                    value={new Intl.NumberFormat("en-IN", {
+                        style: "currency",
+                        currency: "INR"
+                    }).format(row.grandTotal)}
+                    className="amount-tag"
+                    style={{
+                        backgroundColor: "#3498db",
+                        color: "white",
+                        fontWeight: "500",
+                        fontSize: "0.85rem",
+                        padding: "0.25rem 0.5rem",
+                        borderRadius: "0.25rem",
+                        display: "inline-block",
+                        textAlign: "center",
+                        width: "90px"
+                    }}
+                />
+            )
         }
     ];
 

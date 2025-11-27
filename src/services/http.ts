@@ -39,8 +39,10 @@ const createHttpClient = (baseURL: string, includeAuth = true): AxiosInstance =>
 
     const companyId = user?.companyId || "1"; // or from context/state
     const locationId = user?.locationId || "1";
+    const userId = user?.userId || "1";
     config.headers["CompanyId"] = Number(companyId);
     config.headers["LocationId"] = Number(locationId);
+    config.headers["UserId"] = Number(userId);
 
     activeRequests++;
     updateLoading();
