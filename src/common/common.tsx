@@ -597,6 +597,21 @@ export const getInitialsAndColor = (fullName: string = "") => {
   return { initials, bgColor: getColorFromName(fullName) };
 };
 
+
+export const parseDate = (value: string | Date | null): Date | null => {
+  if (!value) return null;
+
+  // If already a Date → return as-is
+  if (value instanceof Date) return value;
+
+  // Otherwise parse string "dd-MM-yyyy"
+  const parts = value.split("-");
+  const day = Number(parts[0]);
+  const month = Number(parts[1]) - 1;
+  const year = Number(parts[2]);
+  return new Date(year, month, day);
+};
+
 // export const setCookie = (name: string, value: string, days?: number) => {
 //   let expires = "";
 //   if (days) {

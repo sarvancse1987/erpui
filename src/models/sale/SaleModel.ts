@@ -1,3 +1,4 @@
+import { ShipmentModel } from "../shipment/ShipmentModel";
 import { SaleItemModel } from "./SaleItemModel";
 
 export interface SaleModel {
@@ -16,7 +17,6 @@ export interface SaleModel {
     saleDate: string | Date | null;
     saleOnDate?: string;
     totalAmount: number;
-    //paidAmount: number;
     cash: number;
     upi: number;
     brokerageAmount?: number;
@@ -36,4 +36,5 @@ export interface SaleModel {
     billingFranchiseId?: number;
 
     saleItems: SaleItemModel[];
+    shipment?: ShipmentModel | null;
 }

@@ -28,6 +28,7 @@ export default function SaleList() {
       const mapped = res.sale.map((p: any) => ({
         ...p,
         saleItems: res.saleItems.filter((i: any) => i.saleId === p.saleId),
+        shipment: res.shipment?.saleId === p.saleId ? res.shipment : null
       }));
       setSales(mapped ?? []);
     } catch (err) {
@@ -706,7 +707,7 @@ export default function SaleList() {
               onSaveSuccess={() => {
                 setActiveIndex(0);
                 loadAllData();
-                setIsSidebarOpen(false);
+                //setIsSidebarOpen(false);
               }}
               onCancel={closeEditSidebar}
             />
@@ -727,7 +728,7 @@ export default function SaleList() {
             onSaveSuccess={() => {
               setActiveIndex(0);
               loadAllData();
-              setIsSidebarOpen(false);
+              //setIsSidebarOpen(false);
             }}
             onCancel={closeEditSidebar}
           />
@@ -749,7 +750,7 @@ export default function SaleList() {
             onSaveSuccess={() => {
               setActiveIndex(0);
               loadAllData();
-              setIsSidebarOpen(false);
+              //setIsSidebarOpen(false);
             }}
             onCancel={closeEditSidebar}
           />

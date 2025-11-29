@@ -45,6 +45,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
     bankName: "",
     chequeNo: "",
     saleItems: [],
+    shipment: null
   });
 
   const [newcustomer, setNewCustomer] = useState<CustomerModel>({
@@ -419,29 +420,38 @@ export const SalesForm: React.FC<SalesFormProps> = ({
       case "cash":
         setShowCash(true);
         setShowUpi(false);
+        setShowCheque(false);
+        setShowBank(false);
         setFormData(prev => ({ ...prev, upi: 0 }));
         break;
 
       case "upi":
         setShowCash(false);
         setShowUpi(true);
+        setShowCheque(false);
+        setShowBank(false);
         setFormData(prev => ({ ...prev, cash: 0 }));
         break;
 
       case "partially":
         setShowCash(true);
         setShowUpi(true);
+        setShowCheque(false);
+        setShowBank(false);
         setFormData(prev => ({ ...prev, upi: 0 }));
         break;
 
       case "mixed":
         setShowCash(true);
         setShowUpi(true);
+        setShowCheque(false);
+        setShowBank(false);
         break;
 
       case "credit":
         setShowCash(true);
         setShowUpi(false);
+        setShowCheque(false);
         setShowBank(false);
         setCashType("Amount");
         setFormData(prev => ({ ...prev, cash: 0, upi: 0 }));
@@ -451,6 +461,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         setShowCash(true);
         setShowUpi(false);
         setShowCheque(true);
+        setShowBank(false);
         setCashType("Amount");
         setFormData(prev => ({ ...prev, cash: 0, upi: 0 }));
         break;
@@ -459,6 +470,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         setShowCash(true);
         setShowUpi(false);
         setShowBank(true);
+        setShowCheque(false);
         setCashType("Amount");
         setFormData(prev => ({ ...prev, cash: 0, upi: 0 }));
         break;
@@ -468,6 +480,13 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         setShowUpi(false);
     }
   };
+
+  const handleShipmentInfo = (shipmentDetails: any) => {
+    setFormData(prev => ({
+      ...prev,
+      shipment: shipmentDetails
+    }));
+  }
 
   return (
     <div className={`border border-gray-200 rounded-md p-1 ${isEditSidebar ? "max-w-[800px]" : "w-full"}`}>
@@ -498,7 +517,9 @@ export const SalesForm: React.FC<SalesFormProps> = ({
           </div>
 
           <div className="min-w-[50px] mt-4">
-            <Button icon="pi pi-plus" onClick={() => setShowCustomerAdd(true)} className="p-button-sm custom-md" />
+            <Button icon="pi pi-plus" onClick={() => setShowCustomerAdd(true)} className="p-button-sm custom-md"
+              tooltip="Add New Customer"
+              tooltipOptions={{ position: "bottom" }} />
           </div>
 
           <div className="flex-1 min-w-[200px]">
@@ -606,6 +627,8 @@ export const SalesForm: React.FC<SalesFormProps> = ({
             isNew={isEditSidebar}
             onAdjustmentsChange={handleAdjustmentsChange}
             savedAdjustments={savedAdjustments}
+            onShipment={handleShipmentInfo}
+            shipmentInfo={formData?.shipment}
           />
         </div>
 

@@ -1,3 +1,4 @@
+import { ShipmentModel } from "../shipment/ShipmentModel";
 import { ColumnMeta } from "./ColumnMeta";
 
 export interface TTypedDatatableProps<T extends Record<string, any>> {
@@ -22,6 +23,8 @@ export interface TTypedDatatableProps<T extends Record<string, any>> {
     }) => void;
     sortableColumns?: (keyof T)[];
     savedAdjustments?: Record<number, number | undefined>;
+    onShipment?: (updatedData: T[]) => void;
+    shipmentInfo?: ShipmentModel | null;
 }
 
 export interface TTypeDatatableProps<T extends Record<string, any>> {

@@ -21,6 +21,8 @@ import apiService from "../services/apiService";
 import { MultiSelect } from "primereact/multiselect";
 import { useToast } from "./ToastService";
 import { storage } from "../services/storageService";
+import SaleShipmentForm from "../modules/shipment/ShipmentForm";
+import { ShipmentModel } from "../models/shipment/ShipmentModel";
 
 export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
   columns,
@@ -35,7 +37,9 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
   products = [] as ProductModel[],
   onChange,
   onAdjustmentsChange,
-  savedAdjustments
+  savedAdjustments,
+  onShipment,
+  shipmentInfo
 }: TTypedDatatableProps<T> & {
   products?: ProductModel[]
 }) {
@@ -66,7 +70,8 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
   const [adjustmentValue, setAdjustmentValue] = useState<number>(0);
   const [adjustments, setAdjustments] = useState<Record<number, number | undefined>>({});
   const user = storage.getUser();
-
+  const [showShipment, setShowShipment] = useState(false);
+  const [shipmentModel, setShipmentModel] = useState<ShipmentModel | null>(null);
 
   const loadFreightData = async () => {
     try {
@@ -91,6 +96,13 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
     setTableData(data.map((d) => ({ ...d })));
   }, [data]);
 
+  useEffect(() => {
+    if (!shipmentInfo) return;
+    setShipmentModel(prev => ({
+      ...prev,
+      ...shipmentInfo
+    }));
+  }, [shipmentInfo]);
 
   useEffect(() => {
     if (!savedAdjustments) return;
@@ -411,11 +423,26 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
 
   const isSaveEnabled = tableData.some((r) => r[primaryKey] === 0 || !!r._edited);
 
+  const handleShipment = () => {
+    setShowShipment(true);
+  }
+
+  const handleShipmentSuccess = (shipmentInfo: any) => {
+    onShipment?.(shipmentInfo);
+    setShowShipment(false);
+    setShipmentModel(shipmentInfo);
+  }
+
+  const onCancelShipmentSideBar = () => {
+    setShowShipment(false);
+  };
+
   return (
     <div className="card p-3 h-[calc(100vh-100px)] overflow-auto">
       <div className="flex justify-between items-center mb-1">
         <div className="flex gap-2 mb-1 flex-none">
-          <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} size="small" className="p-button-sm custom-xs" />
+          <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} size="small" className="p-button-sm custom-xs" tooltip="Add product"
+            tooltipOptions={{ position: "bottom" }} />
           {isSave && < Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll} disabled={!isSaveEnabled} size="small" className="p-button-sm custom-xs" />}
           {isDelete && tableData.length > 0 && <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={deleteSelected} disabled={!selectedRows.length} size="small" className="p-button-sm custom-xs" />}
         </div>
@@ -458,6 +485,16 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
             <div className="custom-footer flex justify-between items-center gap-1 flex-wrap px-2 py-1">
               {/* Left: Dropdown + Input + Button */}
               <div className="flex items-center gap-1 min-w-[200px] adjustment-section">
+                <Button
+                  label=""
+                  icon="pi pi-truck"
+                  severity="info"
+                  style={{ fontSize: '0.85rem', padding: '2px 2px', height: '36px' }}
+                  tooltip="Add shipment"
+                  tooltipOptions={{ position: "bottom" }}
+                  onClick={handleShipment}
+                />
+
                 <Dropdown
                   value={selectedAdjustment}
                   options={adjustmentOptions}
@@ -525,6 +562,8 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
                     setSelectedAdjustment(null);
                     setAdjustmentValue(0);
                   }}
+                  tooltip="Add adjustment"
+                  tooltipOptions={{ position: "bottom" }}
                 />
 
               </div>
@@ -799,6 +838,22 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
             />
           </div>
         </Sidebar>
+
+        <Sidebar
+          visible={showShipment}
+          position="right"
+          style={{ width: "850px" }}
+          onHide={() => setShowShipment(false)}
+          header="Add Shipment"
+        >
+          <SaleShipmentForm
+            isEditSidebar={true}
+            onSave={handleShipmentSuccess}
+            onCancel={onCancelShipmentSideBar}
+            shipmentInfo={shipmentInfo}
+          />
+        </Sidebar>
+
       </div>
     </div>
   );
