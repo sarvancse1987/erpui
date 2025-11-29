@@ -12,6 +12,7 @@ import { OverlayPanel } from "primereact/overlaypanel";
 import { useAuth } from "../auth/AuthProvider";
 import { Badge } from "primereact/badge";
 import appLogo from "../Images/jobsnap_logo.png";
+// import appLogo from "../Images/erp.png";
 import { AppTopbarRef } from "./layoutprops";
 import { Menu } from "primereact/menu";
 import { Avatar } from "primereact/avatar";
@@ -36,6 +37,7 @@ const AppTopbar = forwardRef<AppTopbarRef>((_props, ref) => {
 
   const onLogout = () => {
     setToken("");
+    storage.clear();
     navigate("/login");
     profileOverlayRef.current?.hide();
   };

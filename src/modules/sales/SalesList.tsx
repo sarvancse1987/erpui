@@ -11,6 +11,7 @@ import { RadioButton } from "primereact/radiobutton";
 import { TTypeDatatable } from "../../components/TTypeDatatable";
 import { ParentChildTable } from "../../components/ParentChildTable";
 import { SalesForm } from "./SalesForm";
+import { Button } from "primereact/button";
 
 export default function SaleList() {
   const [sales, setSales] = useState<SaleModel[]>([]);
@@ -72,11 +73,29 @@ export default function SaleList() {
     }
   };
 
+  const handlePrint = async (data: SaleModel) => {
+    try {
+      const pdfBlob = await apiService.getPdf(`/Sale/sale-bill/${data.saleId}`);
+
+      if (!pdfBlob || pdfBlob.size === 0) {
+        console.error("PDF is empty!");
+        return;
+      }
+
+      const url = URL.createObjectURL(pdfBlob);
+      window.open(url);
+
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    } catch (error) {
+      console.error("Error fetching PDF:", error);
+    }
+  };
+
   const columns: ColumnMeta<SaleModel>[] = [
     { field: "customerId", header: "ID", editable: false, hidden: true },
     { field: "customerName", header: "Customer Name", width: "160px", frozen: true },
     { field: "saleRefNo", header: "Sale Ref No", width: "160px" },
-    { field: "saleOnDate", header: "Sale Date", width: "100px" },
+    { field: "saleOnDate", header: "Sale Date", width: "90px" },
     {
       field: "paymentTypeName",
       header: "Sale Type",
@@ -117,7 +136,7 @@ export default function SaleList() {
     {
       field: "grandTotal",
       header: "Total",
-      width: "110px",
+      width: "100px",
       body: (row) =>
         <Tag
           value={new Intl.NumberFormat("en-IN", {
@@ -141,7 +160,7 @@ export default function SaleList() {
     {
       field: "cash",
       header: "Paid Amt",
-      width: "140px",
+      width: "100px",
       body: (row) => {
         const cash = row.cash ?? 0;
         const upi = row.upi ?? 0;
@@ -190,28 +209,28 @@ export default function SaleList() {
 
         switch (paymentType) {
           case "cash":
-            if (cash) labels.push(`Cash – ${format(cash)}`);
+            if (cash) labels.push(`${format(cash)}`);
             break;
 
           case "upi":
-            if (upi) labels.push(`UPI – ${format(upi)}`);
+            if (upi) labels.push(`${format(upi)}`);
             break;
 
           case "card":
-            if (cash) labels.push(`Card – ${format(cash)}`);
+            if (cash) labels.push(`${format(cash)}`);
             break;
 
           case "bank":
-            if (cash) labels.push(`Bank – ${format(cash)}`);
+            if (cash) labels.push(`${format(cash)}`);
             break;
 
           case "cheque":
-            if (cash) labels.push(`Cheque – ${format(cash)}`);
+            if (cash) labels.push(`${format(cash)}`);
             break;
 
           case "credit":
             // ✔ Your requirement applied here
-            if (cash) labels.push(`Credit – ${format(cash)}`);
+            if (cash) labels.push(`${format(cash)}`);
             else labels.push("Credit");
             break;
 
@@ -244,7 +263,7 @@ export default function SaleList() {
     {
       field: "balanceAmount",
       header: "Bal Amt",
-      width: "110px",
+      width: "100px",
       body: (row: SaleModel) => {
         const cash = row.cash ?? 0;
         const upi = row.upi ?? 0;
@@ -321,7 +340,21 @@ export default function SaleList() {
 
         return <Tag value={displayValue} severity={severity} className="amount-tag" style={{ width: "90px" }} />;
       },
-    }
+    },
+    {
+      field: "print",
+      header: "Print",
+      width: "60px",
+      body: (row: SaleModel) => (
+        <Button
+          icon="pi pi-print"
+          className="p-button-sm p-button-text p-button-info"
+          tooltip="Print Bill"
+          tooltipOptions={{ position: 'top' }}
+          onClick={() => handlePrint(row)}
+        />
+      ),
+    },
   ];
 
   const parentColumns = [
@@ -441,28 +474,28 @@ export default function SaleList() {
 
         switch (paymentType) {
           case "cash":
-            if (cash) labels.push(`Cash – ${format(cash)}`);
+            if (cash) labels.push(`${format(cash)}`);
             break;
 
           case "upi":
-            if (upi) labels.push(`UPI – ${format(upi)}`);
+            if (upi) labels.push(`${format(upi)}`);
             break;
 
           case "card":
-            if (cash) labels.push(`Card – ${format(cash)}`);
+            if (cash) labels.push(`${format(cash)}`);
             break;
 
           case "bank":
-            if (cash) labels.push(`Bank – ${format(cash)}`);
+            if (cash) labels.push(`${format(cash)}`);
             break;
 
           case "cheque":
-            if (cash) labels.push(`Cheque – ${format(cash)}`);
+            if (cash) labels.push(`${format(cash)}`);
             break;
 
           case "credit":
             // ✔ Your requirement applied here
-            if (cash) labels.push(`Credit – ${format(cash)}`);
+            if (cash) labels.push(`${format(cash)}`);
             else labels.push("Credit");
             break;
 
@@ -570,7 +603,21 @@ export default function SaleList() {
 
         return <Tag value={displayValue} severity={severity} className="amount-tag" style={{ width: "90px" }} />;
       },
-    }
+    },
+    {
+      field: "print",
+      header: "Print",
+      width: "80px",
+      body: (row: SaleModel) => (
+        <Button
+          icon="pi pi-print"
+          className="p-button-sm p-button-text p-button-info"
+          tooltip="Print Bill"
+          tooltipOptions={{ position: 'top' }}
+          onClick={() => handlePrint(row)}
+        />
+      ),
+    },
   ];
 
   const childColumns: ColumnMeta<SaleItemModel>[] = [

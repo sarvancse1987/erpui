@@ -37,4 +37,6 @@ export interface SaleModel {
 
     saleItems: SaleItemModel[];
     shipment?: ShipmentModel | null;
+
+    print?: string;
 }

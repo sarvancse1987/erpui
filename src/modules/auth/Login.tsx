@@ -47,7 +47,7 @@ const LoginPage: React.FC = () => {
         setToken(response.token);
         navigate("/", { replace: true });
       } else {
-        showError(response.message);
+        showError(response.data);
       }
     } else {
       setErrors(validationErrors);
