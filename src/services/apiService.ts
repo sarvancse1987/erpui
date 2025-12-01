@@ -61,10 +61,10 @@ export async function upload(url: string, formData: FormData) {
   });
 }
 
-export async function getPdf(url: string): Promise<Blob> {
+export async function getPdf(url: string): Promise<any> {
   const client = getHttpClient();
   const response = await client.get(url, { responseType: "blob" });
-  return response.data; // <-- this is the Blob
+  return response; // <-- this is the Blob
 }
 
 export default {

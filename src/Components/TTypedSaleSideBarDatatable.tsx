@@ -490,7 +490,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
                   icon="pi pi-truck"
                   severity="info"
                   style={{ fontSize: '0.85rem', padding: '2px 2px', height: '36px' }}
-                  tooltip="Add shipment"
+                  tooltip={(shipmentModel?.shipmentId ?? 0) > 0 ? "View Shipment" : "Add Shipment"}
                   tooltipOptions={{ position: "bottom" }}
                   onClick={handleShipment}
                 />

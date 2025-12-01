@@ -1,4 +1,5 @@
 export interface ShipmentModel {
+    shipmentId: number | 0;
     shipmentDate: string | Date | null;
     shipmentTypeId: number | null;
 

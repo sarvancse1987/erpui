@@ -25,6 +25,7 @@ const SaleShipmentForm: React.FC<SalesShipmentFormProps> = ({
 }) => {
 
     const [formData, setFormData] = useState<ShipmentModel>({
+        shipmentId: 0,
         shipmentDate: parseDate(new Date()),
         shipmentTypeId: null,
         address: "",

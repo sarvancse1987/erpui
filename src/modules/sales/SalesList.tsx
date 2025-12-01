@@ -29,7 +29,7 @@ export default function SaleList() {
       const mapped = res.sale.map((p: any) => ({
         ...p,
         saleItems: res.saleItems.filter((i: any) => i.saleId === p.saleId),
-        shipment: res.shipment?.saleId === p.saleId ? res.shipment : null
+        shipment: res.shipment.filter((i: any) => i.saleId === p.saleId),
       }));
       setSales(mapped ?? []);
     } catch (err) {
