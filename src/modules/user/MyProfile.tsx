@@ -85,7 +85,7 @@ export const MyProfile: React.FC = () => {
                 formData.append("file", selectedFile);
 
                 // 🔥 Use apiService.upload() (NOT document)
-                const uploadRes: any = await apiService.upload("/users/upload/image", formData);
+                const uploadRes: any = await apiService.upload("/users/upload/uploaduserprofile", formData);
 
                 uploadedFileUrl = uploadRes?.fileUrl || uploadedFileUrl;
             }
@@ -101,7 +101,7 @@ export const MyProfile: React.FC = () => {
                 userImage: uploadedFileUrl
             };
 
-            await apiService.put(`/users/updateprofile/${updatedProfile.id}`, updatedProfile);
+            await apiService.put(`/users/uploaduserprofile/${updatedProfile.id}`, updatedProfile);
             showSuccess("Profile update successfully");
             storage.updateUserProfileName(profile.firstName, profile.lastName);
 

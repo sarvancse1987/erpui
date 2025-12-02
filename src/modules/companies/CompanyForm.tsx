@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { InputText } from "primereact/inputtext";
 import { Checkbox } from "primereact/checkbox";
 import { Button } from "primereact/button";
@@ -6,6 +6,8 @@ import { CompanyModel } from "../../models/companies/CompanyModel";
 import { Dropdown } from "primereact/dropdown";
 import apiService from "../../services/apiService";
 import { InputMask } from "primereact/inputmask";
+import { FileUpload, FileUploadSelectEvent } from "primereact/fileupload";
+import { storage } from "../../services/storageService";
 
 interface CompanyFormProps {
     company: CompanyModel;
@@ -34,6 +36,10 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
     const [allCountries, setAllCountries] = useState<{ label: string; value: number }[]>([]);
     const [allStates, setAllStates] = useState<{ label: string; value: number; countryId: number }[]>([]);
     const [allDistricts, setAllDistricts] = useState<{ label: string; value: number; stateId: number }[]>([]);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const uploadRef = useRef<FileUpload>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
 
     const loadLocationMaster = async () => {
         try {
@@ -68,6 +74,12 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
 
     useEffect(() => {
         setFormData({ ...company });
+
+        if (company.path) {
+            const apiBaseUrl = process.env.REACT_APP_SERVICE_API_BASE_URL?.replace("/api", "") || "";
+            setPreviewUrl(`${apiBaseUrl}${company.path}`);
+            storage.updateUserCompanyLogo(`${apiBaseUrl}${company.path}`);
+        }
     }, [company]);
 
     useEffect(() => {
@@ -161,10 +173,53 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
         return Object.keys(errors).length === 0;
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!validateForm()) return;
-        onSave(formData);
+
+
+        setLoading(true);
+
+        try {
+            let uploadedFileUrl = formData.logo ?? null; // keep old photo if no new file
+
+            // ---- Upload photo only when Save is clicked ----
+            if (selectedFile) {
+                const formData = new FormData();
+                formData.append("file", selectedFile);
+
+                // 🔥 Use apiService.upload() (NOT document)
+                const uploadRes: any = await apiService.upload("/company/upload/uploadcompanyprofile", formData);
+
+                uploadedFileUrl = uploadRes?.fileUrl || uploadedFileUrl;
+            }
+
+            const updatedCompany: CompanyModel = {
+                ...formData,
+                path: uploadedFileUrl
+            };
+
+            onSave(updatedCompany);
+
+        } catch (err) {
+            console.error("Error saving profile", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const onSelect = (e: FileUploadSelectEvent) => {
+        const file = e.files[0];
+
+        setSelectedFile(file);
+        setPreviewUrl(URL.createObjectURL(file));
+
+        uploadRef.current?.clear();
+    };
+
+    const openFileDialog = () => {
+        const input = uploadRef.current?.getInput();
+        input?.click();
     };
 
     return (
@@ -313,6 +368,77 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                             onChange={e => handleChange("isActive", e.checked)}
                         />
                         <strong>Is Active</strong>
+                    </div>
+                </div>
+
+                <div className="flex flex-wrap gap-3 p-1">
+
+
+                    <div className="flex justify-end mt-4">
+                        <div className="flex flex-col gap-4">
+
+                            {/* Dropzone */}
+                            {!previewUrl && (
+                                <div className="upload-dropzone" onClick={openFileDialog}>
+                                    <i className="pi pi-upload"></i>
+                                    <p className="text-main">Upload Image</p>
+                                    <p className="text-sub">PNG / JPG / JPEG</p>
+                                </div>
+                            )}
+
+                            {/* Hidden FileUpload */}
+                            <FileUpload
+                                ref={uploadRef}
+                                name="file"
+                                mode="basic"
+                                customUpload
+                                auto={false}
+                                accept="image/*"
+                                maxFileSize={2_000_000}
+                                onSelect={onSelect}
+                                className="hidden"
+                            />
+
+                            {/* <CustomWebcam /> */}
+
+                            {/* PREVIEW: fixed box 176x176 */}
+                            {previewUrl && (
+                                <div
+                                    className="relative"
+                                    style={{
+                                        width: 176,
+                                        height: 176,
+                                    }}
+                                >
+                                    {/* container ensures fixed size and centers the image */}
+                                    <div className="block" style={{ width: 160, height: 160, border: "1px dotted #999" }}>
+                                        <div className="relative w-full h-full">
+                                            <img
+                                                src={previewUrl}
+                                                alt="preview"
+                                                className="w-full h-full rounded-lg object-cover border"
+                                            />
+                                            <Button
+                                                type="button"
+                                                icon="pi pi-times-circle"
+                                                severity="danger"
+                                                text
+                                                className="absolute -top-2 -right-2 p-2 rounded-full shadow-md 
+                                                                !text-red-600 
+                                                                !hover:text-red-600 
+                                                                !hover:bg-transparent 
+                                                                transition"
+                                                onClick={() => {
+                                                    setPreviewUrl(null);
+                                                    setSelectedFile(null);
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 

@@ -30,6 +30,8 @@ const LoginPage: React.FC = () => {
       );
       if (response && response.status) {
         localStorage.setItem("authToken", response.token);
+
+        const apiBaseUrl = process.env.REACT_APP_SERVICE_API_BASE_URL?.replace("/api", "") || "";
         const userData: UserData = {
           authToken: response.token,
           companyId: response.companyId,
@@ -40,7 +42,10 @@ const LoginPage: React.FC = () => {
             : response.firstName,
           firstName: response.firstName,
           lastName: response.lastName,
-          userImage: response.userImage
+          userImage: response.userImage,
+          companyName: response.companyName,
+          location: response.location,
+          companyLogo: `${apiBaseUrl}${response.path}`
         };
 
         storage.setUser(userData);

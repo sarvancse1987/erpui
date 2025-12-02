@@ -10,6 +10,9 @@ export interface UserData {
     firstName?: string;
     lastName?: string;
     userImage?: string;
+    companyName?: string;
+    location?: string;
+    companyLogo?: string;
 }
 
 export const storage = {
@@ -53,4 +56,13 @@ export const storage = {
 
         this.setUser(user);
     },
+    updateUserCompanyLogo(logo: string) {
+        const user = this.getUser();
+        if (!user) return;
+
+        if (logo && logo.trim() !== "") {
+            user.companyLogo = logo;
+            this.setUser(user);
+        }
+    }
 };

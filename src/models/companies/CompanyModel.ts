@@ -2,8 +2,8 @@ export interface CompanyModel {
     id: number;
     name: string;
     address?: string;
-    logo?: string;
-    path?: string;
+    logo?: string | null;
+    path?: string | null;
     city?: string;
     stateId?: number | null;
     countryId?: number | null;

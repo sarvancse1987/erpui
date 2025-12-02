@@ -56,7 +56,7 @@ const AppTopbar = forwardRef<AppTopbarRef>((_props, ref) => {
     <div className="layout-topbar">
       <div className="layout-topbar-logo">
         <img
-          src={appLogo}
+          src={user?.companyLogo}
           alt="logo"
         />
       </div>
@@ -79,7 +79,7 @@ const AppTopbar = forwardRef<AppTopbarRef>((_props, ref) => {
         <i className="pi pi-ellipsis-v" />
       </button>
       <div className="">
-        <strong className="layout-company-name">Tetrosoft</strong>
+        <strong className="layout-company-name">{user?.companyName}</strong>
       </div>
 
       <div
