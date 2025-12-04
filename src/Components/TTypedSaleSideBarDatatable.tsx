@@ -483,12 +483,11 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
           emptyMessage="No records found."
           footer={
             <div className="custom-footer flex justify-between items-center gap-1 flex-wrap px-2 py-1">
-              {/* Left: Dropdown + Input + Button */}
               <div className="flex items-center gap-1 min-w-[200px] adjustment-section">
                 <Button
                   label=""
                   icon="pi pi-truck"
-                  severity="info"
+                  severity={(shipmentModel?.shipmentId ?? 0) > 0 ? "success" : "info"}
                   style={{ fontSize: '0.85rem', padding: '2px 2px', height: '36px' }}
                   tooltip={(shipmentModel?.shipmentId ?? 0) > 0 ? "View Shipment" : "Add Shipment"}
                   tooltipOptions={{ position: "bottom" }}

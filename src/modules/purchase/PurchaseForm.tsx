@@ -13,6 +13,7 @@ import { InputNumber } from "primereact/inputnumber";
 import { Dropdown } from "primereact/dropdown";
 import { PurchaseTypeModel } from "../../models/purchase/purchaseTypemodel";
 import { Button } from "primereact/button";
+import { handleEnterKey } from "../../common/common";
 
 interface PurchaseFormProps {
   isEditSidebar: boolean;
@@ -419,6 +420,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
               selectedSupplierId={formData.supplierId}
               onSelect={s => handleChange("supplierId", s.supplierId)}
               isValid={!!validationErrors?.supplierId}
+
             />
             {validationErrors?.supplierId && (
               <span className="mandatory-error text-xs">
@@ -436,6 +438,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
               onChange={(e) => handleChange("invoiceNumber", e.target.value)}
               className={`w-full mt-1 text-sm ${validationErrors?.invoiceNumber ? "p-invalid" : ""}`}
               style={{ width: "150px" }}
+              tabIndex={1}
+              onKeyDown={handleEnterKey}
             />
             {validationErrors?.invoiceNumber && <span className="mandatory-error text-xs">{validationErrors.invoiceNumber}</span>}
           </div>
@@ -452,6 +456,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
               className={`w-full mt-1 text-sm ${validationErrors?.invoiceAmount ? "p-invalid" : ""}`}
               inputStyle={{ width: "120px" }}
               placeholder="Invoice amount"
+              tabIndex={2}
+              onKeyDown={handleEnterKey}
             />
             {validationErrors?.invoiceAmount && <span className="mandatory-error text-xs">{validationErrors.invoiceAmount}</span>}
           </div>
@@ -470,6 +476,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
               showClear
               filter
               className={`w-full mt-1 text-sm ${validationErrors?.purchaseTypeId ? "p-invalid" : ""}`}
+              tabIndex={3}
+              onKeyDown={handleEnterKey}
             />
             {validationErrors?.purchaseTypeId && <span className="mandatory-error text-xs">{validationErrors.purchaseTypeId}</span>}
           </div>
@@ -486,6 +494,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
                 className="w-full mt-1 text-sm"
                 inputStyle={{ width: "120px" }}
                 placeholder="Cash"
+                tabIndex={4}
+              onKeyDown={handleEnterKey}
               />
               {validationErrors?.cash && <span className="mandatory-error text-xs">{validationErrors.cash}</span>}
             </div>
@@ -503,6 +513,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
                 className="w-full mt-1 text-sm"
                 inputStyle={{ width: "120px" }}
                 placeholder="Upi"
+                tabIndex={5}
+              onKeyDown={handleEnterKey}
               />
               {validationErrors?.upi && <span className="mandatory-error text-xs">{validationErrors.upi}</span>}
             </div>

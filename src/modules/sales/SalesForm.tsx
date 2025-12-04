@@ -56,7 +56,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
     gstNumber: "",
     address: "",
     city: "",
-    postalCode: "",
+    postalCode: null,
     countryId: 0,
     stateId: 0,
     districtId: 0,

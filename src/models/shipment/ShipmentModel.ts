@@ -1,6 +1,6 @@
 export interface ShipmentModel {
     shipmentId: number | 0;
-    shipmentDate: string | Date | null;
+    shipmentDate: Date | null;
     shipmentTypeId: number | null;
 
     distance?: number | null | undefined;

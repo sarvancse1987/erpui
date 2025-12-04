@@ -5,6 +5,7 @@ import { Dropdown } from "primereact/dropdown";
 import apiService from "../../services/apiService";
 import { CustomerModel } from "../../models/customer/CustomerModel";
 import { InputMask } from "primereact/inputmask";
+import { handleEnterKey, handleNumberInputWithEnter } from "../../common/common";
 
 interface CustomerFormProps {
     customer: CustomerModel;
@@ -203,6 +204,8 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             value={formData.customerName}
                             onChange={(e) => handleChange("customerName", e.target.value)}
                             placeholder="Customer name"
+                            tabIndex={1}
+                            onKeyDown={handleEnterKey}
                         />
                         {getErrorMessage("customerName") && (
                             <span className="mandatory-error">{getErrorMessage("customerName")}</span>
@@ -218,6 +221,8 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             onChange={(e) => handleChange("phone", e.target.value)}
                             placeholder="+91-9999999999"
                             className={`w-full mt-1}`}
+                            tabIndex={2}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -229,6 +234,8 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             value={formData.email ?? ""}
                             onChange={(e) => handleChange("email", e.target.value)}
                             placeholder="Email"
+                            tabIndex={3}
+                            onKeyDown={handleEnterKey}
                         />
                         {getErrorMessage("email") && (
                             <span className="mandatory-error">{getErrorMessage("email")}</span>
@@ -243,6 +250,8 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             value={formData.gstNumber ?? ""}
                             onChange={(e) => handleChange("gstNumber", e.target.value)}
                             placeholder="GST number"
+                            tabIndex={4}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
                 </div>
@@ -256,6 +265,8 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             value={formData.address ?? ""}
                             onChange={(e) => handleChange("address", e.target.value)}
                             placeholder="Address"
+                            tabIndex={5}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -266,6 +277,8 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             value={formData.city ?? ""}
                             onChange={(e) => handleChange("city", e.target.value)}
                             placeholder="City"
+                            tabIndex={6}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -280,6 +293,8 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             filter
                             showClear
                             placeholder="Select country"
+                            tabIndex={7}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -294,6 +309,8 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             filter
                             showClear
                             placeholder="Select state"
+                            tabIndex={8}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -308,6 +325,8 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             filter
                             showClear
                             placeholder="Select district"
+                            tabIndex={9}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -319,6 +338,11 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
                             value={formData.postalCode ?? ""}
                             onChange={(e) => handleChange("postalCode", e.target.value)}
                             placeholder="Postal code"
+                            tabIndex={10}
+                            onKeyDown={(e) => {
+                                handleNumberInputWithEnter(e);
+                                handleEnterKey(e);
+                            }}
                         />
                     </div>
 

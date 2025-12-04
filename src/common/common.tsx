@@ -665,3 +665,38 @@ export function removeCookie(name: string) {
   const isSecure = window.location.protocol === "https:" ? "; secure" : "";
   document.cookie = `${name}=; path=/; expires=${new Date(0).toUTCString()}${isSecure}; samesite=lax`;
 }
+
+
+export const handleEnterKey = (e: any) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+
+    const currentTab = Number(e.target.getAttribute("tabindex"));
+    const nextControl: any = document.querySelector(`[tabindex="${currentTab + 1}"]`);
+
+    if (nextControl) nextControl.focus();
+  }
+};
+
+export const handleNumberInputWithEnter = (e: any) => {
+
+  // --- Allow Enter (for navigation) ---
+  if (e.key === "Enter") {
+    e.preventDefault();
+    const currentTab = Number(e.target.getAttribute("tabindex"));
+    const nextControl: any = document.querySelector(
+      `[tabindex="${currentTab + 1}"]`
+    );
+    if (nextControl) nextControl.focus();
+    return;
+  }
+
+  // --- Allow only numbers ---
+  const allowedKeys = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"];
+  
+  if (/^[0-9]$/.test(e.key)) return;    // allow numeric digits
+  if (allowedKeys.includes(e.key)) return; // allow navigation keys
+
+  // Block all other keys
+  e.preventDefault();
+};

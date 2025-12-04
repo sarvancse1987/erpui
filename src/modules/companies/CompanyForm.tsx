@@ -8,6 +8,7 @@ import apiService from "../../services/apiService";
 import { InputMask } from "primereact/inputmask";
 import { FileUpload, FileUploadSelectEvent } from "primereact/fileupload";
 import { storage } from "../../services/storageService";
+import { handleEnterKey } from "../../common/common";
 
 interface CompanyFormProps {
     company: CompanyModel;
@@ -240,6 +241,8 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                             value={formData.name ?? ""}
                             onChange={e => handleChange("name", e.target.value)}
                             placeholder="Company name"
+                            tabIndex={1}
+                            onKeyDown={handleEnterKey}
                         />
                         {getErrorMessage("name") && (
                             <span className="mandatory-error">{getErrorMessage("name")}</span>
@@ -255,6 +258,8 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                             onChange={(e) => handleChange("phone", e.target.value)}
                             placeholder="+91-9999999999"
                             className={`w-full mt-1 ${getErrorMessage("phone") ? "mandatory-border" : ""}`}
+                            tabIndex={2}
+                            onKeyDown={handleEnterKey}
                         />
                         {getErrorMessage("phone") && (
                             <span className="mandatory-error">{getErrorMessage("phone")}</span>
@@ -269,6 +274,8 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                             value={formData.email ?? ""}
                             onChange={e => handleChange("email", e.target.value)}
                             placeholder="Email"
+                            tabIndex={3}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -279,7 +286,8 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                             className="w-full mt-1"
                             value={formData.address ?? ""}
                             onChange={e => handleChange("address", e.target.value)}
-                            placeholder="Address"
+                            placeholder="Address" tabIndex={4}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
                 </div>
@@ -293,6 +301,8 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                             value={formData.city ?? ""}
                             onChange={e => handleChange("city", e.target.value)}
                             placeholder="City"
+                            tabIndex={5}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -306,6 +316,8 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                             filter
                             showClear
                             placeholder="Country"
+                            tabIndex={6}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -320,6 +332,8 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                             filter
                             showClear
                             placeholder="State"
+                            tabIndex={7}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -334,6 +348,8 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                             filter
                             showClear
                             placeholder="District"
+                            tabIndex={8}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
                 </div>
@@ -347,6 +363,8 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                             value={formData.gstNumber ?? ""}
                             onChange={e => handleChange("gstNumber", e.target.value)}
                             placeholder="Gst Number"
+                            tabIndex={9}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -358,6 +376,8 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                             value={formData.website ?? ""}
                             onChange={e => handleChange("website", e.target.value)}
                             placeholder="Website"
+                            tabIndex={10}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -366,6 +386,8 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                         <Checkbox
                             checked={formData.isActive ?? false}
                             onChange={e => handleChange("isActive", e.checked)}
+                            tabIndex={11}
+                            onKeyDown={handleEnterKey}
                         />
                         <strong>Is Active</strong>
                     </div>

@@ -6,6 +6,7 @@ import { Checkbox } from "primereact/checkbox";
 import { Button } from "primereact/button";
 import { ProductModel } from "../../models/product/ProductModel";
 import { OptionModel } from "../../models/product/OptionModel";
+import { handleEnterKey } from "../../common/common";
 
 interface ProductFormProps {
   product: ProductModel;
@@ -179,6 +180,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               value={formData.productName}
               onChange={(e) => handleChange("productName", e.target.value)}
               placeholder="Product name"
+              tabIndex={1}
+              onKeyDown={handleEnterKey}
             />
             {getErrorMessage("productName") && <span className="mandatory-error">{getErrorMessage("productName")}</span>}
           </div>
@@ -198,6 +201,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               showClear
               filterBy="label,value"
               placeholder="Select category"
+              tabIndex={2}
+              onKeyDown={handleEnterKey}
             />
             {getErrorMessage("productCategoryId") && <span className="mandatory-error">{getErrorMessage("productCategoryId")}</span>}
           </div>
@@ -218,6 +223,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               showClear
               filterBy="label,value"
               placeholder="Select group"
+              tabIndex={3}
+              onKeyDown={handleEnterKey}
             />
             {getErrorMessage("productGroupId") && <span className="mandatory-error">{getErrorMessage("productGroupId")}</span>}
           </div>
@@ -237,6 +244,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               showClear
               filterBy="label,value"
               placeholder="Select brand"
+              tabIndex={4}
+              onKeyDown={handleEnterKey}
             />
             {getErrorMessage("productBrandId") && <span className="mandatory-error">{getErrorMessage("productBrandId")}</span>}
           </div>
@@ -254,6 +263,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               showClear
               filterBy="label,value"
               placeholder="select unit"
+              tabIndex={5}
+              onKeyDown={handleEnterKey}
             />
             {getErrorMessage("primaryUnitId") && <span className="mandatory-error">{getErrorMessage("primaryUnitId")}</span>}
           </div>
@@ -271,6 +282,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               locale="en-IN"
               onValueChange={(e) => handleChange("purchasePrice", e.value)}
               placeholder="Purchase price"
+              tabIndex={6}
+              onKeyDown={handleEnterKey}
             />
             {getErrorMessage("purchasePrice") && <span className="mandatory-error">{getErrorMessage("purchasePrice")}</span>}
           </div>
@@ -285,6 +298,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               locale="en-IN"
               onValueChange={(e) => handleChange("salePrice", e.value)}
               placeholder="Sale price"
+              tabIndex={7}
+              onKeyDown={handleEnterKey}
             />
             {getErrorMessage("salePrice") && <span className="mandatory-error">{getErrorMessage("salePrice")}</span>}
           </div>
@@ -304,6 +319,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               maxFractionDigits={2}
               onValueChange={(e) => handleChange("cgstRate", e.value)}
               placeholder="CGST%"
+              tabIndex={8}
+              onKeyDown={handleEnterKey}
             />
           </div>
 
@@ -317,6 +334,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               maxFractionDigits={2}
               onValueChange={(e) => handleChange("sgstRate", e.value)}
               placeholder="SGST%"
+              tabIndex={9}
+              onKeyDown={handleEnterKey}
             />
           </div>
         </div>
@@ -333,6 +352,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               maxFractionDigits={2}
               onValueChange={(e) => handleChange("igstRate", e.value)}
               placeholder="IGST%"
+              tabIndex={10}
+              onKeyDown={handleEnterKey}
             />
           </div>
 
@@ -343,6 +364,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               value={formData.hsnCode}
               onChange={(e) => handleChange("hsnCode", e.target.value)}
               placeholder="HSN Code"
+              tabIndex={11}
+              onKeyDown={handleEnterKey}
             />
             {getErrorMessage("hsnCode") && <span className="mandatory-error">{getErrorMessage("hsnCode")}</span>}
           </div>
@@ -360,6 +383,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               showClear
               filterBy="label,value"
               placeholder="Select supplier"
+              tabIndex={12}
+              onKeyDown={handleEnterKey}
             />
           </div>
 
@@ -368,6 +393,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             <Checkbox
               checked={formData.isGSTIncludedInPrice}
               onChange={(e) => handleChange("isGSTIncludedInPrice", e.checked)}
+              tabIndex={13}
+              onKeyDown={handleEnterKey}
             />
           </div>
         </div>

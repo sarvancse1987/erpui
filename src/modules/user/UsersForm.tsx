@@ -7,6 +7,7 @@ import { UserModel } from "../../models/UserModel";
 import apiService from "../../services/apiService";
 import { InputMask } from "primereact/inputmask";
 import { storage } from "../../services/storageService";
+import { handleEnterKey } from "../../common/common";
 
 interface UsersFormProps {
     user: UserModel;
@@ -197,6 +198,8 @@ export const UsersForm: React.FC<UsersFormProps> = ({
                             value={formData.username ?? ""}
                             onChange={e => handleChange("username", e.target.value)}
                             placeholder="Username"
+                            tabIndex={1}
+                            onKeyDown={handleEnterKey}
                         />
                         {getErrorMessage("username") && <span className="mandatory-error">{getErrorMessage("username")}</span>}
                     </div>
@@ -209,6 +212,8 @@ export const UsersForm: React.FC<UsersFormProps> = ({
                             value={formData.firstName ?? ""}
                             onChange={e => handleChange("firstName", e.target.value)}
                             placeholder="First Name"
+                            tabIndex={2}
+                            onKeyDown={handleEnterKey}
                         />
                         {getErrorMessage("firstName") && <span className="mandatory-error">{getErrorMessage("firstName")}</span>}
                     </div>
@@ -221,6 +226,8 @@ export const UsersForm: React.FC<UsersFormProps> = ({
                             value={formData.lastName ?? ""}
                             onChange={e => handleChange("lastName", e.target.value)}
                             placeholder="Last Name"
+                            tabIndex={3}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -232,6 +239,8 @@ export const UsersForm: React.FC<UsersFormProps> = ({
                             value={formData.email ?? ""}
                             onChange={e => handleChange("email", e.target.value)}
                             placeholder="Email"
+                            tabIndex={4}
+                            onKeyDown={handleEnterKey}
                         />
                         {getErrorMessage("email") && <span className="mandatory-error">{getErrorMessage("email")}</span>}
                     </div>
@@ -248,6 +257,8 @@ export const UsersForm: React.FC<UsersFormProps> = ({
                             onChange={(e) => handleChange("phone", e.target.value)}
                             placeholder="+91-9999999999"
                             className="w-full mt-1"
+                            tabIndex={5}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -260,6 +271,8 @@ export const UsersForm: React.FC<UsersFormProps> = ({
                             options={allRoles}
                             onChange={e => handleChange("roleId", e.value)}
                             placeholder="Select Role"
+                            tabIndex={6}
+                            onKeyDown={handleEnterKey}
                         />
                         {getErrorMessage("roleId") && <span className="mandatory-error">{getErrorMessage("roleId")}</span>}
                     </div>
@@ -273,6 +286,8 @@ export const UsersForm: React.FC<UsersFormProps> = ({
                             options={allUserTypes}
                             onChange={e => handleChange("userTypeId", e.value)}
                             placeholder="Select User Type"
+                            tabIndex={7}
+                            onKeyDown={handleEnterKey}
                         />
                         {getErrorMessage("userTypeId") && <span className="mandatory-error">{getErrorMessage("userTypeId")}</span>}
                     </div>
@@ -286,6 +301,8 @@ export const UsersForm: React.FC<UsersFormProps> = ({
                             options={allCompanies}
                             onChange={e => handleCompanyChange(e.value)}
                             placeholder="Select Company"
+                            tabIndex={8}
+                            onKeyDown={handleEnterKey}
                         />
                         {getErrorMessage("companyId") && <span className="mandatory-error">{getErrorMessage("companyId")}</span>}
                     </div>
@@ -300,6 +317,8 @@ export const UsersForm: React.FC<UsersFormProps> = ({
                             options={allLocations.filter(l => !formData.companyId || l.companyId === formData.companyId)}
                             onChange={e => handleChange("locationId", e.value)}
                             placeholder="Select Location"
+                            tabIndex={9}
+                            onKeyDown={handleEnterKey}
                         />
                         {getErrorMessage("locationId") && <span className="mandatory-error">{getErrorMessage("locationId")}</span>}
                     </div>
@@ -312,6 +331,8 @@ export const UsersForm: React.FC<UsersFormProps> = ({
                             options={salutationsOptions}
                             onChange={(e) => setFormData(prev => ({ ...prev, salutation: e.value }))}
                             placeholder="Select Salutation"
+                            tabIndex={10}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -320,6 +341,8 @@ export const UsersForm: React.FC<UsersFormProps> = ({
                         <Checkbox
                             checked={formData.isActive ?? false}
                             onChange={e => handleChange("isActive", e.checked)}
+                            tabIndex={11}
+                            onKeyDown={handleEnterKey}
                         />
                         <strong>Is Active</strong>
                     </div>

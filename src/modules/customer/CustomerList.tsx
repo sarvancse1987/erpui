@@ -43,7 +43,7 @@ export default function CustomerList() {
         gstNumber: "",
         address: "",
         city: "",
-        postalCode: "",
+        postalCode: null,
         countryId: 0,
         stateId: 0,
         districtId: 0,

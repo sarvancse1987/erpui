@@ -6,6 +6,7 @@ import { SupplierModel } from "../../models/supplier/SupplierModel";
 import { InputMask } from "primereact/inputmask";
 import { Dropdown } from "primereact/dropdown";
 import apiService from "../../services/apiService";
+import { handleEnterKey, handleNumberInputWithEnter } from "../../common/common";
 
 interface SupplierFormProps {
     supplier: SupplierModel;
@@ -193,6 +194,8 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             value={formData.supplierName}
                             onChange={(e) => handleChange("supplierName", e.target.value)}
                             placeholder="Supplier name"
+                            tabIndex={1}
+                            onKeyDown={handleEnterKey}
                         />
                         {getErrorMessage("supplierName") && (
                             <span className="mandatory-error">{getErrorMessage("supplierName")}</span>
@@ -209,6 +212,8 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             value={formData.contactPerson}
                             onChange={(e) => handleChange("contactPerson", e.target.value)}
                             placeholder="Contact person"
+                            tabIndex={2}
+                            onKeyDown={handleEnterKey}
                         />
                         {getErrorMessage("contactPerson") && (
                             <span className="mandatory-error">{getErrorMessage("contactPerson")}</span>
@@ -226,6 +231,8 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             onChange={(e) => handleChange("phone", e.target.value)}
                             placeholder="+91-9999999999"
                             className={`w-full mt-1 ${getErrorMessage("phone") ? "mandatory-border" : ""}`}
+                            tabIndex={3}
+                            onKeyDown={handleEnterKey}
                         />
                         {getErrorMessage("phone") && (
                             <span className="mandatory-error">{getErrorMessage("phone")}</span>
@@ -240,6 +247,8 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             value={formData.email}
                             onChange={(e) => handleChange("email", e.target.value)}
                             placeholder="Email"
+                            tabIndex={4}
+                            onKeyDown={handleEnterKey}
                         />
                         {getErrorMessage("email") && (
                             <span className="mandatory-error">{getErrorMessage("email")}</span>
@@ -254,6 +263,8 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             value={formData.gstNumber}
                             onChange={(e) => handleChange("gstNumber", e.target.value)}
                             placeholder="GST number"
+                            tabIndex={5}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
                 </div>
@@ -267,6 +278,8 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             value={formData.address}
                             onChange={(e) => handleChange("address", e.target.value)}
                             placeholder="Address"
+                            tabIndex={6}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -277,6 +290,8 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             value={formData.city}
                             onChange={(e) => handleChange("city", e.target.value)}
                             placeholder="City"
+                            tabIndex={7}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -291,6 +306,8 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             showClear
                             filter
                             placeholder="Select country"
+                            tabIndex={8}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -305,6 +322,8 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             showClear
                             filter
                             placeholder="Select state"
+                            tabIndex={9}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -319,6 +338,8 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             showClear
                             filter
                             placeholder="Select district"
+                            tabIndex={10}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -329,6 +350,11 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             value={formData.postalCode}
                             onChange={(e) => handleChange("postalCode", e.target.value)}
                             placeholder="Postal code"
+                            tabIndex={11}
+                            onKeyDown={(e) => {
+                                handleNumberInputWithEnter(e);
+                                handleEnterKey(e);
+                            }}
                         />
                     </div>
 

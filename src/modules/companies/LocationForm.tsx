@@ -7,6 +7,7 @@ import { InputMask } from "primereact/inputmask";
 import apiService from "../../services/apiService";
 import { LocationModel } from "../../models/LocationModel";
 import { storage } from "../../services/storageService";
+import { handleEnterKey } from "../../common/common";
 
 interface LocationFormProps {
     location: LocationModel;
@@ -191,6 +192,8 @@ export const LocationForm: React.FC<LocationFormProps> = ({
                             showClear
                             filterBy="label,value"
                             placeholder="Company name"
+                            tabIndex={1}
+                            onKeyDown={handleEnterKey}
                         />
                         {getErrorMessage("companyId") && <span className="mandatory-error">{getErrorMessage("companyId")}</span>}
                     </div>
@@ -202,6 +205,8 @@ export const LocationForm: React.FC<LocationFormProps> = ({
                             value={formData.name ?? ""}
                             onChange={e => handleChange("name", e.target.value)}
                             placeholder="Location name"
+                            tabIndex={2}
+                            onKeyDown={handleEnterKey}
                         />
                         {getErrorMessage("name") && (
                             <span className="mandatory-error">{getErrorMessage("name")}</span>
@@ -216,6 +221,8 @@ export const LocationForm: React.FC<LocationFormProps> = ({
                             onChange={(e) => handleChange("phone", e.value)}
                             className={`w-full mt-1 ${getErrorMessage("phone") ? "mandatory-border" : ""}`}
                             placeholder="Phone"
+                            tabIndex={3}
+                            onKeyDown={handleEnterKey}
                         />
                         {getErrorMessage("phone") && (
                             <span className="mandatory-error">{getErrorMessage("phone")}</span>
@@ -229,6 +236,8 @@ export const LocationForm: React.FC<LocationFormProps> = ({
                             value={formData.email ?? ""}
                             onChange={e => handleChange("email", e.target.value)}
                             placeholder="Email"
+                            tabIndex={4}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -239,6 +248,8 @@ export const LocationForm: React.FC<LocationFormProps> = ({
                             value={formData.address ?? ""}
                             onChange={e => handleChange("address", e.target.value)}
                             placeholder="Address"
+                            tabIndex={5}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -251,6 +262,8 @@ export const LocationForm: React.FC<LocationFormProps> = ({
                             value={formData.pincode ?? ""}
                             onChange={e => handleChange("pincode", e.target.value)}
                             placeholder="Pincode"
+                            tabIndex={6}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -265,6 +278,8 @@ export const LocationForm: React.FC<LocationFormProps> = ({
                             filter
                             showClear
                             placeholder="Select country"
+                            tabIndex={7}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -279,6 +294,8 @@ export const LocationForm: React.FC<LocationFormProps> = ({
                             filter
                             showClear
                             placeholder="Select state"
+                            tabIndex={8}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -293,6 +310,8 @@ export const LocationForm: React.FC<LocationFormProps> = ({
                             filter
                             showClear
                             placeholder="Select district"
+                            tabIndex={9}
+                            onKeyDown={handleEnterKey}
                         />
                     </div>
 
@@ -300,6 +319,8 @@ export const LocationForm: React.FC<LocationFormProps> = ({
                         <Checkbox
                             checked={formData.isActive ?? true}
                             onChange={(e) => handleChange("isActive", e.checked)}
+                            tabIndex={10}
+                            onKeyDown={handleEnterKey}
                         />
                         <strong>Active</strong>
                     </div>
