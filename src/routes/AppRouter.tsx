@@ -15,6 +15,7 @@ import UserType from "../modules/user/UserType";
 import LocationList from "../modules/companies/LocationList";
 import { MyProfile } from "../modules/user/MyProfile";
 import { ChangePassword } from "../modules/user/ChangePassword";
+import InventoryForm from "../modules/inventory/InventoryForm";
 
 const Dashboard = React.lazy(() => import("../modules/dashboard/Dashboard"));
 const ProductList = React.lazy(() => import("../modules/products/ProductList"));
@@ -84,7 +85,7 @@ export default function AppRouter() {
 
                 {/* Inventory Module */}
                 <Route path="inventory">
-                    <Route index element={<InventoryList />} />
+                    <Route index element={<InventoryForm />} />
                     <Route path="adjust" element={<InventoryAdjust />} />
                 </Route>
 

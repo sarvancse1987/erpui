@@ -40,8 +40,8 @@ export const SupplierSelector: React.FC<SupplierSelectorProps> = ({
             );
             setFilteredSuppliers(filtered);
             // Only show if user is typing, not after selection
-            if (!selectedSupplier || selectedSupplier.supplierName !== searchText) {
-                setShowTable(filtered.length > 0);
+            if (searchText) {
+                setShowTable(true);
             }
         }
     }, [searchText, suppliers]);

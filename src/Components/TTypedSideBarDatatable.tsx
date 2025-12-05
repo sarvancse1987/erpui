@@ -698,18 +698,31 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
             size="small"
           >
             <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
-            <Column field="productName" header="Item Name" style={{ minWidth: "200px" }} sortable />
+            <Column
+              header="Product Name"
+              style={{ minWidth: "200px" }}
+              body={(row) => (
+                <div className="flex items-center gap-2">
+                  <span>{row.productName}</span>
+
+                  <i
+                    className="pi pi-copy cursor-pointer text-blue-600 hover:text-blue-800"
+                    onClick={() => navigator.clipboard.writeText(row.productName)}
+                    title="Copy Product Name"
+                  ></i>
+                </div>
+              )}
+            />
             <Column field="salePrice" header="Rate" style={{ minWidth: "120px" }} body={(row: any) =>
               new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.salePrice)
             } sortField="salePrice" sortable />
             <Column
-              field="quantity"
+              field="availableQuantity"
               header="Quantity"
               style={{ minWidth: "120px" }}
               body={(row: any) => {
-                const value = row.quantity;
+                const value = row.availableQuantity;
 
-                // Determine quantity symbol and background
                 let symbol = "";
                 let bgColor = "";
                 if (value === 0) {
