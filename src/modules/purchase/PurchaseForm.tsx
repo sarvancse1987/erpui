@@ -185,14 +185,22 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
   const validateChildItems = (items: PurchaseItemModel[]) => {
     const errors: Record<string, Record<string, string>> = {};
     items.forEach(item => {
-      const key = item.purchaseItemId;
+      const key = item.productId;
       errors[key] = {};
       if (!item.productId) errors[key].productId = "Item Name required";
-      if (!item.unitPrice || item.unitPrice <= 0) errors[key].unitPrice = "Rate required";
-      if (!item.quantity || item.quantity <= 0) errors[key].quantity = "Qty required";
+      if (!item.unitPrice || item.unitPrice <= 0) {
+        errors[key].unitPrice = "Rate required";
+        showError(`${item.productName}-Rate required`)
+      }
+      if (!item.quantity || item.quantity <= 0) {
+        errors[key].quantity = "Qty required";
+        showError(`${item.productName}-Qty required`)
+      }
       if (item.gstPercent == null || item.gstPercent < 0) errors[key].gstPercent = "GST % required";
       if (Object.keys(errors[key]).length === 0) delete errors[key];
     });
+
+
     return errors;
   };
 
@@ -495,7 +503,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
                 inputStyle={{ width: "120px" }}
                 placeholder="Cash"
                 tabIndex={4}
-              onKeyDown={handleEnterKey}
+                onKeyDown={handleEnterKey}
               />
               {validationErrors?.cash && <span className="mandatory-error text-xs">{validationErrors.cash}</span>}
             </div>
@@ -514,7 +522,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
                 inputStyle={{ width: "120px" }}
                 placeholder="Upi"
                 tabIndex={5}
-              onKeyDown={handleEnterKey}
+                onKeyDown={handleEnterKey}
               />
               {validationErrors?.upi && <span className="mandatory-error text-xs">{validationErrors.upi}</span>}
             </div>

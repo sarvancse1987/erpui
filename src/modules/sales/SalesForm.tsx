@@ -75,6 +75,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
   const [showCheque, setShowCheque] = useState(false);
   const [showBank, setShowBank] = useState(false);
   const [cashType, setCashType] = useState<string>("Cash");
+  const [saleId, setSaleId] = useState<number>(0);
 
   const loadAllData = async () => {
     try {
@@ -91,6 +92,15 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         text: pt.paymentTypeValue
       }));
       setPaymentTypes(paymentTypesOptions ?? []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const loadUpdatedInventory = async () => {
+    try {
+      const productsRes = await apiService.get("/Product/productdetails?isInventoryRequired=true");
+      setProducts(productsRes?.data ?? []);
     } catch (err) {
       console.error(err);
     }
@@ -214,11 +224,17 @@ export const SalesForm: React.FC<SalesFormProps> = ({
   const validateChildItems = (items: SaleItemModel[]) => {
     const errors: Record<string, Record<string, string>> = {};
     items.forEach(item => {
-      const key = item.saleItemId;
+      const key = item.productId;
       errors[key] = {};
-      if (!item.productId) errors[key].productId = "Item Name is required";
-      if (!item.unitPrice || item.unitPrice <= 0) errors[key].unitPrice = "Rate is required";
-      if (!item.quantity || item.quantity <= 0) errors[key].quantity = "Qty is required";
+      if (!item.productId) errors[key].productId = "Item Name required";
+      if (!item.unitPrice || item.unitPrice <= 0) {
+        errors[key].unitPrice = "Rate required";
+        showError(`${item.productName}-Rate required`)
+      }
+      if (!item.quantity || item.quantity <= 0) {
+        errors[key].quantity = "Qty required";
+        showError(`${item.productName}-Qty required`)
+      }
       if (Object.keys(errors[key]).length === 0) delete errors[key];
     });
     return errors;
@@ -330,11 +346,39 @@ export const SalesForm: React.FC<SalesFormProps> = ({
 
     try {
       const payload = { ...formData };
-      await apiService.post("/Sale", payload);
-      await loadAllData();
-      setValidationErrors({});
-      showSuccess("Sales saved successfully!");
-      if (onSaveSuccess) onSaveSuccess();
+      if (saleId > 0) {
+        await handleUpdateForm();
+      }
+      else {
+        const response = await apiService.post("/Sale", payload);
+        if (response) {
+          setSaleId(response.saleId);
+
+          const updatedItems = formData.saleItems.map(item => {
+            const apiItem = response.items?.find((x: any) => x.productId === item.productId);
+            if (apiItem) {
+              return {
+                ...item,
+                saleId: apiItem.saleId,
+                saleItemId: apiItem.saleItemId
+              };
+            }
+            return item;
+          });
+
+          setFormData(prev => ({
+            ...prev,
+            saleId: response.saleId,
+            saleItems: updatedItems
+          }));
+
+
+          await loadUpdatedInventory();
+          setValidationErrors({});
+          if (onSaveSuccess) onSaveSuccess();
+          showSuccess("Sales saved successfully!");
+        }
+      }
     } catch (err) {
       console.error(err);
       showError("Error saving sale!");
@@ -348,8 +392,10 @@ export const SalesForm: React.FC<SalesFormProps> = ({
 
     try {
       await apiService.put(`/Sale/${formData.saleId}`, formData);
-      showSuccess("Sale updated successfully!");
+      await loadUpdatedInventory();
+      setValidationErrors({});
       if (onSaveSuccess) onSaveSuccess();
+      showSuccess("Sale updated successfully!");
     } catch (err) {
       console.error(err);
       showError("Error updating sale!");
@@ -488,6 +534,24 @@ export const SalesForm: React.FC<SalesFormProps> = ({
     }));
   }
 
+  const handlePrint = async () => {
+    try {
+      const pdfBlob = await apiService.getPdf(`/Sale/sale-bill/${saleId}`);
+
+      if (!pdfBlob || pdfBlob.size === 0) {
+        console.error("PDF is empty!");
+        return;
+      }
+
+      const url = URL.createObjectURL(pdfBlob);
+      window.open(url);
+
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    } catch (error) {
+      console.error("Error fetching PDF:", error);
+    }
+  };
+
   return (
     <div className={`border border-gray-200 rounded-md p-1 ${isEditSidebar ? "max-w-[800px]" : "w-full"}`}>
       <fieldset className="border border-gray-300 rounded-md p-2 bg-white mb-2">
@@ -497,8 +561,13 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         {!isEditSidebar && (
           <div className="flex gap-2 mb-2">
             <Button label="Save" icon="pi pi-save" onClick={handleSaveForm} className="p-button-sm custom-xs" />
+            {saleId > 0 && (
+              <Button label="Print" icon="pi pi-print" onClick={handlePrint} className="p-button-sm p-button-secondary custom-xs" />
+            )}
           </div>
         )}
+
+
 
         <div className="flex flex-wrap gap-2 mb-2 items-end">
           <div className="flex-1 min-w-[200px]">

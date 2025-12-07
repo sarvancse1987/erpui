@@ -39,6 +39,20 @@ export default function SaleList() {
     }
   };
 
+  const updateAllData = async () => {
+    try {
+      const res = await apiService.get(`/Sale/saledetails`);
+      const mapped = res.sale.map((p: any) => ({
+        ...p,
+        saleItems: res.saleItems.filter((i: any) => i.saleId === p.saleId),
+        shipment: res.shipment.find((i: any) => i.saleId === p.saleId),
+      }));
+    } catch (err) {
+      console.error(err);
+    } finally {
+    }
+  };
+
   useEffect(() => {
     loadAllData();
   }, []);
@@ -57,10 +71,8 @@ export default function SaleList() {
 
   const handleDeleteSale = async (rows: SaleModel[]) => {
     try {
-      // Extract IDs only
       const ids = rows.map(r => r.customerId);
 
-      // Call API (bulk delete)
       await apiService.post("/sale/bulk-delete", ids);
 
       showSuccess("Sale(s) deleted successfully!");
@@ -752,8 +764,7 @@ export default function SaleList() {
               isEditSidebar={false}
               sale={selectedSale}
               onSaveSuccess={() => {
-                setActiveIndex(0);
-                loadAllData();
+                updateAllData();
                 //setIsSidebarOpen(false);
               }}
               onCancel={closeEditSidebar}
@@ -774,7 +785,7 @@ export default function SaleList() {
             sale={selectedSale}
             onSaveSuccess={() => {
               setActiveIndex(0);
-              loadAllData();
+              updateAllData();
               //setIsSidebarOpen(false);
             }}
             onCancel={closeEditSidebar}

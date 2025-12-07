@@ -107,7 +107,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
   }, [itemsSaveTrigger]);
 
   const addRow = () => {
-    if (Object.keys(editingRows).length > 0) return;
+    //if (Object.keys(editingRows).length > 0) return;
 
     const rowKey = `temp-${Date.now()}-${Math.random()}`;
 
@@ -769,20 +769,25 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                   return;
                 }
 
-                const newRows = sidebarSelectedProducts.map((p: ProductSearchModel) => {
-                  const rowKey = `temp-${Date.now()}-${Math.random()}`;
-                  return {
-                    productId: p.productId,
-                    productName: p.productName,
-                    unitPrice: p.salePrice,
-                    gstPercent: 18,
-                    _tempKey: rowKey,
-                    _edited: true,
-                  } as unknown as T;
-                });
+                const newRows = sidebarSelectedProducts
+                  .filter((p: ProductSearchModel) => {
+                    // check if already exists in tableData
+                    return !tableData.some(row => row.productId === p.productId);
+                  })
+                  .map((p: ProductSearchModel) => {
+                    const rowKey = `temp-${Date.now()}-${Math.random()}`;
+                    return {
+                      productId: p.productId,
+                      productName: p.productName,
+                      unitPrice: p.salePrice,
+                      gstPercent: 18,
+                      _tempKey: rowKey,
+                      _edited: true,
+                    } as unknown as T;
+                  });
 
                 setTableData(prev => [...newRows, ...prev]);
-
+                
                 // Make the new rows editable immediately
                 const newEditingRows = newRows.reduce((acc, row) => {
                   acc[(row as any)._tempKey] = true;

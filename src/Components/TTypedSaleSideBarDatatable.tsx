@@ -728,10 +728,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
           >
             <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
             <Column field="productName" header="Name" style={{ minWidth: "200px" }} sortable />
-            <Column field="salePrice" header="Rate" style={{ minWidth: "120px" }} sortable body={(row: any) =>
-              new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.salePrice)
-            } />
-            <Column field="brandName" header="Brand" style={{ minWidth: "200px" }} sortable />
+            <Column field="brandName" header="Brand" style={{ minWidth: "120px" }} sortable />
             <Column
               field="quantity"
               header="Quantity"
@@ -772,6 +769,9 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
               }}
             />
 
+            <Column field="salePrice" header="Rate" style={{ minWidth: "120px" }} sortable body={(row: any) =>
+              new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.salePrice)
+            } />
             <Column
               field="inventoryPurchasePrice"
               header="Pur. Price"

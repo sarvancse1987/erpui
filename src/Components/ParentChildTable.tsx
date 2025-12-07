@@ -163,6 +163,7 @@ export function ParentChildTable<
 
             {/* Parent table */}
             <DataTable
+                scrollHeight="300px"
                 value={parentData}
                 paginator
                 rows={10}

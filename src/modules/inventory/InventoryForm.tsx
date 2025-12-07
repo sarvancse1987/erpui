@@ -189,12 +189,27 @@ export default function InventoryForm({
       await apiService.post("/Inventory/bulk", inventoryPayload);
       await fetchBrands();
       setActiveIndex(0);
-      showSuccess("Purchases saved successfully!");
+      showSuccess("Inventory saved successfully!");
     } catch (err) {
       console.error(err);
-      showError("Error saving purchase!");
+      showError("Error saving inventory!");
     }
   }
+  const handleDeleteExistInventory = async () => {
+    try {
+      // Make sure you are sending only IDs
+      const ids = selectedAvailableProducts.map((p: any) => p.inventoryId);
+
+      await apiService.post("/Inventory/bulk-delete", ids);
+      await fetchBrands();
+      setActiveIndex(0);
+      setSelectedAvailableProducts([]);
+      showSuccess("Selected inventory deleted successfully!");
+    } catch (err) {
+      console.error(err);
+      showError("Error deleting inventory!");
+    }
+  };
 
   return (
     <div className="p-2 h-[calc(100vh-100px)] overflow-auto">
@@ -255,7 +270,10 @@ export default function InventoryForm({
             </div>
 
           </div>
-
+          <div className="flex flex-wrap gap-3 p-1 mb-4">
+            {selectedAvailableProducts.length > 0 && (
+              <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={handleDeleteExistInventory} className="p-button-sm custom-xs" size="small" />)}
+          </div>
           <DataTable
             value={availableProducts.filter((p: any) => {
               const search = searchText.toLowerCase();
@@ -326,7 +344,6 @@ export default function InventoryForm({
               style={{ minWidth: "100px" }}
             />
             <Column field="inventorySupplierName" header="Supplier" style={{ minWidth: "150px" }} />
-
           </DataTable>
         </TabPanel>
 
