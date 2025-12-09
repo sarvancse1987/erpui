@@ -10,6 +10,7 @@ import "primereact/resources/primereact.min.css";               // Core styles
 import "primeicons/primeicons.css";                             // Icons
 import "primeflex/primeflex.css";                               // Utility classes
 import "./asset/styles/layout/layout.scss";                     // Your overrides
+import "./asset/style/TDatatable.css";
 import "./index.css";                                           // Your global CSS
 
 

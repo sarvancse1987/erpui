@@ -1,17 +1,191 @@
-
-.custom-datatable .p-paginator {
-  justify-content: flex-end !important;
+.p-datatable .p-datatable-thead > tr > th {
+  text-align: left;
+  font-size: 13px;
+  padding: 0.7rem 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-width: 0 0 1px 0;
+  font-weight: 600;
+  color: #3d4450;
+  background: #dae3e8;
+  transition: box-shadow 0.2s;
+  white-space: nowrap;
 }
 
-@media (min-width: 769px) {
-  .custom-datatable .p-paginator {
-    justify-content: flex-end !important;
+.p-datatable .p-datatable-tbody > tr > td {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 0.8rem 0.5rem;
+}
+
+.p-datatable .p-datatable-header {
+  background: #ffffff00;
+  padding: 0px;
+  border: 0px solid #ffffff;
+}
+
+.p-datatable .p-datatable-thead > tr:first-child > th:first-child {
+  border-top-left-radius: 12px;
+}
+
+.p-datatable .p-datatable-thead > tr:last-child > th:last-child {
+  border-top-right-radius: 12px;
+}
+
+.p-datatable .p-datatable-tbody > tr:last-child > td:first-child {
+  border-bottom-left-radius: 0px;
+}
+
+.p-datatable .p-datatable-tbody > tr:last-child > td:last-child {
+  border-bottom-right-radius: 0px;
+}
+
+.p-datatable-table {
+  /* border: 1px solid #dedede; */
+  border-radius: 12px 12px 0px 0px;
+}
+
+.role-column .p-datatable-table {
+  border: 1px solid #dedede;
+  border-width: 1px 1px 0px 1px !important;
+  border-radius: 12px 12px 12px 12px !important;
+}
+
+.role-column .p-datatable .p-datatable-tbody > tr:last-child > td:first-child {
+  border-bottom-left-radius: 12px !important;
+}
+
+.role-column .p-datatable .p-datatable-tbody > tr:last-child > td:last-child {
+  border-bottom-right-radius: 12px !important;
+}
+
+.settingsmainpannel .p-datatable-table {
+  border: 1px solid #dedede;
+  border-radius: 12px 12px 0px 0px;
+  border-width: 1px 0px 0px 0px;
+}
+
+.settingsmainpannel .p-datatable-scrollable > .p-datatable-wrapper {
+  border-radius: 16px;
+  background-color: #ffffff;
+  height: 230px;
+  border: solid #e5e7eb;
+  border-width: 0px 1px 1px 1px;
+  overflow-y: auto !important;
+}
+
+.settingsmainpannel
+  .p-datatable
+  .p-datatable-tbody
+  > tr:last-child
+  > td:first-child {
+  border-bottom-left-radius: 0px;
+}
+
+.settingsmainpannel
+  .p-datatable
+  .p-datatable-tbody
+  > tr:last-child
+  > td:last-child {
+  border-bottom-right-radius: 0px;
+}
+
+/* .p-paginator {
+  justify-content: end;
+  padding: 0.5rem 1rem 0;
+} */
+
+.p-paginator {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0.5rem 1rem 0;
+  gap: 1rem;
+}
+
+.p-paginator-current {
+  order: -1;
+  margin-right: auto;
+}
+
+.p-datatable .p-datatable-emptymessage td {
+  display: table-cell !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  height: 150px;
+  font-size: 1rem;
+  color: #888;
+}
+
+.p-datatable-scrollable > .p-datatable-wrapper {
+  border-radius: 16px;
+  background-color: #ffffff;
+  border: solid #e5e7eb;
+  border-width: 0px 1px 1px 1px;
+  height: 382px;
+}
+.p-datatable-wrapper {
+  border-radius: 16px;
+  background-color: #ffffff;
+  border: solid #e5e7eb;
+  border-width: 0px 1px 1px 1px;
+}
+
+.attendanceadmin-table .p-datatable-scrollable > .p-datatable-wrapper {
+  overflow-y: auto !important;
+  height: 335.8px;
+}
+
+@media (max-width: 576px) {
+  .p-datatable-scrollable > .p-datatable-wrapper {
+    height: 272px;
+  }
+
+  .regularizationTable .p-datatable-scrollable > .p-datatable-wrapper {
+    height: 272px;
   }
 }
 
-/* Mobile: center align */
-@media (max-width: 768px) {
-  .custom-datatable .p-paginator {
-    justify-content: center !important;
+@media (min-width: 577px) and (max-width: 1300px) {
+  .p-datatable-scrollable > .p-datatable-wrapper {
+    height: 328px;
   }
+
+  .regularizationTable .p-datatable-scrollable > .p-datatable-wrapper {
+    height: 283px;
+  }
+}
+
+@media (min-width: 1301px) and (max-width: 1500px) {
+  .p-datatable-scrollable > .p-datatable-wrapper {
+    height: 384.8px;
+  }
+
+  .regularizationTable .p-datatable-scrollable > .p-datatable-wrapper {
+    height: 329px;
+  }
+}
+
+@media (min-width: 1501px) and (max-width: 1600px) {
+  .p-datatable-scrollable > .p-datatable-wrapper {
+    height: 382px;
+  }
+
+  .regularizationTable .p-datatable-scrollable > .p-datatable-wrapper {
+    height: 331px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .p-datatable-scrollable > .p-datatable-wrapper {
+    height: 725px;
+  }
+
+  .regularizationTable .p-datatable-scrollable > .p-datatable-wrapper {
+    height: 725px;
+  }
+}
+
+.p-datatable .p-datatable-tbody .p-datatable-emptymessage > td {
+  border-bottom: #ffffff;
 }

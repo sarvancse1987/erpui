@@ -351,3 +351,12 @@ code {
   padding: 4px 8px !important;
   /* optional: smaller padding */
 }
+
+.max-h-laptop {
+  height: calc(100vh - 115px);
+  overflow-y: auto;
+}
+
+.regularizationTable .p-datatable-scrollable>.p-datatable-wrapper {
+        height: 331px;
+    }

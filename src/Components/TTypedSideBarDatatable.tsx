@@ -442,7 +442,6 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
 
       <div className="flex-1 min-h-0">
         <DataTable
-          scrollHeight="280px"
           value={tableData}
           paginator={false}
           rows={10}

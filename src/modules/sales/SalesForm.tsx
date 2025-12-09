@@ -16,6 +16,7 @@ import { TTypedSaleSideBarDatatable } from "../../components/TTypedSaleSideBarDa
 import { Dropdown } from "primereact/dropdown";
 import { PaymentTypeModel } from "../../models/sale/PaymentTypeModel";
 import { InputText } from "primereact/inputtext";
+import { PaymentType } from "../../models/PaymentType";
 
 interface SalesFormProps {
   isEditSidebar: boolean;
@@ -31,7 +32,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
     saleId: 0,
     saleRefNo: "",
     customerId: 0,
-    paymentTypeId: 0,
+    paymentTypeId: 1,
     saleStatusId: 0,
     saleDate: new Date(),
     totalAmount: 0,
@@ -213,11 +214,34 @@ export const SalesForm: React.FC<SalesFormProps> = ({
     const totalAmount = items.reduce((sum, i) => sum + (i.amount ?? 0), 0);
     const grandTotal = totalAmount + (formData.freightAmount || 0) + (formData.roundOff || 0);
 
+    let cash = formData.cash;
+    let upi = formData.upi;
+
+    // Apply payment rules
+    if (formData.paymentTypeId === PaymentType.Cash || formData.paymentTypeId === PaymentType.Card) {
+      cash = grandTotal;
+      upi = 0;
+    }
+    else if (formData.paymentTypeId === PaymentType.Credit) {
+      cash = 0;
+      upi = 0;
+    }
+    else if (formData.paymentTypeId === PaymentType.Cheque) {
+      cash = grandTotal;
+      upi = 0;
+    }
+    else if (formData.paymentTypeId === PaymentType.UPI) {
+      upi = grandTotal;
+      cash = 0;
+    }
+
     setFormData(prev => ({
       ...prev,
       saleItems: items,
-      totalAmount: totalAmount,
-      grandTotal: grandTotal
+      totalAmount,
+      grandTotal,
+      cash,
+      upi
     }));
   };
 
@@ -265,20 +289,17 @@ export const SalesForm: React.FC<SalesFormProps> = ({
           errors.cash = "Cash must equal grand total.";
         }
         break;
-      case "credit":
-        if (cash <= 0) {
-          errors.cash = "Amount required.";
+      case "upi":
+        if (upi <= 0) {
+          errors.upi = "UPI amount required.";
         }
-        if (cash !== grandTotal) {
-          errors.cash = "Amount must equal grand total.";
+        if (upi !== grandTotal) {
+          errors.upi = "UPI amount must equal grand total.";
         }
         break;
       case "partial":
         if (cash <= 0 && upi <= 0) {
-          if (cash <= 0) errors.cash = "Cash required.";
-        }
-        if (totalPaid !== grandTotal) {
-          errors.cash = "Cash/UPI must equal grand total.";
+          errors.cash = "Cash required.";
         }
         break;
       case "mixed":
@@ -290,14 +311,6 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         }
         if (totalPaid !== grandTotal) {
           errors.upi = "Cash + Upi must equal grand total.";
-        }
-        break;
-      case "upi":
-        if (upi <= 0) {
-          errors.upi = "UPI amount required.";
-        }
-        if (upi !== grandTotal) {
-          errors.upi = "UPI amount must equal grand total.";
         }
         break;
       case "cheque":
@@ -345,6 +358,18 @@ export const SalesForm: React.FC<SalesFormProps> = ({
     }
 
     try {
+      if (formData.paymentTypeId == PaymentType.Cash || formData.paymentTypeId == PaymentType.Card) {
+        formData.upi = 0;
+        formData.cash = formData.grandTotal;
+      }
+      if (formData.paymentTypeId == PaymentType.Credit || formData.paymentTypeId == PaymentType.Cheque) {
+        formData.cash = 0;
+        formData.upi = 0;
+      }
+      else if (formData.paymentTypeId == PaymentType.UPI) {
+        formData.upi = formData.grandTotal;
+        formData.cash = 0;
+      }
       const payload = { ...formData };
       if (saleId > 0) {
         await handleUpdateForm();
@@ -451,6 +476,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         freightAmount: adjustments.freightAmount,
         roundOff: adjustments.roundOff,
         grandTotal: parseFloat(grandTotal.toFixed(2)),
+        cash: parseFloat(grandTotal.toFixed(2)),
       };
     });
   };
@@ -468,7 +494,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         setShowUpi(false);
         setShowCheque(false);
         setShowBank(false);
-        setFormData(prev => ({ ...prev, upi: 0 }));
+        setFormData(prev => ({ ...prev, cash: prev.grandTotal, upi: 0 }));
         break;
 
       case "upi":
@@ -476,7 +502,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         setShowUpi(true);
         setShowCheque(false);
         setShowBank(false);
-        setFormData(prev => ({ ...prev, cash: 0 }));
+        setFormData(prev => ({ ...prev, cash: 0, upi: prev.grandTotal }));
         break;
 
       case "partially":
@@ -484,7 +510,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         setShowUpi(true);
         setShowCheque(false);
         setShowBank(false);
-        setFormData(prev => ({ ...prev, upi: 0 }));
+        setFormData(prev => ({ ...prev, cash: prev.grandTotal, upi: 0 }));
         break;
 
       case "mixed":
@@ -492,6 +518,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         setShowUpi(true);
         setShowCheque(false);
         setShowBank(false);
+        setFormData(prev => ({ ...prev, cash: prev.grandTotal, upi: 0 }));
         break;
 
       case "credit":
@@ -500,7 +527,13 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         setShowCheque(false);
         setShowBank(false);
         setCashType("Amount");
-        setFormData(prev => ({ ...prev, cash: 0, upi: 0 }));
+        break;
+      case "card":
+        setShowCash(true);
+        setShowUpi(false);
+        setShowCheque(false);
+        setShowBank(false);
+        setCashType("Amount");
         break;
 
       case "cheque":
@@ -509,7 +542,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         setShowCheque(true);
         setShowBank(false);
         setCashType("Amount");
-        setFormData(prev => ({ ...prev, cash: 0, upi: 0 }));
+        setFormData(prev => ({ ...prev, cash: prev.grandTotal, upi: 0 }));
         break;
 
       case "bank":
@@ -518,7 +551,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         setShowBank(true);
         setShowCheque(false);
         setCashType("Amount");
-        setFormData(prev => ({ ...prev, cash: 0, upi: 0 }));
+        setFormData(prev => ({ ...prev, cash: prev.grandTotal, upi: 0 }));
         break;
 
       default:
@@ -566,8 +599,6 @@ export const SalesForm: React.FC<SalesFormProps> = ({
             )}
           </div>
         )}
-
-
 
         <div className="flex flex-wrap gap-2 mb-2 items-end">
           <div className="flex-1 min-w-[200px]">

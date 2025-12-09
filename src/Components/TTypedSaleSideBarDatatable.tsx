@@ -137,7 +137,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
   };
 
   const addRow = () => {
-    if (Object.keys(editingRows).length > 0) return;
+    //if (Object.keys(editingRows).length > 0) return;
 
     const rowKey = `temp-${Date.now()}-${Math.random()}`;
 
@@ -464,7 +464,6 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
 
       <div className="flex-1 min-h-0">
         <DataTable
-          scrollHeight="300px"
           value={tableData}
           paginator={false}
           rows={10}
@@ -805,21 +804,25 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
                   showError("Select at least one product");
                   return;
                 }
-                const newRows = sidebarSelectedProducts.map((p: ProductSearchModel) => {
-                  const rowKey = `temp-${Date.now()}-${Math.random()}`;
-                  return {
-                    productId: p.productId,
-                    productName: p.productName,
-                    salePrice: p.salePrice,
-                    unitPrice: p.salePrice,
-                    supplierId: p.supplierId,
-                    quantity: 0,
-                    amount: 0,
-                    totalAmount: 0,
-                    _tempKey: rowKey,
-                    _edited: true,
-                  } as unknown as T;
-                });
+                const newRows = sidebarSelectedProducts
+                  .filter((p: ProductSearchModel) => {
+                    // check if already exists in tableData
+                    return !tableData.some(row => row.productId === p.productId);
+                  }).map((p: ProductSearchModel) => {
+                    const rowKey = `temp-${Date.now()}-${Math.random()}`;
+                    return {
+                      productId: p.productId,
+                      productName: p.productName,
+                      salePrice: p.salePrice,
+                      unitPrice: p.salePrice,
+                      supplierId: p.supplierId,
+                      quantity: 0,
+                      amount: 0,
+                      totalAmount: 0,
+                      _tempKey: rowKey,
+                      _edited: true,
+                    } as unknown as T;
+                  });
 
                 setTableData(prev => [...newRows, ...prev]);
 

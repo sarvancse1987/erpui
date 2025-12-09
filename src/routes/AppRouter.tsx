@@ -16,6 +16,7 @@ import LocationList from "../modules/companies/LocationList";
 import { MyProfile } from "../modules/user/MyProfile";
 import { ChangePassword } from "../modules/user/ChangePassword";
 import InventoryForm from "../modules/inventory/InventoryForm";
+import CustomerLedgerList from "../modules/Ledger/CustomerLedgerList";
 
 const Dashboard = React.lazy(() => import("../modules/dashboard/Dashboard"));
 const ProductList = React.lazy(() => import("../modules/products/ProductList"));
@@ -102,6 +103,7 @@ export default function AppRouter() {
 
                 <Route path="myprofile" element={<MyProfile />} />
                 <Route path="changepassword" element={<ChangePassword />} />
+                <Route path="ledger" element={<CustomerLedgerList />} />
 
             </Route>
 

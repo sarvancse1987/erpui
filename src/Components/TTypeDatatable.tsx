@@ -411,7 +411,6 @@ export function TTypeDatatable<T extends Record<string, any>>({
       <ConfirmDialog />
 
       <DataTable
-        scrollHeight="300px"
         value={tableData}
         dataKey={primaryKey as string}
         selection={selectedRows}

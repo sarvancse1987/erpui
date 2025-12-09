@@ -74,8 +74,20 @@ const AppMenu: React.FC = () => {
       icon: "pi pi-fw pi-box", // main menu icon
       to: "/inventory",
       items: [
-        { label: "Inventory", icon: "pi pi-fw pi-box", to: "/inventory" } // submenu icon
+        { label: "Inventory", icon: "pi pi-fw pi-box", to: "/inventory" }
       ],
+    },
+    {
+      label: "Ledger",
+      items: [{ label: "Ledger", icon: "pi pi-fw pi-home", to: "/ledger" }],
+    },
+    {
+      label: "Voucher",
+      icon: "pi pi-fw pi-file-edit",
+      to: "/voucher",
+      items: [
+        { label: "Voucher Entry", icon: "pi pi-fw pi-file-edit", to: "/voucher" }
+      ]
     }
   ];
 
