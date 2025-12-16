@@ -327,34 +327,6 @@ export function TTypedDatatable<T extends Record<string, any>>({
     return true;
   };
 
-
-  const updateGSTPrice = (rowData: any) => {
-    if (rowData["isGSTIncludedInPrice"]) {
-      const purchase = Number(rowData["purchasePrice"] || 0);
-      const cgst = Number(rowData["cgstRate"] || 0);
-      const sgst = Number(rowData["sgstRate"] || 0);
-
-      // GST calculation
-      rowData["gstPrice"] = purchase + (purchase * (cgst + sgst)) / 100;
-    } else {
-      rowData["gstPrice"] = Number(rowData["purchasePrice"] || 0);
-    }
-  };
-
-  const openEditDialog = (rowData: T) => {
-    setEditingRowData({ ...rowData });
-    setEditDialogVisible(true);
-  };
-
-  const actionBodyTemplate = (rowData: T) => (
-    <Button
-      icon="pi pi-pencil"
-      className="p-button-sm p-button-rounded p-button-outlined p-button-info"
-      style={{ width: '25px', height: '25px', padding: '0' }}
-      onClick={() => onEdit?.(rowData)}
-    />
-  );
-
   const handleDelete = () => {
     if (selectedRows.length === 0) return;
 
@@ -415,7 +387,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
       <div className="flex justify-between items-center mb-1">
         <div className="flex gap-2">
           {isNew && <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} size="small" className="p-button-sm custom-xs" />}
-          {isSave && <Button label="Save" icon="pi pi-save" onClick={saveAll} disabled={!isSaveEnabled} size="small" className="p-button-sm custom-xs" />}
+          {isSave && isSaveEnabled && <Button label="Save" icon="pi pi-save" onClick={saveAll} disabled={!isSaveEnabled} size="small" className="p-button-sm custom-xs" />}
           {isDelete && selectedRows.length > 0 && (
             <Button
               label="Delete"

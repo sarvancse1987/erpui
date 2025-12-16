@@ -40,15 +40,9 @@
   border-bottom-right-radius: 0px;
 }
 
-.p-datatable-table {
-  /* border: 1px solid #dedede; */
-  border-radius: 12px 12px 0px 0px;
-}
-
 .role-column .p-datatable-table {
   border: 1px solid #dedede;
   border-width: 1px 1px 0px 1px !important;
-  border-radius: 12px 12px 12px 12px !important;
 }
 
 .role-column .p-datatable .p-datatable-tbody > tr:last-child > td:first-child {
@@ -61,12 +55,10 @@
 
 .settingsmainpannel .p-datatable-table {
   border: 1px solid #dedede;
-  border-radius: 12px 12px 0px 0px;
   border-width: 1px 0px 0px 0px;
 }
 
 .settingsmainpannel .p-datatable-scrollable > .p-datatable-wrapper {
-  border-radius: 16px;
   background-color: #ffffff;
   height: 230px;
   border: solid #e5e7eb;
@@ -118,14 +110,12 @@
 }
 
 .p-datatable-scrollable > .p-datatable-wrapper {
-  border-radius: 16px;
   background-color: #ffffff;
   border: solid #e5e7eb;
   border-width: 0px 1px 1px 1px;
   height: 382px;
 }
 .p-datatable-wrapper {
-  border-radius: 16px;
   background-color: #ffffff;
   border: solid #e5e7eb;
   border-width: 0px 1px 1px 1px;

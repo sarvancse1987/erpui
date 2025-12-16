@@ -223,7 +223,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
       upi = 0;
     }
     else if (formData.paymentTypeId === PaymentType.Credit) {
-      cash = 0;
+      cash = grandTotal;
       upi = 0;
     }
     else if (formData.paymentTypeId === PaymentType.Cheque) {
@@ -505,7 +505,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         setFormData(prev => ({ ...prev, cash: 0, upi: prev.grandTotal }));
         break;
 
-      case "partially":
+      case "partial":
         setShowCash(true);
         setShowUpi(true);
         setShowCheque(false);

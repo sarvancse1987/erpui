@@ -321,6 +321,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
 
                     // Call onChange callback if needed
                     onChange?.(prev.map((row) => (row._tempKey || row[primaryKey]) === key ? updated : row));
+                    options.editorCallback(value);
 
                     return updated;
                   }

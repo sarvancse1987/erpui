@@ -31,19 +31,26 @@ export default function CustomerLedgerList() {
         const res = await apiService.get(url);
         setLedger(res.data);
 
-        const customers = Array.from(res.data.values()).map((c: any) => ({
-            value: c.customerId,
-            label: c.customerName
-        }));
+        const customers = Array.from(res.data.values())
+            .reduce((map: Map<number, any>, c: any) => {
+                if (!map.has(c.customerId)) {
+                    map.set(c.customerId, {
+                        value: c.customerId,
+                        label: c.customerName
+                    });
+                }
+                return map;
+            }, new Map())
+            .values();
 
-        setCustomers(customers);
+        setCustomers(Array.from(customers));
 
         setLoading(false);
     };
 
-    const totalDebit = ledger.reduce((sum, x) => sum + x.debit, 0);
+    const totalDebit = ledger.reduce((sum, x) => sum + x.debit + x.credit, 0);
     const totalCredit = ledger.reduce((sum, x) => sum + x.credit, 0);
-    const closing = ledger.length > 0 ? ledger[ledger.length - 1].closingBalance : 0;
+    const closing = ledger.reduce((sum, x) => sum + x.debit, 0);
 
     // Footer Template
     const footerTemplate = () => (
@@ -52,16 +59,16 @@ export default function CustomerLedgerList() {
 
             {/* Total Debit – Red */}
             <div className="flex align-items-center gap-2">
-                <span className="font-semibold">Total Debit:</span>
+                <span className="font-semibold">Total Sale:</span>
                 <span className="px-2 py-1 border-round text-white"
-                    style={{ background: "#ef4444", fontSize: "0.8rem" }}>
+                    style={{ background: "#0ea5e9", fontSize: "0.8rem" }}>
                     {totalDebit.toFixed(2)}
                 </span>
             </div>
 
             {/* Total Credit – Green */}
             <div className="flex align-items-center gap-2">
-                <span className="font-semibold">Total Credit:</span>
+                <span className="font-semibold">Total Received:</span>
                 <span className="px-2 py-1 border-round text-white"
                     style={{ background: "#22c55e", fontSize: "0.8rem" }}>
                     {totalCredit.toFixed(2)}
@@ -70,15 +77,31 @@ export default function CustomerLedgerList() {
 
             {/* Final Balance – Yellow */}
             <div className="flex align-items-center gap-2">
-                <span className="font-semibold">Final Balance:</span>
+                <span className="font-semibold">Total Balance:</span>
                 <span className="px-2 py-1 border-round text-dark"
-                    style={{ background: "#facc15", fontSize: "0.8rem" }}>
+                    style={{
+                        background: "#ef4444",
+                        fontSize: "0.8rem",
+                        color: "#ffffff"
+                    }}>
                     {closing.toFixed(2)}
                 </span>
             </div>
 
         </div>
     );
+
+    const openingBalanceTemplate = (row: any) => {
+        const value = row.openingBalance ?? 0;
+
+        return (
+            <Tag
+                value={value.toFixed(2)}
+                severity={value === 0 ? "success" : "danger"}
+                style={{ width: "90px", textAlign: "center" }}
+            />
+        );
+    };
 
     const typeTemplate = (rowData: any) => {
         const type = rowData.ledgerType;
@@ -98,19 +121,40 @@ export default function CustomerLedgerList() {
         return (
             <Tag
                 value={row.debit.toFixed(2)}
-                severity="danger" 
+                severity="danger"
                 style={{ width: "90px", textAlign: "center" }}
             />
         );
     };
 
-    const creditTemplate = (row: any) => {
-        if (!row.credit) return null;
+    const balanceTemplate = (row: any) => {
+        if (!row.closingBalance) return null;
 
+        return (
+            <Tag
+                value={row.closingBalance.toFixed(2)}
+                severity="danger"
+                style={{ width: "90px", textAlign: "center" }}
+            />
+        );
+    };
+
+    const paidTemplate = (row: any) => {
         return (
             <Tag
                 value={row.credit.toFixed(2)}
                 severity="success"
+                style={{ width: "90px", textAlign: "center" }}
+            />
+        );
+    };
+
+    const totalTemplate = (row: any) => {
+        const total = (row.credit ?? 0) + (row.debit ?? 0);
+        return (
+            <Tag
+                value={total.toFixed(2)}
+                severity="info"
                 style={{ width: "90px", textAlign: "center" }}
             />
         );
@@ -134,7 +178,6 @@ export default function CustomerLedgerList() {
                         showClear
                     />
                     <Button
-                        label="Refresh"
                         icon="pi pi-refresh"
                         severity="secondary"
                         onClick={loadLedger}
@@ -143,6 +186,10 @@ export default function CustomerLedgerList() {
 
                 <DataTable
                     value={ledger}
+                    dataKey="customerLedgerId"
+                    scrollable
+                    scrollHeight="300px"
+                    size="normal"
                     paginator
                     rows={20}
                     loading={loading}
@@ -156,7 +203,13 @@ export default function CustomerLedgerList() {
                     <Column field="lastUpdated" header="Date" />
                     <Column field="lastUpdatedTime" header="Time" />
                     <Column field="ledgerType" header="Type" body={typeTemplate} />
-                    <Column field="openingBalance" header="Opening" body={(row) => row.openingBalance?.toFixed(2)} />
+                    <Column field="openingBalance" header="Opening Bal" body={openingBalanceTemplate} />
+                    <Column field="openingBalance" header="Total" body={totalTemplate} />
+                    <Column
+                        field="credit"
+                        header="Credit"
+                        body={paidTemplate}
+                    />
                     <Column
                         field="debit"
                         header="Debit"
@@ -164,15 +217,9 @@ export default function CustomerLedgerList() {
                     />
 
                     <Column
-                        field="credit"
-                        header="Credit"
-                        body={(row) => row.credit?.toFixed(2)}
-                    />
-
-                    <Column
                         field="closingBalance"
-                        header="Closing"
-                        body={creditTemplate}
+                        header="Closing Bal."
+                        body={balanceTemplate}
                     />
                 </DataTable>
             </fieldset>

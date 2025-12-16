@@ -75,12 +75,10 @@ code {
 
 .p-datatable-wrapper::-webkit-scrollbar-track {
   background: #f1f1f1;
-  border-radius: 4px;
 }
 
 .p-datatable-wrapper::-webkit-scrollbar-thumb {
   background-color: #c1c1c1;
-  border-radius: 4px;
 }
 
 .p-datatable-wrapper::-webkit-scrollbar-thumb:hover {
@@ -183,7 +181,6 @@ code {
 
 .p-dropdown.mandatory-border .p-dropdown-label {
   border: 1px solid #d9534f !important;
-  border-radius: 4px;
   /* optional, match your style */
   background-color: white;
   /* optional */

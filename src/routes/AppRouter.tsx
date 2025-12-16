@@ -17,11 +17,11 @@ import { MyProfile } from "../modules/user/MyProfile";
 import { ChangePassword } from "../modules/user/ChangePassword";
 import InventoryForm from "../modules/inventory/InventoryForm";
 import CustomerLedgerList from "../modules/Ledger/CustomerLedgerList";
+import VoucherList from "../modules/voucher/VoucherList";
 
 const Dashboard = React.lazy(() => import("../modules/dashboard/Dashboard"));
 const ProductList = React.lazy(() => import("../modules/products/ProductList"));
 const SalesList = React.lazy(() => import("../modules/sales/SalesList"));
-const InventoryList = React.lazy(() => import("../modules/inventory/InventoryList"));
 const InventoryAdjust = React.lazy(() => import("../modules/inventory/InventoryAdjust"));
 const UserList = React.lazy(() => import("../modules/user/UserList"));
 const Login = React.lazy(() => import("../modules/auth/Login"));
@@ -103,7 +103,11 @@ export default function AppRouter() {
 
                 <Route path="myprofile" element={<MyProfile />} />
                 <Route path="changepassword" element={<ChangePassword />} />
-                <Route path="ledger" element={<CustomerLedgerList />} />
+
+                <Route path="ledger">
+                    <Route index element={<CustomerLedgerList />} />
+                    <Route path="voucher" element={<VoucherList />} />
+                </Route>
 
             </Route>
 
