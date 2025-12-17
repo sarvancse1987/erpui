@@ -3,7 +3,6 @@ import { Dropdown } from "primereact/dropdown";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import apiService from "../../services/apiService";
-import { GroupModel } from "../../models/product/GroupModel";
 import { useToast } from "../../components/ToastService";
 
 export type AddType = "CATEGORY" | "GROUP" | "BRAND";
@@ -19,39 +18,74 @@ interface Option {
   value: number;
 }
 
-interface GroupInput {
+/* =======================
+   MODELS
+======================= */
+
+interface BrandRow {
   id: string;
   name: string;
+}
+
+interface GroupRow {
+  id: string;
+  name: string;
+  brands: BrandRow[];
   error?: boolean;
 }
 
-export const CategoryGroupBrandForm: React.FC<Props> = ({ type, onCancel, onSave }) => {
-  const [categories, setCategories] = useState<Option[]>([]);
-  const [groups, setGroups] = useState<Option[]>([]);
+interface CategoryRow {
+  id: string;
+  categoryId?: number;
+  groups: GroupRow[];
+  error?: boolean;
+}
 
-  const [categoryId, setCategoryId] = useState<number | null>(null);
-  const [groupId, setGroupId] = useState<number | null>(null);
+/* =======================
+   COMPONENT
+======================= */
 
-  const [categoryName, setCategoryName] = useState("");
-  const [brandName, setBrandName] = useState("");
-
-  const [groupInputs, setGroupInputs] = useState<GroupInput[]>([
-    { id: crypto.randomUUID(), name: "" }
-  ]);
-
+export const CategoryGroupBrandForm: React.FC<Props> = ({
+  type,
+  onCancel,
+  onSave
+}) => {
   const { showSuccess, showError } = useToast();
+
+  const [categories, setCategories] = useState<Option[]>([]);
+  const [categoryName, setCategoryName] = useState("");
+
+  /* =======================
+     HELPERS
+  ======================= */
+
+  const emptyBrand = (): BrandRow => ({
+    id: crypto.randomUUID(),
+    name: ""
+  });
+
+  const emptyGroup = (): GroupRow => ({
+    id: crypto.randomUUID(),
+    name: "",
+    brands: [emptyBrand()]
+  });
+
+  const emptyCategory = (): CategoryRow => ({
+    id: crypto.randomUUID(),
+    groups: [emptyGroup()]
+  });
+
+  const [rows, setRows] = useState<CategoryRow[]>([emptyCategory()]);
+
+  /* =======================
+     LOAD DATA
+  ======================= */
 
   useEffect(() => {
     if (type !== "CATEGORY") {
       loadCategories();
     }
   }, [type]);
-
-  useEffect(() => {
-    if (type === "BRAND" && categoryId) {
-      loadGroups(categoryId);
-    }
-  }, [type, categoryId]);
 
   const loadCategories = async () => {
     const res = await apiService.get("/ProductCategory/hierarchy?includeCategories=true");
@@ -67,61 +101,88 @@ export const CategoryGroupBrandForm: React.FC<Props> = ({ type, onCancel, onSave
     );
   };
 
-  const loadGroups = async (categoryId: number) => {
-    setGroups([
-      { label: "Mobile", value: 1 },
-      { label: "Laptop", value: 2 }
-    ]);
-  };
+  /* =======================
+     SAVE
+  ======================= */
 
-  const addGroupRow = () => {
-    setGroupInputs(prev => [...prev, { id: crypto.randomUUID(), name: "" }]);
-  };
+  const handleSave = async () => {
+    try {
+      if (type === "CATEGORY") {
+        if (!categoryName.trim()) return;
+        await apiService.post("/ProductCategory", { categoryName });
+        showSuccess("Category saved");
+        onSave?.(true);
+        return;
+      }
 
-  const removeGroupRow = (id: string) => {
-    setGroupInputs(prev => prev.filter(g => g.id !== id));
-  };
+      if (type === "GROUP") {
+        let hasError = false;
 
-  const updateGroupName = (id: string, value: string) => {
-    setGroupInputs(prev =>
-      prev.map(g => (g.id === id ? { ...g, name: value, error: false } : g))
-    );
-  };
+        setRows(prev =>
+          prev.map(c => {
+            let categoryError = false;
 
-  const handleSave = () => {
-    if (type === "CATEGORY") {
-      if (!categoryName.trim()) return;
-      console.log("Save Category:", categoryName);
-      return;
-    }
+            // CATEGORY validation
+            if (!c.categoryId) {
+              categoryError = true;
+              hasError = true;
+            }
 
-    if (type === "GROUP") {
-      let valid = true;
-      const names = groupInputs.map(g => g.name.trim());
-      const updated = groupInputs.map((g, idx) => {
-        let error = false;
-        if (!g.name.trim()) error = true;
-        if (names.indexOf(g.name.trim()) !== idx) error = true;
-        if (error) valid = false;
-        return { ...g, error };
-      });
+            return {
+              ...c,
+              error: categoryError,   // 🔥 used by Dropdown p-invalid
+              groups: c.groups.map(g => {
+                if (!g.name.trim()) {
+                  hasError = true;
+                  return { ...g, error: true };
+                }
+                return { ...g, error: false };
+              })
+            };
+          })
+        );
 
-      setGroupInputs(updated);
-      if (!categoryId || !valid) return;
+        if (hasError) {
+          showError("Please fix highlighted group names");
+          return;
+        }
 
-      const payload = updated.map(g => ({
-        categoryId,
-        groupName: g.name.trim(),
-        isActive: true
-      }));
+        const payload = rows.flatMap(c =>
+          c.groups.map(g => ({
+            categoryId: c.categoryId,
+            groupName: g.name.trim()
+          }))
+        );
 
-      handleGroupSave(payload);
-      return;
-    }
+        if (!payload.length) return;
 
-    if (type === "BRAND") {
-      if (!categoryId || !groupId || !brandName.trim()) return;
-      console.log("Save Brand:", { categoryId, groupId, brandName });
+        await apiService.post("/ProductGroup/bulk", payload);
+        showSuccess("Groups saved");
+        onSave?.(true);
+        return;
+      }
+
+      if (type === "BRAND") {
+        const payload = rows.flatMap(c =>
+          c.groups.flatMap(g =>
+            g.brands
+              .filter(b => b.name.trim())
+              .map(b => ({
+                categoryId: c.categoryId,
+                groupName: g.name,
+                brandName: b.name
+              }))
+          )
+        );
+
+        if (!payload.length) return;
+
+        await apiService.post("/ProductBrand/bulk", payload);
+        showSuccess("Brands saved");
+        onSave?.(true);
+      }
+    } catch {
+      showError("Save failed");
     }
   };
 
@@ -131,133 +192,227 @@ export const CategoryGroupBrandForm: React.FC<Props> = ({ type, onCancel, onSave
     BRAND: "Add Brand"
   };
 
-  const handleGroupSave = async (updatedGroups: any[]) => {
-    try {
-      const response = await apiService.post("/ProductGroup/bulk", updatedGroups);
-      if (response) {
-        showSuccess("Groups saved successfully!");
-        onCancel?.();
-        onSave?.(true);
-      }
-    } catch (error) {
-      showError("Error saving groups. Please try again.");
-    }
-  };
-
   return (
     <fieldset className="border border-gray-300 rounded-md p-3 bg-white">
       <legend className="text-sm font-semibold px-2 text-gray-700">
         {legendMap[type]}
       </legend>
 
-      <div className="flex flex-wrap gap-3">
+      {/* CATEGORY ONLY */}
+      {type === "CATEGORY" && (
+        <InputText
+          value={categoryName}
+          onChange={(e) => setCategoryName(e.target.value)}
+          placeholder="Category Name"
+          className="w-full"
+        />
+      )}
 
-        {/* CATEGORY */}
-        {type === "CATEGORY" && (
-          <InputText
-            value={categoryName}
-            onChange={(e) => setCategoryName(e.target.value)}
-            placeholder="Category Name"
-            className="w-full"
-          />
-        )}
+      {/* GROUP / BRAND */}
+      {(type === "GROUP") &&
+        rows.map((cat, ci) => (
+          <div key={cat.id} className="flex flex-wrap gap-3 p-1">
 
-        {/* GROUP MULTI ADD */}
-        {type === "GROUP" && (
-          <>
-            <div className="flex-1 min-w-[160px]">
+            <div className="flex-1 min-w-[220px]">
+              <strong className="text-sm">Category <span className="mandatory-asterisk">*</span></strong>
               <Dropdown
-                value={categoryId}
+                value={cat.categoryId}
                 options={categories}
                 placeholder="Select Category"
-                className="w-full"
-                onChange={(e) => {
-                  setCategoryId(e.value);
-                  setGroupInputs([{ id: crypto.randomUUID(), name: "" }]);
-                }}
                 filter
+                className={`w-full mb-1 ${cat.error ? "p-invalid" : ""}`}
+                onChange={(e) =>
+                  setRows(r =>
+                    r.map((c, i) =>
+                      i === ci
+                        ? { ...c, categoryId: e.value, error: false }
+                        : c
+                    )
+                  )
+                }
               />
             </div>
 
-            <div className="flex-1 min-w-[160px]">
-              {groupInputs.map((g, i) => (
-                <div key={g.id} className="flex gap-2 items-center mb-1">
-                  <InputText
-                    value={g.name}
-                    onChange={(e) => updateGroupName(g.id, e.target.value)}
-                    placeholder={`Group Name ${i + 1}`}
-                    disabled={!categoryId}
-                    className={`flex-1 ${g.error ? "p-invalid" : ""}`}
-                  />
+            <div className="flex-1 min-w-[220px]">
+              <strong className="text-sm ml-4">Group <span className="mandatory-asterisk">*</span></strong>
+              {cat.groups.map((grp, gi) => (
+                <div key={grp.id} className="ml-2 mb-2 border-l pl-3">
 
-                  {groupInputs.length > 1 && (
-                    <Button icon="pi pi-trash" severity="danger" outlined className="p-button-sm" onClick={() => removeGroupRow(g.id)} />
-                  )}
+                  <div className="flex gap-2 mb-2">
+                    <InputText
+                      value={grp.name}
+                      placeholder="Group Name"
+                      className={`w-full mb-1 ${grp.error ? "p-invalid" : ""}`}
+                      onChange={(e) =>
+                        setRows(r =>
+                          r.map((c, i) =>
+                            i === ci
+                              ? {
+                                ...c,
+                                groups: c.groups.map((g, j) =>
+                                  j === gi
+                                    ? { ...g, name: e.target.value, error: false }
+                                    : g
+                                )
+                              }
+                              : c
+                          )
+                        )
+                      }
+                    />
+
+                    {gi > 0 &&
+                      <Button
+                        icon="pi pi-trash"
+                        severity="danger"
+                        outlined
+                        disabled={cat.groups.length === 1}
+                        onClick={() =>
+                          setRows(r =>
+                            r.map((c, i) =>
+                              i === ci
+                                ? {
+                                  ...c,
+                                  groups: c.groups.filter((_, j) => j !== gi)
+                                }
+                                : c
+                            )
+                          )
+                        }
+                        className="p-button-sm custom-xs" data-pr-position="left" tooltip="Delete group name" 
+                      />
+                    }
+                  </div>
+
+                  {/* BRANDS */}
+                  {/* {
+                    grp.brands.map((b, bi) => (
+                      <div key={b.id} className="flex gap-2 mb-1 ml-3">
+                        <InputText
+                          value={b.name}
+                          placeholder="Brand Name"
+                          className="flex-1"
+                          onChange={(e) =>
+                            setRows(r =>
+                              r.map((c, i) =>
+                                i === ci
+                                  ? {
+                                    ...c,
+                                    groups: c.groups.map((g, j) =>
+                                      j === gi
+                                        ? {
+                                          ...g,
+                                          brands: g.brands.map((br, k) =>
+                                            k === bi
+                                              ? { ...br, name: e.target.value }
+                                              : br
+                                          )
+                                        }
+                                        : g
+                                    )
+                                  }
+                                  : c
+                              )
+                            )
+                          }
+                        />
+
+                        <Button
+                          icon="pi pi-trash"
+                          severity="danger"
+                          outlined
+                          disabled={grp.brands.length === 1}
+                          onClick={() =>
+                            setRows(r =>
+                              r.map((c, i) =>
+                                i === ci
+                                  ? {
+                                    ...c,
+                                    groups: c.groups.map((g, j) =>
+                                      j === gi
+                                        ? {
+                                          ...g,
+                                          brands: g.brands.filter((_, k) => k !== bi)
+                                        }
+                                        : g
+                                    )
+                                  }
+                                  : c
+                              )
+                            )
+                          }
+                        />
+                      </div>
+                    ))
+                  } */}
+
+                  {/* {
+                    <Button
+                      text
+                      icon="pi pi-plus"
+                      label="Add Brand"
+                      onClick={() =>
+                        setRows(r =>
+                          r.map((c, i) =>
+                            i === ci
+                              ? {
+                                ...c,
+                                groups: c.groups.map((g, j) =>
+                                  j === gi
+                                    ? { ...g, brands: [...g.brands, emptyBrand()] }
+                                    : g
+                                )
+                              }
+                              : c
+                          )
+                        )
+                      }
+                    />
+                  } */}
                 </div>
               ))}
             </div>
 
-            <Button icon="pi pi-plus" label="Add Another Group" text disabled={!categoryId} onClick={addGroupRow} />
-          </>
-        )}
-
-        {/* BRAND */}
-        {type === "BRAND" && (
-          <>
-            <div className="flex-1 min-w-[160px]">
-              <Dropdown
-                value={categoryId}
-                options={categories}
-                placeholder="Select Category"
-                className="w-full"
-                onChange={(e) => {
-                  setCategoryId(e.value);
-                  setGroupId(null);
-                }}
-                filter
-              />
+            <div className="min-w-[80px] mt-4">
+              <Button icon="pi pi-plus" outlined onClick={() => setRows(r =>
+                r.map((c, i) =>
+                  i === ci
+                    ? { ...c, groups: [...c.groups, emptyGroup()] }
+                    : c
+                )
+              )} className="p-button-sm custom-xs mr-1" data-pr-position="left" tooltip="Add group" />
+              {ci > 0 &&
+                <Button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  outlined
+                  disabled={rows.length === 1}
+                  onClick={() =>
+                    setRows(r => r.filter((_, i) => i !== ci))
+                  }
+                  className="p-button-sm custom-xs"
+                  data-pr-position="left"
+                  tooltip="Delete Group"
+                />
+              }
             </div>
+          </div>
+        ))}
 
-            <div className="flex-1 min-w-[160px]">
-              <Dropdown
-                value={groupId}
-                options={groups}
-                placeholder="Select Group"
-                disabled={!categoryId}
-                className="w-full"
-                onChange={(e) => setGroupId(e.value)}
-              />
-            </div>
-            <div className="flex-1 min-w-[160px]">
-              <InputText
-                value={brandName}
-                onChange={(e) => setBrandName(e.target.value)}
-                placeholder="Brand Name"
-                disabled={!groupId}
-                className="w-full"
-              />
-            </div>
-          </>
-        )}
+      {/* ADD CATEGORY */}
+      {(type === "GROUP") && (
+        <Button
+          icon="pi pi-plus"
+          label="Add Category"
+          onClick={() => setRows(r => [...r, emptyCategory()])}
+          className="p-button-sm custom-xs"
+        />
+      )}
 
-        {/* ACTIONS */}
-        <div className="flex justify-end gap-2 w-full mt-3">
-          <Button
-            label="Cancel"
-            icon="pi pi-times-circle"
-            outlined
-            severity="danger"
-            onClick={onCancel}
-            className="p-button-sm custom-xs"
-          />
-          <Button
-            label="Save"
-            icon="pi pi-save"
-            severity="success"
-            onClick={handleSave}
-            className="p-button-sm custom-xs"
-          />
-        </div>
+      {/* ACTIONS */}
+      <div className="flex justify-end gap-2 mt-3">
+        <Button label="Cancel" outlined severity="danger" onClick={onCancel} className="p-button-sm custom-xs" icon="pi pi-times-circle" style={{ color: 'red' }} />
+        <Button label="Save" icon="pi pi-save" severity="success" onClick={handleSave} className="p-button-sm custom-xs" />
       </div>
     </fieldset>
   );
