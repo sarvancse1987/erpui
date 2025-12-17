@@ -197,7 +197,8 @@ export default function CustomerList() {
                 position="right"
                 onHide={() => setSidebarVisible(false)}
                 style={{ width: '75rem', height: '100%' }}
-                showCloseIcon={false}
+                showCloseIcon={true}
+                header="Edit Customer"
             >
                 {selectedCustomer ? (
                     <CustomerForm

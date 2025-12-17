@@ -163,6 +163,8 @@ export default function CustomerLedgerList() {
 
     return (
         <div className="p-2 h-[calc(100vh-100px)] overflow-auto">
+            <h2 className="text-lg font-semibold mb-2">🧾 Ledger Management</h2>
+
             <fieldset className="border border-gray-300 rounded-md p-2 bg-white mb-2">
                 <legend className="text-sm font-semibold px-2 text-gray-700">
                     Customer Ledger Summary

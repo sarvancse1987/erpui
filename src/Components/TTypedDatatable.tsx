@@ -122,11 +122,44 @@ export function TTypedDatatable<T extends Record<string, any>>({
     const allErrors: typeof errors = {};
     const rowsToReopen: { [key: string]: boolean } = {};
 
+    const firstNonHiddenCol = columns.find(c => !c.hidden);
+    if (!firstNonHiddenCol) return;
+
+    const field = firstNonHiddenCol.field as string;
+    const valueMap = new Map<any, string[]>();
+
+    // 🔹 Collect values
     tableData.forEach((row) => {
+      const key = (row as any)._tempKey || row[primaryKey];
+      const value = row[field];
+
+      if (value !== null && value !== undefined && value !== "") {
+        if (!valueMap.has(value)) valueMap.set(value, []);
+        valueMap.get(value)!.push(key);
+      }
+    });
+
+    // 🔹 Detect duplicates
+    valueMap.forEach((keys, value) => {
+      if (keys.length > 1) {
+        keys.forEach((key) => {
+          allErrors[key] = {
+            ...(allErrors[key] || {}),
+            [field]: `${firstNonHiddenCol.header} already exists`
+          };
+          rowsToReopen[key] = true;
+          valid = false;
+        });
+      }
+    });
+
+    // 🔹 Existing row validation
+    tableData.forEach((row) => {
+      const key = (row as any)._tempKey || row[primaryKey];
       const rowErrors = validateRow(row);
+
       if (Object.keys(rowErrors).length > 0) {
-        const key = row[primaryKey] as string;
-        allErrors[key] = rowErrors;
+        allErrors[key] = { ...(allErrors[key] || {}), ...rowErrors };
         rowsToReopen[key] = true;
         valid = false;
       }
@@ -141,7 +174,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
     setErrors({});
     setEditingRows({});
 
-    if (tableData && tableData.length > 0 && onSave) {
+    if (onSave) {
       onSave(tableData);
     }
   };

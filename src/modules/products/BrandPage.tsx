@@ -9,12 +9,16 @@ import { GroupModel } from "../../models/product/GroupModel";
 import { BrandModel } from "../../models/product/BrandModel";
 import apiService from "../../services/apiService";
 import { useToast } from "../../components/ToastService";
+import { Button } from "primereact/button";
+import { Sidebar } from "primereact/sidebar";
+import { CategoryGroupBrandForm } from "./CategoryGroupBrandForm";
 
 export default function BrandPage() {
     const [categories, setCategories] = useState<CategoryModel[]>([]);
     const [expandedCategory, setExpandedCategory] = useState<any>(null);
     const [expandedGroup, setExpandedGroup] = useState<any>(null);
     const { showSuccess, showError } = useToast();
+    const [sidebarVisible, setSidebarVisible] = useState(false);
 
     // 🔹 Fetch hierarchy from backend (category → group → brand)
     const fetchHierarchy = async () => {
@@ -124,7 +128,7 @@ export default function BrandPage() {
                 }));
                 await apiService.post("/ProductBrand/bulk", updates);
                 await fetchHierarchy();
-                 showSuccess("Brand deleted successfully!");
+                showSuccess("Brand deleted successfully!");
             } catch (err) {
                 console.error("❌ Failed to deactivate brands", err);
                 showError("Error delete brand. Please try again.");
@@ -167,6 +171,12 @@ export default function BrandPage() {
                     paginator
                     rows={10}
                     rowsPerPageOptions={[5, 10, 25]}
+                    size="small"
+                    scrollable
+                    style={{ width: "100%" }}
+                    rowClassName={(rowData, rowIndex: any) =>
+                        rowIndex % 2 === 0 ? "bg-gray-50" : "bg-white"
+                    }
                 >
                     <Column expander style={{ width: "3rem" }} />
                     <Column field="groupName" header="Group" body={groupTemplate} />
@@ -189,25 +199,41 @@ export default function BrandPage() {
         );
 
         return (
-            <div className="card border rounded-lg shadow-sm h-[calc(100vh-180px)] overflow-auto">
-                <DataTable
-                    value={filteredCategories}
-                    expandedRows={expandedCategory}
-                    onRowToggle={(e) => setExpandedCategory(e.data)}
-                    rowExpansionTemplate={(cat) => groupExpansionTemplate(cat, activeState)}
-                    dataKey="categoryId"
-                    className="p-datatable-sm"
-                    emptyMessage="No categories found"
-                    paginator
-                    rows={10}
-                    rowsPerPageOptions={[5, 10, 25]}
-                >
-                    <Column expander style={{ width: "3rem" }} />
-                    <Column field="categoryName" header="Category" body={categoryTemplate} />
-                </DataTable>
-            </div>
+            <DataTable
+                value={filteredCategories}
+                expandedRows={expandedCategory}
+                onRowToggle={(e) => setExpandedCategory(e.data)}
+                rowExpansionTemplate={(cat) => groupExpansionTemplate(cat, activeState)}
+                dataKey="categoryId"
+                className="p-datatable-sm"
+                emptyMessage="No categories found"
+                paginator
+                rows={10}
+                rowsPerPageOptions={[5, 10, 25]}
+                size="small"
+                scrollable
+                style={{ width: "100%" }}
+                rowClassName={(rowData, rowIndex: any) =>
+                    rowIndex % 2 === 0 ? "bg-gray-50" : "bg-white"
+                }
+            >
+                <Column expander style={{ width: "3rem" }} />
+                <Column field="categoryName" header="Category" body={categoryTemplate} />
+            </DataTable>
         );
     };
+
+    const add = () => {
+        setSidebarVisible(true);
+    }
+
+    const onCancel = () => {
+        setSidebarVisible(false);
+    }
+
+    const onSave = () => {
+        fetchHierarchy();
+    }
 
     return (
         <div className="p-2">
@@ -223,6 +249,10 @@ export default function BrandPage() {
                             <span>Active</span>
                         </div>
                     }>
+                    <div className="flex gap-2 mb-2">
+                        <Button label="Add" icon="pi pi-plus" outlined onClick={add} size="small" className="p-button-sm custom-xs" />
+                    </div>
+
                     {renderTable(true)}
                 </TabPanel>
 
@@ -236,6 +266,17 @@ export default function BrandPage() {
                     {renderTable(false)}
                 </TabPanel>
             </TabView>
+
+            <Sidebar
+                visible={sidebarVisible}
+                position="right"
+                onHide={() => setSidebarVisible(false)}
+                style={{ width: '75rem', height: '100%' }}
+                showCloseIcon={true}
+                header="Add Group"
+            >
+                <CategoryGroupBrandForm type="BRAND" onCancel={onCancel} onSave={onSave} />
+            </Sidebar>
         </div>
     );
 }

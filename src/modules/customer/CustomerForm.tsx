@@ -348,15 +348,12 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
 
                 </div>
 
-                <div className="flex justify-end gap-2 mt-4">
-                    {onCancel && !isAddNewCustomer && isEditSidebar || (
-                        <Button type="button" label="Cancel" icon="pi pi-times-circle" style={{ color: 'red' }}
-                            outlined onClick={onCancel} className="p-button-sm custom-xs" />
-                    )}
-                    {isEditSidebar && (
-                        <Button type="submit" label="Save" icon="pi pi-save" severity="success" className="p-button-sm custom-xs" />
-                    )}
-                </div>
+                {isEditSidebar && (
+                    <div className="flex justify-end gap-2 mt-4">
+                        {<Button type="button" label="Cancel" icon="pi pi-times-circle" style={{ color: 'red' }} outlined onClick={onCancel} className="p-button-sm custom-xs" />}
+                        <Button type="submit" label="Update" icon="pi pi-save" severity="success" className="p-button-sm custom-xs" />
+                    </div>
+                )}
             </fieldset>
         </form>
     );

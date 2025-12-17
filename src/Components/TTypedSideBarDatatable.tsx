@@ -422,7 +422,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
         <div className="flex gap-2 mb-1 flex-none">
           <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} size="small" className="p-button-sm custom-xs" />
           {isSave && < Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll} disabled={!isSaveEnabled} size="small" className="p-button-sm custom-xs" />}
-          {isDelete && tableData.length > 0 && <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={deleteSelected} disabled={!selectedRows.length} size="small" className="p-button-sm custom-xs" />}
+          {isDelete && tableData.length > 0 && selectedRows.length > 0 && <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={deleteSelected} disabled={!selectedRows.length} size="small" className="p-button-sm custom-xs" />}
         </div>
         <div className="ml-auto">
           <span className="p-input-icon-left relative w-64">
@@ -786,7 +786,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                   });
 
                 setTableData(prev => [...newRows, ...prev]);
-                
+
                 // Make the new rows editable immediately
                 const newEditingRows = newRows.reduce((acc, row) => {
                   acc[(row as any)._tempKey] = true;

@@ -9,6 +9,9 @@ import { CategoryModel } from "../../models/product/CategoryModel";
 import apiService from "../../services/apiService";
 import { useToast } from "../../components/ToastService";
 import { TTypeDatatable } from "../../components/TTypeDatatable";
+import { Button } from "primereact/button";
+import { Sidebar } from "primereact/sidebar";
+import { CategoryGroupBrandForm } from "./CategoryGroupBrandForm";
 
 
 export default function GroupPage() {
@@ -18,6 +21,7 @@ export default function GroupPage() {
     const [expandedRows, setExpandedRows] = useState<any>(null);
     const [expandedRowKey, setExpandedRowKey] = useState<string | null>(null);
     const { showSuccess, showError } = useToast();
+    const [sidebarVisible, setSidebarVisible] = useState(false);
 
     const columns: ColumnMeta<GroupModel>[] = [
         { field: "groupId", header: "ID", editable: false, width: "80px", hidden: true },
@@ -137,56 +141,71 @@ export default function GroupPage() {
 
     // 🔹 Reusable parent-child table (Active/Inactive)
     const renderTable = (activeState: boolean) => (
-        <div className="card border rounded-lg shadow-sm">
-            <DataTable
-                value={categories}
-                expandedRows={expandedRowKey ? { [expandedRowKey]: true } : {}}
-                onRowToggle={(e) => {
-                    const toggledKey = Object.keys(e.data)[0];
-                    setExpandedRowKey(toggledKey === expandedRowKey ? null : toggledKey);
+
+        <DataTable
+            value={categories}
+            expandedRows={expandedRowKey ? { [expandedRowKey]: true } : {}}
+            onRowToggle={(e) => {
+                const toggledKey = Object.keys(e.data)[0];
+                setExpandedRowKey(toggledKey === expandedRowKey ? null : toggledKey);
+            }}
+            rowExpansionTemplate={(cat) => rowExpansionTemplate(cat, activeState)}
+            dataKey="categoryId"
+            className="p-datatable-sm"
+            paginator
+            rows={10}
+            rowsPerPageOptions={[5, 10, 25]}
+            size="small"
+            scrollable
+            style={{ width: "100%" }}
+            rowClassName={(rowData, rowIndex: any) =>
+                rowIndex % 2 === 0 ? "bg-gray-50" : "bg-white"
+            }
+        >
+            <Column expander style={{ width: "3rem" }} />
+
+            <Column field="categoryName" header="Category" body={categoryTemplate} />
+
+            <Column
+                header="Groups"
+                body={(category: CategoryModel) => {
+                    const categoryGroups = groups.filter(
+                        (g) =>
+                            g.categoryId === category.categoryId &&
+                            g.isActive === activeState
+                    );
+                    if (categoryGroups.length === 0)
+                        return <span className="text-gray-400 italic">No groups</span>;
+                    return (
+                        <div className="flex flex-col">
+                            {categoryGroups.slice(0, 3).map((g) => (
+                                <span key={g.groupId} className="text-sm text-gray-700">
+                                    • {g.groupName}
+                                </span>
+                            ))}
+                            {categoryGroups.length > 3 && (
+                                <span className="text-xs text-gray-500">
+                                    +{categoryGroups.length - 3} more...
+                                </span>
+                            )}
+                        </div>
+                    );
                 }}
-                rowExpansionTemplate={(cat) => rowExpansionTemplate(cat, activeState)}
-                dataKey="categoryId"
-                className="p-datatable-sm"
-                paginator
-                rows={10}
-                rowsPerPageOptions={[5, 10, 25]}
-            >
-                <Column expander style={{ width: "3rem" }} />
-
-                {/* 🧩 Category Name */}
-                <Column field="categoryName" header="Category" body={categoryTemplate} />
-
-                {/* 🧩 Group Summary Column */}
-                <Column
-                    header="Groups"
-                    body={(category: CategoryModel) => {
-                        const categoryGroups = groups.filter(
-                            (g) =>
-                                g.categoryId === category.categoryId &&
-                                g.isActive === activeState
-                        );
-                        if (categoryGroups.length === 0)
-                            return <span className="text-gray-400 italic">No groups</span>;
-                        return (
-                            <div className="flex flex-col">
-                                {categoryGroups.slice(0, 3).map((g) => (
-                                    <span key={g.groupId} className="text-sm text-gray-700">
-                                        • {g.groupName}
-                                    </span>
-                                ))}
-                                {categoryGroups.length > 3 && (
-                                    <span className="text-xs text-gray-500">
-                                        +{categoryGroups.length - 3} more...
-                                    </span>
-                                )}
-                            </div>
-                        );
-                    }}
-                />
-            </DataTable>
-        </div>
+            />
+        </DataTable>
     );
+
+    const add = () => {
+        setSidebarVisible(true);
+    }
+
+    const onCancel = () => {
+        setSidebarVisible(false);
+    }
+
+    const onSave = () => {
+        fetchCategoriesAndGroups();
+    }
 
     return (
         <div className="p-2">
@@ -200,6 +219,10 @@ export default function GroupPage() {
                             <span>Active</span>
                         </div>
                     }>
+
+                    <div className="flex gap-2 mb-2">
+                        <Button label="Add" icon="pi pi-plus" outlined onClick={add} size="small" className="p-button-sm custom-xs" />
+                    </div>
                     {renderTable(true)}
                 </TabPanel>
 
@@ -215,6 +238,17 @@ export default function GroupPage() {
                     {renderTable(false)}
                 </TabPanel>
             </TabView>
+
+            <Sidebar
+                visible={sidebarVisible}
+                position="right"
+                onHide={() => setSidebarVisible(false)}
+                style={{ width: '75rem', height: '100%' }}
+                showCloseIcon={true}
+                header="Add Group"
+            >
+                <CategoryGroupBrandForm type="GROUP" onCancel={onCancel} onSave={onSave} />
+            </Sidebar>
         </div>
     );
 }

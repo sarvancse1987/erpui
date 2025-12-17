@@ -59,10 +59,8 @@ export const VoucherForm: React.FC<VoucherFormProps> = ({
     const parseDate = (value: string | Date | null): Date | null => {
         if (!value) return null;
 
-        // If already a Date → return as-is
         if (value instanceof Date) return value;
 
-        // Otherwise parse string "dd-MM-yyyy"
         const parts = value.split("-");
         const day = Number(parts[0]);
         const month = Number(parts[1]) - 1;
@@ -72,7 +70,6 @@ export const VoucherForm: React.FC<VoucherFormProps> = ({
 
     useEffect(() => {
         if (voucher) {
-            // EDIT MODE → populate form from voucher
             setForm({
                 voucherId: voucher.voucherId,
                 voucherNo: voucher.voucherNo ?? "Voucher",
@@ -84,7 +81,6 @@ export const VoucherForm: React.FC<VoucherFormProps> = ({
                 remarks: voucher.remarks ?? ""
             });
         } else {
-            // ADD MODE → reset form
             setForm({
                 voucherId: 0,
                 voucherNo: "Voucher",
@@ -149,33 +145,20 @@ export const VoucherForm: React.FC<VoucherFormProps> = ({
                     Add Voucher
                 </legend>
 
-                {/* ACTIONS */}
-                <div className="flex gap-2 mb-3">
-                    <Button
-                        label="Save"
-                        icon="pi pi-save"
-                        className="p-button-sm custom-xs"
-                        onClick={handleSave}
-                    />
-                </div>
+                {!isEditSidebar && (
+                    <div className="flex gap-2 mb-3">
+                        <Button
+                            label="Save"
+                            icon="pi pi-save"
+                            className="p-button-sm custom-xs"
+                            onClick={handleSave}
+                        />
+                    </div>
+                )}
 
-                {/* HEADER ROW */}
                 <div className="flex flex-wrap gap-3 items-end mb-3">
 
-                    {/* Customer */}
                     <div className="flex-1 min-w-[180px]">
-                        {/* <strong className="text-sm">Customer <span className="mandatory-asterisk">*</span></strong>
-                        <Dropdown
-                            value={form.customerId}
-                            options={customers}
-                            optionLabel="customerName"
-                            optionValue="customerId"
-                            onChange={e => handleChange("customerId", e.value)}
-                            filter
-                            className={`w-full mt-1 ${errors.customerId ? "p-invalid" : ""}`}
-                            placeholder="Select customer"
-                        />
-                        {errors.customerId && <small className="mandatory-error">{errors.customerId}</small>} */}
                         <strong className="text-sm">Customer <span className="mandatory-asterisk">*</span></strong>
                         <CustomerSelector
                             customers={customers}
@@ -186,7 +169,6 @@ export const VoucherForm: React.FC<VoucherFormProps> = ({
                         {errors.customerId && <small className="mandatory-error">{errors.customerId}</small>}
                     </div>
 
-                    {/* Voucher Type */}
                     <div className="flex-1 min-w-[180px]">
                         <strong className="text-sm">Voucher Type <span className="mandatory-asterisk">*</span></strong>
                         <Dropdown
@@ -198,7 +180,6 @@ export const VoucherForm: React.FC<VoucherFormProps> = ({
                         {errors.voucherType && <small className="mandatory-error">{errors.voucherType}</small>}
                     </div>
 
-                    {/* Voucher Date */}
                     <div className="flex-1 min-w-[180px]">
                         <strong className="text-sm">Voucher Date <span className="mandatory-asterisk">*</span></strong>
                         <Calendar
@@ -229,7 +210,6 @@ export const VoucherForm: React.FC<VoucherFormProps> = ({
 
                 </div>
 
-                {/* REMARKS */}
                 <div>
                     <strong className="text-sm">Remarks</strong>
                     <InputTextarea
