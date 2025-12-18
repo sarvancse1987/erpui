@@ -8,7 +8,7 @@ import { GroupModel } from "../../models/product/GroupModel";
 
 export type AddType = "CATEGORY" | "GROUP" | "BRAND";
 
-interface Props {
+interface CategoryGroupBrandFormProps {
   type: AddType;
   onCancel?: () => void;
   onSave?: (saved: boolean) => void;
@@ -26,13 +26,21 @@ interface Option {
 interface BrandRow {
   id: string;
   name: string;
+  error?: boolean;
+}
+
+interface GroupOption extends Option {
+  categoryId: number;
 }
 
 interface GroupRow {
   id: string;
   name: string;
+  categoryId?: number;
+  groupId?: number;
   brands: BrandRow[];
   error?: boolean;
+  filteredGroups?: GroupOption[];
 }
 
 interface CategoryRow {
@@ -46,7 +54,7 @@ interface CategoryRow {
    COMPONENT
 ======================= */
 
-export const CategoryGroupBrandForm: React.FC<Props> = ({
+export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
   type,
   onCancel,
   onSave
@@ -55,8 +63,8 @@ export const CategoryGroupBrandForm: React.FC<Props> = ({
 
   const [categories, setCategories] = useState<Option[]>([]);
   const [categoryName, setCategoryName] = useState("");
-  const [groups, setGroups] = useState<GroupModel[]>([]);
-  const [filteredGroups, setFilteredGroups] = useState<any[]>([]);
+  const [groups, setGroups] = useState<GroupOption[]>([]);
+  const [filteredGroups, setFilteredGroups] = useState<GroupOption[]>([]);
 
   /* =======================
      HELPERS
@@ -79,6 +87,7 @@ export const CategoryGroupBrandForm: React.FC<Props> = ({
   });
 
   const [rows, setRows] = useState<CategoryRow[]>([emptyCategory()]);
+  const [groupRows, setGroupRows] = useState<GroupRow[]>([emptyGroup()]);
 
   /* =======================
      LOAD DATA
@@ -176,19 +185,40 @@ export const CategoryGroupBrandForm: React.FC<Props> = ({
       }
 
       if (type === "BRAND") {
-        const payload = rows.flatMap(c =>
-          c.groups.flatMap(g =>
-            g.brands
-              .filter(b => b.name.trim())
-              .map(b => ({
-                categoryId: c.categoryId,
-                groupName: g.name,
-                brandName: b.name
-              }))
-          )
+        let hasError = false;
+
+        setGroupRows(prev =>
+          prev.map(c => {
+            const categoryError = !c.categoryId;
+            const groupError = !c.groupId;
+
+            if (categoryError || groupError) hasError = true;
+
+            return {
+              ...c,
+              error: categoryError || groupError,
+              brands: c.brands.map(b => {
+                const brandError = !b.name.trim();
+                if (brandError) hasError = true;
+                return { ...b, error: brandError };
+              })
+            };
+          })
         );
 
-        if (!payload.length) return;
+        if (hasError) {
+          showError("Please select category, group and fill all brand names");
+          return;
+        }
+
+        const payload = groupRows.flatMap(c =>
+          c.brands.map(b => ({
+            categoryId: c.categoryId!,
+            groupId: c.groupId!,
+            brandName: b.name.trim(),
+            isActive: true
+          }))
+        );
 
         await apiService.post("/ProductBrand/bulk", payload);
         showSuccess("Brands saved");
@@ -205,9 +235,29 @@ export const CategoryGroupBrandForm: React.FC<Props> = ({
     BRAND: "Add Brand"
   };
 
-  const handleCategoryChange = (value: number) => {
+  const handleCategoryChange = (rowIndex: number, categoryId?: number) => {
+    setGroupRows(prev =>
+      prev.map((row, i) => {
+        if (i !== rowIndex) return row;
 
-  }
+        if (!categoryId) {
+          return {
+            ...row,
+            categoryId: undefined,
+            groupId: undefined,
+            filteredGroups: []
+          };
+        }
+
+        return {
+          ...row,
+          categoryId,
+          groupId: undefined, // reset selected group
+          filteredGroups: groups.filter(g => g.categoryId === categoryId)
+        };
+      })
+    );
+  };
 
   return (
     <fieldset className="border border-gray-300 rounded-md p-3 bg-white">
@@ -341,7 +391,7 @@ export const CategoryGroupBrandForm: React.FC<Props> = ({
       )}
 
       {(type === "BRAND") &&
-        rows.map((cat, ci) => (
+        groupRows.map((cat, ci) => (
           <div key={cat.id} className="flex flex-wrap gap-3 p-1">
 
             <div className="flex-1 min-w-[220px]">
@@ -353,14 +403,14 @@ export const CategoryGroupBrandForm: React.FC<Props> = ({
                 filter
                 className={`w-full mb-1 ${cat.error ? "p-invalid" : ""}`}
                 onChange={(e) => {
-                  setRows(r =>
+                  setGroupRows(r =>
                     r.map((c, i) =>
                       i === ci
                         ? { ...c, categoryId: e.value, error: false }
                         : c
                     )
                   )
-                  handleCategoryChange(e.value);
+                  handleCategoryChange(ci, e.value)
                 }}
               />
             </div>
@@ -368,16 +418,16 @@ export const CategoryGroupBrandForm: React.FC<Props> = ({
             <div className="flex-1 min-w-[220px]">
               <strong className="text-sm">Group <span className="mandatory-asterisk">*</span></strong>
               <Dropdown
-                value={cat.categoryId}
-                options={filteredGroups}
+                value={cat.groupId}
+                options={cat.filteredGroups}
                 placeholder="Select Category"
                 filter
                 className={`w-full mb-1 ${cat.error ? "p-invalid" : ""}`}
                 onChange={(e) =>
-                  setRows(r =>
+                  setGroupRows(r =>
                     r.map((c, i) =>
                       i === ci
-                        ? { ...c, categoryId: e.value, error: false }
+                        ? { ...c, groupId: e.value, error: false }
                         : c
                     )
                   )
@@ -387,7 +437,7 @@ export const CategoryGroupBrandForm: React.FC<Props> = ({
 
             <div className="flex-1 min-w-[220px]">
               <strong className="text-sm ml-4">Brand <span className="mandatory-asterisk">*</span></strong>
-              {cat.groups.map((grp, gi) => (
+              {cat.brands.map((grp, gi) => (
                 <div key={grp.id} className="ml-2 mb-2 border-l pl-3">
 
                   <div className="flex gap-2 mb-2">
@@ -396,12 +446,12 @@ export const CategoryGroupBrandForm: React.FC<Props> = ({
                       placeholder="Brand Name"
                       className={`w-full mb-1 ${grp.error ? "p-invalid" : ""}`}
                       onChange={(e) =>
-                        setRows(r =>
+                        setGroupRows(r =>
                           r.map((c, i) =>
                             i === ci
                               ? {
                                 ...c,
-                                groups: c.groups.map((g, j) =>
+                                brands: c.brands.map((g, j) =>
                                   j === gi
                                     ? { ...g, name: e.target.value, error: false }
                                     : g
@@ -418,20 +468,20 @@ export const CategoryGroupBrandForm: React.FC<Props> = ({
                         icon="pi pi-trash"
                         severity="danger"
                         outlined
-                        disabled={cat.groups.length === 1}
+                        disabled={cat.brands.length === 1}
                         onClick={() =>
-                          setRows(r =>
+                          setGroupRows(r =>
                             r.map((c, i) =>
                               i === ci
                                 ? {
                                   ...c,
-                                  groups: c.groups.filter((_, j) => j !== gi)
+                                  groups: c.brands.filter((_, j) => j !== gi)
                                 }
                                 : c
                             )
                           )
                         }
-                        className="p-button-sm custom-xs" data-pr-position="left" tooltip="Delete group name"
+                        className="p-button-sm custom-xs" data-pr-position="left" tooltip="Delete brand name"
                       />
                     }
                   </div>
@@ -440,13 +490,13 @@ export const CategoryGroupBrandForm: React.FC<Props> = ({
             </div>
 
             <div className="min-w-[80px] mt-4">
-              <Button icon="pi pi-plus" outlined onClick={() => setRows(r =>
+              <Button icon="pi pi-plus" outlined onClick={() => setGroupRows(r =>
                 r.map((c, i) =>
                   i === ci
-                    ? { ...c, groups: [...c.groups, emptyGroup()] }
+                    ? { ...c, brands: [...c.brands, emptyBrand()] }
                     : c
                 )
-              )} className="p-button-sm custom-xs mr-1" data-pr-position="left" tooltip="Add group" />
+              )} className="p-button-sm custom-xs mr-1" data-pr-position="left" tooltip="Add Brand" />
               {ci > 0 &&
                 <Button
                   icon="pi pi-trash"
@@ -454,11 +504,11 @@ export const CategoryGroupBrandForm: React.FC<Props> = ({
                   outlined
                   disabled={rows.length === 1}
                   onClick={() =>
-                    setRows(r => r.filter((_, i) => i !== ci))
+                    setGroupRows(r => r.filter((_, i) => i !== ci))
                   }
                   className="p-button-sm custom-xs"
                   data-pr-position="left"
-                  tooltip="Delete Group"
+                  tooltip="Delete Brand"
                 />
               }
             </div>
@@ -468,8 +518,8 @@ export const CategoryGroupBrandForm: React.FC<Props> = ({
       {(type === "BRAND") && (
         <Button
           icon="pi pi-plus"
-          label="Add Category"
-          onClick={() => setRows(r => [...r, emptyCategory()])}
+          label="Add Brand"
+          onClick={() => setGroupRows(r => [...r, emptyGroup()])}
           className="p-button-sm custom-xs"
         />
       )}

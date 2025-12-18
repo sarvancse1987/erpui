@@ -233,6 +233,7 @@ export default function BrandPage() {
 
     const onSave = () => {
         fetchHierarchy();
+        setSidebarVisible(false);
     }
 
     return (

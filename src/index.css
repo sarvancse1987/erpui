@@ -57,7 +57,7 @@ code {
 
 /* Compact DataTable Rows */
 .p-datatable .p-datatable-tbody>tr>td {
-  padding: 0.3rem 0.4rem !important;
+  padding: 0.2rem 0.2rem !important;
   /* vertical horizontal */
   line-height: 1.0 !important;
 }

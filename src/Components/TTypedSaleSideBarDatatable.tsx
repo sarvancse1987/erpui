@@ -300,7 +300,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
             locale="en-IN"
             minFractionDigits={minFrac}
             maxFractionDigits={maxFrac}
-            className={classNames("custom-width p-inputnumber-sm", { "p-invalid": showError })}
+            className={classNames("custom-width p-inputnumber-sm custom-xs", { "p-invalid": showError })}
             style={{ width: "100%" }}
             placeholder={col.placeholder}
             onValueChange={(e) => {
