@@ -4,6 +4,7 @@ import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import apiService from "../../services/apiService";
 import { useToast } from "../../components/ToastService";
+import { GroupModel } from "../../models/product/GroupModel";
 
 export type AddType = "CATEGORY" | "GROUP" | "BRAND";
 
@@ -54,6 +55,8 @@ export const CategoryGroupBrandForm: React.FC<Props> = ({
 
   const [categories, setCategories] = useState<Option[]>([]);
   const [categoryName, setCategoryName] = useState("");
+  const [groups, setGroups] = useState<GroupModel[]>([]);
+  const [filteredGroups, setFilteredGroups] = useState<any[]>([]);
 
   /* =======================
      HELPERS
@@ -88,17 +91,26 @@ export const CategoryGroupBrandForm: React.FC<Props> = ({
   }, [type]);
 
   const loadCategories = async () => {
-    const res = await apiService.get("/ProductCategory/hierarchy?includeCategories=true");
-    const data = res.categories ?? [];
+    const res = await apiService.get("/ProductCategory/hierarchy?includeCategories=true&includeGroups=true");
+    const categories = res.categories ?? [];
+    const groups = res.groups.filter((c: any) => c.isActive)
+      .map((c: any) => ({
+        label: c.groupName,
+        value: c.groupId,
+        categoryId: c.categoryId
+      })) ?? [];
 
     setCategories(
-      data
+      categories
         .filter((c: any) => c.isActive)
         .map((c: any) => ({
           label: c.categoryName,
           value: c.categoryId
         }))
     );
+    setGroups(groups);
+
+    setFilteredGroups(groups);
   };
 
   /* =======================
@@ -150,7 +162,8 @@ export const CategoryGroupBrandForm: React.FC<Props> = ({
         const payload = rows.flatMap(c =>
           c.groups.map(g => ({
             categoryId: c.categoryId,
-            groupName: g.name.trim()
+            groupName: g.name.trim(),
+            isActive: true
           }))
         );
 
@@ -191,6 +204,10 @@ export const CategoryGroupBrandForm: React.FC<Props> = ({
     GROUP: "Add Group",
     BRAND: "Add Brand"
   };
+
+  const handleCategoryChange = (value: number) => {
+
+  }
 
   return (
     <fieldset className="border border-gray-300 rounded-md p-3 bg-white">
@@ -279,96 +296,10 @@ export const CategoryGroupBrandForm: React.FC<Props> = ({
                             )
                           )
                         }
-                        className="p-button-sm custom-xs" data-pr-position="left" tooltip="Delete group name" 
+                        className="p-button-sm custom-xs" data-pr-position="left" tooltip="Delete group name"
                       />
                     }
                   </div>
-
-                  {/* BRANDS */}
-                  {/* {
-                    grp.brands.map((b, bi) => (
-                      <div key={b.id} className="flex gap-2 mb-1 ml-3">
-                        <InputText
-                          value={b.name}
-                          placeholder="Brand Name"
-                          className="flex-1"
-                          onChange={(e) =>
-                            setRows(r =>
-                              r.map((c, i) =>
-                                i === ci
-                                  ? {
-                                    ...c,
-                                    groups: c.groups.map((g, j) =>
-                                      j === gi
-                                        ? {
-                                          ...g,
-                                          brands: g.brands.map((br, k) =>
-                                            k === bi
-                                              ? { ...br, name: e.target.value }
-                                              : br
-                                          )
-                                        }
-                                        : g
-                                    )
-                                  }
-                                  : c
-                              )
-                            )
-                          }
-                        />
-
-                        <Button
-                          icon="pi pi-trash"
-                          severity="danger"
-                          outlined
-                          disabled={grp.brands.length === 1}
-                          onClick={() =>
-                            setRows(r =>
-                              r.map((c, i) =>
-                                i === ci
-                                  ? {
-                                    ...c,
-                                    groups: c.groups.map((g, j) =>
-                                      j === gi
-                                        ? {
-                                          ...g,
-                                          brands: g.brands.filter((_, k) => k !== bi)
-                                        }
-                                        : g
-                                    )
-                                  }
-                                  : c
-                              )
-                            )
-                          }
-                        />
-                      </div>
-                    ))
-                  } */}
-
-                  {/* {
-                    <Button
-                      text
-                      icon="pi pi-plus"
-                      label="Add Brand"
-                      onClick={() =>
-                        setRows(r =>
-                          r.map((c, i) =>
-                            i === ci
-                              ? {
-                                ...c,
-                                groups: c.groups.map((g, j) =>
-                                  j === gi
-                                    ? { ...g, brands: [...g.brands, emptyBrand()] }
-                                    : g
-                                )
-                              }
-                              : c
-                          )
-                        )
-                      }
-                    />
-                  } */}
                 </div>
               ))}
             </div>
@@ -401,6 +332,140 @@ export const CategoryGroupBrandForm: React.FC<Props> = ({
 
       {/* ADD CATEGORY */}
       {(type === "GROUP") && (
+        <Button
+          icon="pi pi-plus"
+          label="Add Category"
+          onClick={() => setRows(r => [...r, emptyCategory()])}
+          className="p-button-sm custom-xs"
+        />
+      )}
+
+      {(type === "BRAND") &&
+        rows.map((cat, ci) => (
+          <div key={cat.id} className="flex flex-wrap gap-3 p-1">
+
+            <div className="flex-1 min-w-[220px]">
+              <strong className="text-sm">Category <span className="mandatory-asterisk">*</span></strong>
+              <Dropdown
+                value={cat.categoryId}
+                options={categories}
+                placeholder="Select Category"
+                filter
+                className={`w-full mb-1 ${cat.error ? "p-invalid" : ""}`}
+                onChange={(e) => {
+                  setRows(r =>
+                    r.map((c, i) =>
+                      i === ci
+                        ? { ...c, categoryId: e.value, error: false }
+                        : c
+                    )
+                  )
+                  handleCategoryChange(e.value);
+                }}
+              />
+            </div>
+
+            <div className="flex-1 min-w-[220px]">
+              <strong className="text-sm">Group <span className="mandatory-asterisk">*</span></strong>
+              <Dropdown
+                value={cat.categoryId}
+                options={filteredGroups}
+                placeholder="Select Category"
+                filter
+                className={`w-full mb-1 ${cat.error ? "p-invalid" : ""}`}
+                onChange={(e) =>
+                  setRows(r =>
+                    r.map((c, i) =>
+                      i === ci
+                        ? { ...c, categoryId: e.value, error: false }
+                        : c
+                    )
+                  )
+                }
+              />
+            </div>
+
+            <div className="flex-1 min-w-[220px]">
+              <strong className="text-sm ml-4">Brand <span className="mandatory-asterisk">*</span></strong>
+              {cat.groups.map((grp, gi) => (
+                <div key={grp.id} className="ml-2 mb-2 border-l pl-3">
+
+                  <div className="flex gap-2 mb-2">
+                    <InputText
+                      value={grp.name}
+                      placeholder="Brand Name"
+                      className={`w-full mb-1 ${grp.error ? "p-invalid" : ""}`}
+                      onChange={(e) =>
+                        setRows(r =>
+                          r.map((c, i) =>
+                            i === ci
+                              ? {
+                                ...c,
+                                groups: c.groups.map((g, j) =>
+                                  j === gi
+                                    ? { ...g, name: e.target.value, error: false }
+                                    : g
+                                )
+                              }
+                              : c
+                          )
+                        )
+                      }
+                    />
+
+                    {gi > 0 &&
+                      <Button
+                        icon="pi pi-trash"
+                        severity="danger"
+                        outlined
+                        disabled={cat.groups.length === 1}
+                        onClick={() =>
+                          setRows(r =>
+                            r.map((c, i) =>
+                              i === ci
+                                ? {
+                                  ...c,
+                                  groups: c.groups.filter((_, j) => j !== gi)
+                                }
+                                : c
+                            )
+                          )
+                        }
+                        className="p-button-sm custom-xs" data-pr-position="left" tooltip="Delete group name"
+                      />
+                    }
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="min-w-[80px] mt-4">
+              <Button icon="pi pi-plus" outlined onClick={() => setRows(r =>
+                r.map((c, i) =>
+                  i === ci
+                    ? { ...c, groups: [...c.groups, emptyGroup()] }
+                    : c
+                )
+              )} className="p-button-sm custom-xs mr-1" data-pr-position="left" tooltip="Add group" />
+              {ci > 0 &&
+                <Button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  outlined
+                  disabled={rows.length === 1}
+                  onClick={() =>
+                    setRows(r => r.filter((_, i) => i !== ci))
+                  }
+                  className="p-button-sm custom-xs"
+                  data-pr-position="left"
+                  tooltip="Delete Group"
+                />
+              }
+            </div>
+          </div>
+        ))}
+
+      {(type === "BRAND") && (
         <Button
           icon="pi pi-plus"
           label="Add Category"

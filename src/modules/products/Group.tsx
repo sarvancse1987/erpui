@@ -205,6 +205,7 @@ export default function GroupPage() {
 
     const onSave = () => {
         fetchCategoriesAndGroups();
+        setSidebarVisible(false);
     }
 
     return (
