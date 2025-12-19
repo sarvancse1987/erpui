@@ -12,6 +12,7 @@ import { Sidebar } from "primereact/sidebar";
 import { Tag } from "primereact/tag";
 import { InventoryModel } from "../../models/inventory/InventoryModel";
 import { useToast } from "../../components/ToastService";
+import InventoryUpdateForm from "./InventoryUpdateForm";
 
 export default function InventoryForm({
 }: any) {
@@ -45,6 +46,8 @@ export default function InventoryForm({
 
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const { showSuccess, showError } = useToast();
+  const [isEditSidebarOpen, setIsEditSidebarOpen] = useState<boolean>(false);
+  const [selectedEditProducts, setSelectedEditProducts] = useState<any>({});
 
   const fetchBrands = async () => {
     try {
@@ -195,6 +198,7 @@ export default function InventoryForm({
       showError("Error saving inventory!");
     }
   }
+
   const handleDeleteExistInventory = async () => {
     try {
       // Make sure you are sending only IDs
@@ -210,6 +214,18 @@ export default function InventoryForm({
       showError("Error deleting inventory!");
     }
   };
+
+  const onUpdate = async (isSuccess: boolean) => {
+    setIsEditSidebarOpen(isSuccess);
+    const response = await apiService.get("/ProductCategory/hierarchy?includeBrands=false&includeProducts=true");
+    const availableProductList = (response.products ?? []).filter(
+      (p: any) => p.isActive && p.availableQuantity > 0
+    );
+
+    if (availableProductList?.length > 0) {
+      setAvailableProducts(availableProductList);
+    }
+  }
 
   return (
     <div className="p-2 h-[calc(100vh-100px)] overflow-auto">
@@ -344,13 +360,32 @@ export default function InventoryForm({
               style={{ minWidth: "100px" }}
             />
             <Column field="inventorySupplierName" header="Supplier" style={{ minWidth: "150px" }} />
+
+
+            <Column
+              header="Edit"
+              body={(row) => (
+                <Button
+                  icon="pi pi-pencil"
+                  className="p-button-sm p-button-rounded p-button-outlined p-button-info"
+                  onClick={() => {
+                    setSelectedEditProducts([row]); // preselect
+                    setIsEditSidebarOpen(true);    // open sidebar
+                  }}
+                  tooltip="Edit Inventory"
+                  tooltipOptions={{ position: "left" }}
+                  style={{ width: "25px", height: "25px", padding: "0" }}
+                />
+              )}
+              style={{ width: "4rem" }}
+            />
           </DataTable>
         </TabPanel>
 
         <TabPanel header={
           <div className="flex items-center gap-2" style={{ color: 'green' }}>
-            <i className="pi pi-refresh" />
-            <span>Update</span>
+            <i className="pi pi-plus" />
+            <span>Add</span>
           </div>
         }>
           <div className={`border border-gray-200 rounded-md p-1 w-full"}`}>
@@ -463,6 +498,7 @@ export default function InventoryForm({
                     );
                   }}
                   style={{ minWidth: "150px" }}
+                  className="custom-width p-inputnumber-sm custom-xs"
                 />
 
                 <Column
@@ -653,6 +689,20 @@ export default function InventoryForm({
           </div>
         </TabPanel>
       </TabView >
+
+      <Sidebar visible={isEditSidebarOpen}
+        position="right"
+        onHide={() => setIsEditSidebarOpen(false)}
+        header="Edit Inventory"
+        style={{ width: '70rem' }}>
+        {selectedEditProducts ? (
+          <InventoryUpdateForm
+            onCancel={() => { setIsEditSidebarOpen(false); }}
+            data={selectedEditProducts[0]}
+            onSave={onUpdate}
+          />
+        ) : <p className="p-4 text-gray-500 text-center">Select a inventory to edit.</p>}
+      </Sidebar>
     </div>
   );
 }
