@@ -24,8 +24,11 @@ export function TTypedDatatable<T extends Record<string, any>>({
   primaryKey,
   isNew,
   isSave,
+  isEdit,
   isDelete,
+  onAdd,
   onEdit,
+  onEditMultiple,
   onDelete,
   onSave,
   sortableColumns = [],
@@ -93,7 +96,6 @@ export function TTypedDatatable<T extends Record<string, any>>({
     // Open this row in edit mode immediately using tempKey
     setEditingRows({ [(newRow as any)._tempKey]: true });
   };
-
 
   const validateRow = (rowData: T) => {
     const rowErrors: { [key: string]: string } = {};
@@ -413,13 +415,30 @@ export function TTypedDatatable<T extends Record<string, any>>({
     });
   };
 
+  const actionBodyTemplate = (rowData: T) => (
+    <Button
+      icon="pi pi-pencil"
+      className="p-button-sm p-button-rounded p-button-outlined p-button-info"
+      style={{ width: "25px", height: "25px", padding: "0" }}
+      onClick={() => onEdit?.(rowData)}
+    />
+  );
+
+  const addRowNew = () => {
+    onAdd?.()
+  }
+
+  const onEditNew = () => {
+    onEditMultiple?.(selectedRows);
+  }
 
   return (
     <div className="card p-2 h-[calc(100vh-100px)] overflow-auto">
 
       <div className="flex justify-between items-center mb-1">
         <div className="flex gap-2">
-          {isNew && <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} size="small" className="p-button-sm custom-xs" />}
+          {isNew && <Button label="Add" icon="pi pi-plus" outlined onClick={addRowNew} size="small" className="p-button-sm custom-xs" />}
+          {isEdit && selectedRows.length > 1 && <Button label="Edit" icon="pi pi-pencil" outlined onClick={onEditNew} size="small" className="p-button-sm custom-xs" />}
           {isSave && isSaveEnabled && <Button label="Save" icon="pi pi-save" onClick={saveAll} disabled={!isSaveEnabled} size="small" className="p-button-sm custom-xs" />}
           {isDelete && selectedRows.length > 0 && (
             <Button
@@ -506,8 +525,9 @@ export function TTypedDatatable<T extends Record<string, any>>({
           />
         ))}
 
-        {/* <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} frozen={true} /> */}
-        <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} frozen={true} alignFrozen="right" />
+        {isEdit && <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} frozen={true} />}
+        {/* {isEdit &&
+          <Column rowEditor headerStyle={{ width: "5rem" }} bodyStyle={{ textAlign: "center" }} frozen={true} alignFrozen="right" />} */}
       </DataTable>
     </div >
   );

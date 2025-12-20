@@ -5,12 +5,17 @@ import { TTypedDatatable } from "../../components/TTypedDatatable";
 import apiService from "../../services/apiService";
 import { CategoryModel } from "../../models/product/CategoryModel";
 import { useToast } from "../../components/ToastService";
+import { Sidebar } from "primereact/sidebar";
+import { CategoryGroupBrandForm } from "./CategoryGroupBrandForm";
+import { Button } from "primereact/button";
 
 export default function Category() {
     const [categories, setCategories] = useState<CategoryModel[]>([]);
+    const [editedCategories, setEditedCategories] = useState<any[]>([]);
     const [activeCategories, setActiveCategories] = useState<CategoryModel[]>([]);
     const [inactiveCategories, setInActiveCategories] = useState<CategoryModel[]>([]);
     const { showSuccess, showError } = useToast();
+    const [sidebarVisible, setSidebarVisible] = useState(false);
 
     const baseColumns: ColumnMeta<CategoryModel>[] = [
         { field: "categoryId", header: "ID", editable: false, hidden: true },
@@ -84,6 +89,29 @@ export default function Category() {
         await saveCategories(updatedWithActive, true, true);
     }
 
+    const add = () => {
+        setSidebarVisible(true);
+    }
+
+    const onCancel = () => {
+        setSidebarVisible(false);
+    }
+
+    const onSave = () => {
+        fetchCategories();
+        setSidebarVisible(false);
+    }
+
+    const onEdit = (rows: any) => {
+        setEditedCategories([rows]);
+        setSidebarVisible(true);
+    }
+
+    const onEditMultiple = (rows: any[]) => {
+        setEditedCategories(rows);
+        setSidebarVisible(true);
+    }
+
     return (
         <div className="p-2">
             <h2 className="mb-1 text-lg font-semibold">🧩 Category Management</h2>
@@ -100,8 +128,12 @@ export default function Category() {
                         primaryKey="categoryId"
                         onSave={onActiveSave}
                         onDelete={onActiveDelete}
+                        onAdd={add}
+                        onEdit={onEdit}
+                        onEditMultiple={onEditMultiple}
                         isNew={true}
                         isSave={true}
+                        isEdit={true}
                         isDelete={true}
                         sortableColumns={['categoryName']}
                     />
@@ -123,6 +155,17 @@ export default function Category() {
                     />
                 </TabPanel>
             </TabView>
+
+            <Sidebar
+                visible={sidebarVisible}
+                position="right"
+                onHide={() => setSidebarVisible(false)}
+                style={{ width: '35rem', height: '100%' }}
+                showCloseIcon={true}
+                header="Add Category"
+            >
+                <CategoryGroupBrandForm type="CATEGORY" onCancel={onCancel} onSave={onSave} editedRow={editedCategories} />
+            </Sidebar>
         </div>
     );
 }

@@ -10,8 +10,16 @@ export type AddType = "CATEGORY" | "GROUP" | "BRAND";
 
 interface CategoryGroupBrandFormProps {
   type: AddType;
+  editedRow?: any[];
   onCancel?: () => void;
   onSave?: (saved: boolean) => void;
+}
+
+interface CategoryOnlyRow {
+  id: string;
+  categoryId?: number;
+  name: string;
+  error?: boolean;
 }
 
 interface Option {
@@ -26,6 +34,7 @@ interface Option {
 interface BrandRow {
   id: string;
   name: string;
+  brandId?: number;
   error?: boolean;
 }
 
@@ -56,11 +65,11 @@ interface CategoryRow {
 
 export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
   type,
+  editedRow,
   onCancel,
   onSave
 }) => {
   const { showSuccess, showError } = useToast();
-
   const [categories, setCategories] = useState<Option[]>([]);
   const [categoryName, setCategoryName] = useState("");
   const [groups, setGroups] = useState<GroupOption[]>([]);
@@ -69,6 +78,11 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
   /* =======================
      HELPERS
   ======================= */
+
+  const emptyCategoryOnly = (): CategoryOnlyRow => ({
+    id: crypto.randomUUID(),
+    name: ""
+  });
 
   const emptyBrand = (): BrandRow => ({
     id: crypto.randomUUID(),
@@ -88,6 +102,9 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
 
   const [rows, setRows] = useState<CategoryRow[]>([emptyCategory()]);
   const [groupRows, setGroupRows] = useState<GroupRow[]>([emptyGroup()]);
+  const [categoryRows, setCategoryRows] = useState<CategoryOnlyRow[]>([
+    emptyCategoryOnly()
+  ]);
 
   /* =======================
      LOAD DATA
@@ -98,6 +115,50 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
       loadCategories();
     }
   }, [type]);
+
+  useEffect(() => {
+    if (type === "CATEGORY" && editedRow?.length) {
+      setCategoryRows(
+        editedRow.map(c => ({
+          id: crypto.randomUUID(),
+          categoryId: c.categoryId,
+          name: c.categoryName
+        }))
+      );
+    }
+
+    if (type === "GROUP" && editedRow?.length) {
+      setRows(
+        editedRow.map(c => ({
+          id: crypto.randomUUID(),
+          categoryId: c.categoryId,
+          groups: c.groups.map((g: any) => ({
+            id: crypto.randomUUID(),
+            groupId: g.groupId,
+            name: g.groupName,
+            brands: []
+          }))
+        }))
+      );
+    }
+
+    if (type === "BRAND" && editedRow?.length) {
+      // setGroupRows(
+      //   editedRow.map(g => ({
+      //     id: crypto.randomUUID(),
+      //     categoryId: g.categoryId,
+      //     groupId: g.groupId,
+      //     filteredGroups: groups.filter(x => x.categoryId === g.categoryId),
+      //     brands: g.brands.map((b: any) => ({
+      //       id: crypto.randomUUID(),
+      //       brandId: b.brandId,
+      //       name: b.brandName
+      //     }))
+      //   }))
+      // );
+    }
+
+  }, [type, editedRow]);
 
   const loadCategories = async () => {
     const res = await apiService.get("/ProductCategory/hierarchy?includeCategories=true&includeGroups=true");
@@ -129,9 +190,32 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
   const handleSave = async () => {
     try {
       if (type === "CATEGORY") {
-        if (!categoryName.trim()) return;
-        await apiService.post("/ProductCategory", { categoryName });
-        showSuccess("Category saved");
+        let hasError = false;
+
+        setCategoryRows(prev =>
+          prev.map(c => {
+            if (!c.name.trim()) {
+              hasError = true;
+              return { ...c, error: true };
+            }
+            return { ...c, error: false };
+          })
+        );
+
+        if (hasError) {
+          showError("Please fill all category names");
+          return;
+        }
+
+        const payload = categoryRows.map(c => ({
+          categoryName: c.name.trim(),
+          categoryDescription: c.name.trim(),
+          categoryId: c.categoryId ?? 0,
+          isActive: true
+        }));
+
+        await apiService.post("/ProductCategory/bulk", payload);
+        showSuccess("Categories saved");
         onSave?.(true);
         return;
       }
@@ -172,6 +256,7 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
           c.groups.map(g => ({
             categoryId: c.categoryId,
             groupName: g.name.trim(),
+            groupId: g.groupId ?? 0,
             isActive: true
           }))
         );
@@ -266,14 +351,49 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
       </legend>
 
       {/* CATEGORY ONLY */}
+      {type === "CATEGORY" &&
+        categoryRows.map((cat, ci) => (
+          <div key={cat.id} className="flex gap-2 mb-2">
+
+            <InputText
+              value={cat.name}
+              placeholder="Category Name"
+              className={`flex-1 ${cat.error ? "p-invalid" : ""}`}
+              onChange={(e) =>
+                setCategoryRows(r =>
+                  r.map((c, i) =>
+                    i === ci ? { ...c, name: e.target.value, error: false } : c
+                  )
+                )
+              }
+            />
+
+            {ci > 0 && (
+              <Button
+                icon="pi pi-trash"
+                severity="danger"
+                outlined
+                className="p-button-sm custom-xs"
+                onClick={() =>
+                  setCategoryRows(r => r.filter((_, i) => i !== ci))
+                }
+              />
+            )}
+          </div>
+        ))
+      }
+
       {type === "CATEGORY" && (
-        <InputText
-          value={categoryName}
-          onChange={(e) => setCategoryName(e.target.value)}
-          placeholder="Category Name"
-          className="w-full"
+        <Button
+          icon="pi pi-plus"
+          label="Add Category"
+          className="p-button-sm custom-xs"
+          onClick={() =>
+            setCategoryRows(r => [...r, emptyCategoryOnly()])
+          }
         />
       )}
+
 
       {/* GROUP / BRAND */}
       {(type === "GROUP") &&

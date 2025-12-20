@@ -8,7 +8,6 @@ import { GroupModel } from "../../models/product/GroupModel";
 import { CategoryModel } from "../../models/product/CategoryModel";
 import apiService from "../../services/apiService";
 import { useToast } from "../../components/ToastService";
-import { TTypeDatatable } from "../../components/TTypeDatatable";
 import { Button } from "primereact/button";
 import { Sidebar } from "primereact/sidebar";
 import { CategoryGroupBrandForm } from "./CategoryGroupBrandForm";
@@ -18,8 +17,8 @@ export default function GroupPage() {
     const [categories, setCategories] = useState<CategoryModel[]>([]);
     const [groups, setGroups] = useState<GroupModel[]>([]);
 
-    const [expandedRows, setExpandedRows] = useState<any>(null);
     const [expandedRowKey, setExpandedRowKey] = useState<string | null>(null);
+    const [editedRows, setEditedRows] = useState<any[]>([]);
     const { showSuccess, showError } = useToast();
     const [sidebarVisible, setSidebarVisible] = useState(false);
 
@@ -36,7 +35,9 @@ export default function GroupPage() {
                 "/ProductCategory/hierarchy?includeCategories=true&includeGroups=true"
             );
 
-            const categoriesArray: CategoryModel[] = response.categories ?? [];
+            const categoriesList = response.categories ?? [];
+
+            const categoriesArray: CategoryModel[] = categoriesList.filter((item: CategoryModel) => item.isActive);
             setCategories(categoriesArray);
 
             setGroups(response.groups ?? []);
@@ -57,6 +58,37 @@ export default function GroupPage() {
             <i className="pi pi-folder text-indigo-500" />
             <span className="font-semibold text-gray-700">{category.categoryName}</span>
         </div>
+    );
+
+    const editRows = (rowData: any) => {
+        const rows = groups.filter(item => item.categoryId == rowData.categoryId);
+        if (rows.length > 0) {
+            const editedRows = {
+                categoryId: rows[0].categoryId,
+                groups: rows
+            }
+            setEditedRows([editedRows]);
+        } else {
+            const editedRows = {
+                categoryId: rowData.categoryId,
+                groups: [{
+                    groupId: 0,
+                    name: "",
+                    brands: []
+                }]
+            }
+            setEditedRows([editedRows]);
+        }
+        setSidebarVisible(true);
+    }
+
+    const actionBodyTemplate = (rowData: any) => (
+        <Button
+            icon="pi pi-pencil"
+            className="p-button-sm p-button-rounded p-button-outlined p-button-info"
+            style={{ width: "25px", height: "25px", padding: "0" }}
+            onClick={() => { editRows(rowData) }}
+        />
     );
 
     // 🔹 Template for Expanded Row (Groups per Category)
@@ -192,6 +224,7 @@ export default function GroupPage() {
                     );
                 }}
             />
+            <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} frozen={true} />
         </DataTable>
     );
 
@@ -244,11 +277,11 @@ export default function GroupPage() {
                 visible={sidebarVisible}
                 position="right"
                 onHide={() => setSidebarVisible(false)}
-                style={{ width: '75rem', height: '100%' }}
+                style={{ width: '55rem', height: '100%' }}
                 showCloseIcon={true}
                 header="Add Group"
             >
-                <CategoryGroupBrandForm type="GROUP" onCancel={onCancel} onSave={onSave} />
+                <CategoryGroupBrandForm type="GROUP" onCancel={onCancel} onSave={onSave} editedRow={editedRows} />
             </Sidebar>
         </div>
     );

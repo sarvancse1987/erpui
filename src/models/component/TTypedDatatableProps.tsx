@@ -34,12 +34,16 @@ export interface TTypeDatatableProps<T extends Record<string, any>> {
     sortableColumns?: (keyof T)[];
     onSave?: (updatedData: T[]) => void;
     onDelete?: (updatedData: T[]) => void;
+    onAdd?: () => void;
     onEdit?: (updatedData: T) => void;
+    onEditMultiple?: (updatedData: T[]) => void;
+    parentSelectedRows?: any[];
     paginator?: boolean;
     rows?: number;
     rowsPerPageOptions?: number[];
     showFilters?: boolean;
     isNew?: boolean;
     isSave?: boolean;
+    isEdit?: boolean;
     isDelete?: boolean;
 }
