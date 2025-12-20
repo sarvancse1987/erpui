@@ -6,7 +6,7 @@ import { useToast } from "../../components/ToastService";
 import { Password } from "primereact/password";
 import { storage } from "../../services/storageService";
 
-export const ChangePassword: React.FC = () => {
+const ChangePassword: React.FC = () => {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
@@ -99,3 +99,4 @@ export const ChangePassword: React.FC = () => {
         </form>
     );
 };
+export default ChangePassword;

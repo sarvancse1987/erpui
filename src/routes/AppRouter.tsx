@@ -3,29 +3,30 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "../layout/layout";
 import { ProtectedRoute } from "./ProtectedRoute";
 import MinimalLayout from "../layout/MinimalLayout";
-import Category from "../modules/products/Category";
-import Group from "../modules/products/Group";
-import Brand from "../modules/products/BrandPage";
-import Unit from "../modules/products/Unit";
-import SupplierList from "../modules/supplier/SupplierList";
-import PurchaseList from "../modules/purchase/PurchaseList";
-import CustomerList from "../modules/customer/CustomerList";
-import Role from "../modules/user/Role";
-import UserType from "../modules/user/UserType";
-import LocationList from "../modules/companies/LocationList";
-import { MyProfile } from "../modules/user/MyProfile";
-import { ChangePassword } from "../modules/user/ChangePassword";
-import InventoryForm from "../modules/inventory/InventoryForm";
-import CustomerLedgerList from "../modules/Ledger/CustomerLedgerList";
-import VoucherList from "../modules/voucher/VoucherList";
 
 const Dashboard = React.lazy(() => import("../modules/dashboard/Dashboard"));
 const ProductList = React.lazy(() => import("../modules/products/ProductList"));
 const SalesList = React.lazy(() => import("../modules/sales/SalesList"));
-const InventoryAdjust = React.lazy(() => import("../modules/inventory/InventoryAdjust"));
 const UserList = React.lazy(() => import("../modules/user/UserList"));
 const Login = React.lazy(() => import("../modules/auth/Login"));
 const CompanyList = React.lazy(() => import("../modules/companies/CompanyList"));
+
+const Category = React.lazy(() => import("../modules/products/Category"));
+const Group = React.lazy(() => import("../modules/products/Group"));
+const Brand = React.lazy(() => import("../modules/products/BrandPage"));
+const Unit = React.lazy(() => import("../modules/products/Unit"));
+const CustomerList = React.lazy(() => import("../modules/customer/CustomerList"));
+const SupplierList = React.lazy(() => import("../modules/supplier/SupplierList"));
+const PurchaseList = React.lazy(() => import("../modules/purchase/PurchaseList"));
+const Role = React.lazy(() => import("../modules/user/Role"));
+const UserType = React.lazy(() => import("../modules/user/UserType"));
+const MyProfile = React.lazy(() => import("../modules/user/MyProfile"));
+const ChangePassword = React.lazy(() => import("../modules/user/ChangePassword"));
+const LocationList = React.lazy(() => import("../modules/companies/CompanyList"));
+const InventoryForm = React.lazy(() => import("../modules/inventory/InventoryForm"));
+const CustomerLedgerList = React.lazy(() => import("../modules/Ledger/CustomerLedgerList"));
+const VoucherList = React.lazy(() => import("../modules/voucher/VoucherList"));
+
 
 export default function AppRouter() {
     return (
@@ -87,7 +88,6 @@ export default function AppRouter() {
                 {/* Inventory Module */}
                 <Route path="inventory">
                     <Route index element={<InventoryForm />} />
-                    <Route path="adjust" element={<InventoryAdjust />} />
                 </Route>
 
                 {/* Inventory Module */}

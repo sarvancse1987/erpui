@@ -12,7 +12,7 @@ import { MyProfileModel } from "../../models/MyProfileModel";
 import { useToast } from "../../components/ToastService";
 import { storage } from "../../services/storageService";
 
-export const MyProfile: React.FC = () => {
+const MyProfile: React.FC = () => {
     const [profile, setProfile] = useState<UserModel>({} as UserModel);
     const [loading, setLoading] = useState(false);
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -292,3 +292,4 @@ export const MyProfile: React.FC = () => {
         </form>
     );
 };
+export default MyProfile;
