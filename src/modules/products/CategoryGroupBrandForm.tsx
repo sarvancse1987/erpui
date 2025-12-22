@@ -4,13 +4,12 @@ import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import apiService from "../../services/apiService";
 import { useToast } from "../../components/ToastService";
-import { GroupModel } from "../../models/product/GroupModel";
 
 export type AddType = "CATEGORY" | "GROUP" | "BRAND";
 
 interface CategoryGroupBrandFormProps {
   type: AddType;
-  editedRow?: any[];
+  editedRow?: any;
   onCancel?: () => void;
   onSave?: (saved: boolean) => void;
 }
@@ -40,6 +39,7 @@ interface BrandRow {
 
 interface GroupOption extends Option {
   categoryId: number;
+  groupId?: number;
 }
 
 interface GroupRow {
@@ -119,7 +119,7 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
   useEffect(() => {
     if (type === "CATEGORY" && editedRow?.length) {
       setCategoryRows(
-        editedRow.map(c => ({
+        editedRow.map((c: any) => ({
           id: crypto.randomUUID(),
           categoryId: c.categoryId,
           name: c.categoryName
@@ -129,7 +129,7 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
 
     if (type === "GROUP" && editedRow?.length) {
       setRows(
-        editedRow.map(c => ({
+        editedRow.map((c: any) => ({
           id: crypto.randomUUID(),
           categoryId: c.categoryId,
           groups: c.groups.map((g: any) => ({
@@ -143,19 +143,38 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
     }
 
     if (type === "BRAND" && editedRow?.length) {
-      // setGroupRows(
-      //   editedRow.map(g => ({
-      //     id: crypto.randomUUID(),
-      //     categoryId: g.categoryId,
-      //     groupId: g.groupId,
-      //     filteredGroups: groups.filter(x => x.categoryId === g.categoryId),
-      //     brands: g.brands.map((b: any) => ({
-      //       id: crypto.randomUUID(),
-      //       brandId: b.brandId,
-      //       name: b.brandName
-      //     }))
-      //   }))
-      // );
+      if (editedRow[0].hasOwnProperty('groups')) {
+        setGroupRows(
+          editedRow.flatMap((cat: any) =>
+            cat.groups.map((grp: any) => ({
+              id: crypto.randomUUID(),
+              name: grp.groupName,
+              categoryId: cat.categoryId,
+              groupId: grp.groupId,
+              filteredGroups: groups.filter(
+                (x) => x.groupId === cat.groupId
+              ),
+              brands: grp.brands.map((b: any) => ({
+                id: crypto.randomUUID(),
+                brandId: b.brandId,
+                name: b.brandName
+              }))
+            }))
+          )
+        );
+      } else {
+        setGroupRows([{
+          id: crypto.randomUUID(),
+          name: "",
+          categoryId: editedRow[0].categoryId,
+          groupId: editedRow[0].groupId,
+          brands: editedRow[0].brands.map((b: any) => ({
+            id: crypto.randomUUID(),
+            brandId: b.brandId,
+            name: b.brandName
+          }))
+        }]);
+      }
     }
 
   }, [type, editedRow]);
@@ -190,16 +209,15 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
   const handleSave = async () => {
     try {
       if (type === "CATEGORY") {
-        let hasError = false;
+        const hasError = categoryRows.some(
+          r => !r.name || r.name.trim().length === 0
+        );
 
         setCategoryRows(prev =>
-          prev.map(c => {
-            if (!c.name.trim()) {
-              hasError = true;
-              return { ...c, error: true };
-            }
-            return { ...c, error: false };
-          })
+          prev.map(r => ({
+            ...r,
+            error: !r.name || r.name.trim().length === 0
+          }))
         );
 
         if (hasError) {
@@ -221,42 +239,37 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
       }
 
       if (type === "GROUP") {
-        let hasError = false;
 
+        // 1️⃣ VALIDATION (pure, sync)
+        const hasError =
+          rows.some(r => !r.categoryId || r.categoryId === 0) ||
+          rows.some(r =>
+            r.groups.some(g => !g.name || g.name.trim().length === 0)
+          );
+
+        // 2️⃣ UPDATE ERROR FLAGS (UI only)
         setRows(prev =>
-          prev.map(c => {
-            let categoryError = false;
-
-            // CATEGORY validation
-            if (!c.categoryId) {
-              categoryError = true;
-              hasError = true;
-            }
-
-            return {
-              ...c,
-              error: categoryError,   // 🔥 used by Dropdown p-invalid
-              groups: c.groups.map(g => {
-                if (!g.name.trim()) {
-                  hasError = true;
-                  return { ...g, error: true };
-                }
-                return { ...g, error: false };
-              })
-            };
-          })
+          prev.map(c => ({
+            ...c,
+            error: !c.categoryId || c.categoryId === 0, // category dropdown
+            groups: c.groups.map(g => ({
+              ...g,
+              error: !g.name || g.name.trim().length === 0
+            }))
+          }))
         );
 
         if (hasError) {
-          showError("Please fix highlighted group names");
+          showError("Please fix highlighted category / group names");
           return;
         }
 
         const payload = rows.flatMap(c =>
           c.groups.map(g => ({
             categoryId: c.categoryId,
-            groupName: g.name.trim(),
             groupId: g.groupId ?? 0,
+            groupName: g.name.trim(),
+            description: g.name.trim(),
             isActive: true
           }))
         );
@@ -264,31 +277,27 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
         if (!payload.length) return;
 
         await apiService.post("/ProductGroup/bulk", payload);
-        showSuccess("Groups saved");
+        showSuccess("Groups saved successfully");
         onSave?.(true);
-        return;
       }
 
+
       if (type === "BRAND") {
-        let hasError = false;
+        const hasError =
+          groupRows.some(c => !c.categoryId || !c.groupId) ||
+          groupRows.some(c =>
+            c.brands.some(b => !b.name || b.name.trim().length === 0)
+          );
 
         setGroupRows(prev =>
-          prev.map(c => {
-            const categoryError = !c.categoryId;
-            const groupError = !c.groupId;
-
-            if (categoryError || groupError) hasError = true;
-
-            return {
-              ...c,
-              error: categoryError || groupError,
-              brands: c.brands.map(b => {
-                const brandError = !b.name.trim();
-                if (brandError) hasError = true;
-                return { ...b, error: brandError };
-              })
-            };
-          })
+          prev.map(c => ({
+            ...c,
+            error: !c.categoryId || !c.groupId,
+            brands: c.brands.map(b => ({
+              ...b,
+              error: !b.name || b.name.trim().length === 0
+            }))
+          }))
         );
 
         if (hasError) {
@@ -300,6 +309,7 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
           c.brands.map(b => ({
             categoryId: c.categoryId!,
             groupId: c.groupId!,
+            brandId: b.brandId ?? 0,
             brandName: b.name.trim(),
             isActive: true
           }))
@@ -308,6 +318,7 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
         await apiService.post("/ProductBrand/bulk", payload);
         showSuccess("Brands saved");
         onSave?.(true);
+
       }
     } catch {
       showError("Save failed");
@@ -393,7 +404,6 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
           }
         />
       )}
-
 
       {/* GROUP / BRAND */}
       {(type === "GROUP") &&
@@ -539,7 +549,7 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
               <strong className="text-sm">Group <span className="mandatory-asterisk">*</span></strong>
               <Dropdown
                 value={cat.groupId}
-                options={cat.filteredGroups}
+                options={cat.filteredGroups ?? filteredGroups}
                 placeholder="Select Category"
                 filter
                 className={`w-full mb-1 ${cat.error ? "p-invalid" : ""}`}
@@ -589,7 +599,7 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
                         severity="danger"
                         outlined
                         disabled={cat.brands.length === 1}
-                        onClick={() =>
+                        onClick={async () => {
                           setGroupRows(r =>
                             r.map((c, i) =>
                               i === ci
@@ -599,8 +609,12 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
                                 }
                                 : c
                             )
-                          )
-                        }
+                          );
+                          const response = await apiService.get(`/ProductBrand/delete/${grp.brandId}`);
+                          if (response) {
+                            showSuccess("Brand delted successfully");
+                          }
+                        }}
                         className="p-button-sm custom-xs" data-pr-position="left" tooltip="Delete brand name"
                       />
                     }

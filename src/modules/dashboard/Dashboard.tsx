@@ -69,6 +69,12 @@ export default function Dashboard() {
                     color="green"
                 />
                 <KpiCard
+                    title="Monthly Sales"
+                    value="18"
+                    icon="pi pi-clock"
+                    color="orange"
+                />
+                <KpiCard
                     title="Stock Items"
                     value="450"
                     icon="pi pi-database"
@@ -80,6 +86,7 @@ export default function Dashboard() {
                     icon="pi pi-clock"
                     color="orange"
                 />
+
             </div>
 
             {/* ================= CHART + INVENTORY ================= */}
@@ -172,8 +179,8 @@ const colorMap: any = {
 };
 
 const KpiCard = ({ title, value, icon, color }: any) => (
-    <div className="col-12 md:col-3">
-        <Card className="shadow-2">
+    <div className="col-12 md:col-2">
+        <Card className="shadow-1">
             <div className="flex align-items-center justify-content-between">
                 <div>
                     <div className="text-sm text-gray-500">

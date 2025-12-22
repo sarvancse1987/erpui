@@ -22,7 +22,7 @@ const Role = React.lazy(() => import("../modules/user/Role"));
 const UserType = React.lazy(() => import("../modules/user/UserType"));
 const MyProfile = React.lazy(() => import("../modules/user/MyProfile"));
 const ChangePassword = React.lazy(() => import("../modules/user/ChangePassword"));
-const LocationList = React.lazy(() => import("../modules/companies/CompanyList"));
+const LocationList = React.lazy(() => import("../modules/companies/LocationList"));
 const InventoryForm = React.lazy(() => import("../modules/inventory/InventoryForm"));
 const CustomerLedgerList = React.lazy(() => import("../modules/Ledger/CustomerLedgerList"));
 const VoucherList = React.lazy(() => import("../modules/voucher/VoucherList"));

@@ -7,7 +7,6 @@ import { CategoryModel } from "../../models/product/CategoryModel";
 import { useToast } from "../../components/ToastService";
 import { Sidebar } from "primereact/sidebar";
 import { CategoryGroupBrandForm } from "./CategoryGroupBrandForm";
-import { Button } from "primereact/button";
 
 export default function Category() {
     const [categories, setCategories] = useState<CategoryModel[]>([]);
@@ -32,9 +31,10 @@ export default function Category() {
         try {
             const response = await apiService.get("/ProductCategory/hierarchy?includeCategories=true");
             const categoriesArray: CategoryModel[] = response.categories ?? [];
-
-            setActiveCategories(categoriesArray.filter(c => c.isActive));
-            setInActiveCategories(categoriesArray.filter(c => !c.isActive));
+            const activeCategories = categoriesArray.filter(c => c.isActive);
+            const inActiveCategories = categoriesArray.filter(c => !c.isActive);
+            setActiveCategories(activeCategories);
+            setInActiveCategories(inActiveCategories);
             setCategories(categoriesArray);
         } catch (error) {
             console.error("Failed to fetch categories", error);
@@ -74,7 +74,6 @@ export default function Category() {
         }
     };
 
-    // ✅ Make handlers async and await save
     const onActiveSave = async (updated: CategoryModel[]) => {
         const updatedWithActive = updated.map(c => ({ ...c, isActive: true }));
         await saveCategories(updatedWithActive, true, false);
@@ -138,22 +137,23 @@ export default function Category() {
                         sortableColumns={['categoryName']}
                     />
                 </TabPanel>
-
-                <TabPanel header={
-                    <div className="flex items-center gap-2" style={{ color: 'red' }}>
-                        <i className="pi pi-times-circle" />
-                        <span>Inactive</span>
-                    </div>}>
-                    <TTypedDatatable<CategoryModel>
-                        columns={inactiveColumns}
-                        data={inactiveCategories}
-                        primaryKey="categoryId"
-                        onSave={onInactiveSave}
-                        isNew={true}
-                        isSave={true}
-                        isDelete={true}
-                    />
-                </TabPanel>
+                {inactiveCategories.length > 0 &&
+                    <TabPanel header={
+                        <div className="flex items-center gap-2" style={{ color: 'red' }}>
+                            <i className="pi pi-times-circle" />
+                            <span>Inactive</span>
+                        </div>}>
+                        <TTypedDatatable<CategoryModel>
+                            columns={inactiveColumns}
+                            data={inactiveCategories}
+                            primaryKey="categoryId"
+                            onSave={onInactiveSave}
+                            isNew={true}
+                            isSave={true}
+                            isDelete={true}
+                        />
+                    </TabPanel>
+                }
             </TabView>
 
             <Sidebar

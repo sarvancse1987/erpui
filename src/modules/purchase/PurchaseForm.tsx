@@ -178,6 +178,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     updatedFormData.totalAmount = items.reduce((sum, i) => sum + (i.amount ?? 0), 0);
     updatedFormData.totalGST = items.reduce((sum, i) => sum + (i.gstAmount ?? 0), 0);
     updatedFormData.grandTotal = items.reduce((sum, i) => sum + (i.totalAmount ?? 0), 0);
+    updatedFormData.invoiceAmount = items.reduce((sum, i) => sum + (i.totalAmount ?? 0), 0);
+    updatedFormData.cash = items.reduce((sum, i) => sum + (i.totalAmount ?? 0), 0);
 
     setFormData(updatedFormData);
   };
@@ -333,6 +335,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
         freightAmount: adjustments.freightAmount,
         roundOff: adjustments.roundOff,
         grandTotal: parseFloat(grandTotal.toFixed(2)),
+        invoiceAmount: parseFloat(grandTotal.toFixed(2)),
+        cash: parseFloat(grandTotal.toFixed(2)),
       };
     });
   };
@@ -403,7 +407,6 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
         setShowUpi(false);
     }
   };
-
 
   // ---------------- RENDER ----------------
   return (
@@ -490,24 +493,24 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             {validationErrors?.purchaseTypeId && <span className="mandatory-error text-xs">{validationErrors.purchaseTypeId}</span>}
           </div>
 
-          {showCash && (
-            <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[100px]"}>
-              <strong className="text-sm">Cash</strong>
-              <InputNumber
-                value={formData.cash}
-                mode="currency"
-                currency="INR"
-                locale="en-IN"
-                onChange={(e) => handleChange("cash", e.value)}
-                className="w-full mt-1 text-sm"
-                inputStyle={{ width: "120px" }}
-                placeholder="Cash"
-                tabIndex={4}
-                onKeyDown={handleEnterKey}
-              />
-              {validationErrors?.cash && <span className="mandatory-error text-xs">{validationErrors.cash}</span>}
-            </div>
-          )}
+
+          <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[100px]"}>
+            <strong className="text-sm">Cash</strong>
+            <InputNumber
+              value={formData.cash}
+              mode="currency"
+              currency="INR"
+              locale="en-IN"
+              onChange={(e) => handleChange("cash", e.value)}
+              className="w-full mt-1 text-sm"
+              inputStyle={{ width: "120px" }}
+              placeholder="Cash"
+              tabIndex={4}
+              onKeyDown={handleEnterKey}
+            />
+            {validationErrors?.cash && <span className="mandatory-error text-xs">{validationErrors.cash}</span>}
+          </div>
+
 
           {showUpi && (
             <div className={isEditSidebar ? "w-[25%]" : "flex-1 min-w-[100px]"}>

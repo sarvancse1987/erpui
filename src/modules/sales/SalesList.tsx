@@ -786,7 +786,7 @@ export default function SaleList() {
             onSaveSuccess={() => {
               setActiveIndex(0);
               updateAllData();
-              //setIsSidebarOpen(false);
+              setIsSidebarOpen(false);
             }}
             onCancel={closeEditSidebar}
           />
@@ -808,7 +808,7 @@ export default function SaleList() {
             onSaveSuccess={() => {
               setActiveIndex(0);
               loadAllData();
-              //setIsSidebarOpen(false);
+              setIsSidebarOpen(false);
             }}
             onCancel={closeEditSidebar}
           />

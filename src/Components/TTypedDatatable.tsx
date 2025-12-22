@@ -26,6 +26,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
   isSave,
   isEdit,
   isDelete,
+  isSearch = true,
   onAdd,
   onEdit,
   onEditMultiple,
@@ -452,21 +453,24 @@ export function TTypedDatatable<T extends Record<string, any>>({
           )}
         </div>
 
-        <div className="ml-auto">
-          <span className="p-input-icon-left relative w-64">
-            <IconField iconPosition="left">
-              <InputIcon className="pi pi-search" />
-              <InputText value={globalFilter} onChange={(e) => {
-                setGlobalFilter(e.target.value);
-                setFilters((prev: any) => ({
-                  ...prev,
-                  global: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
-                }));
-              }} placeholder="Search" />
-            </IconField>
-          </span>
-        </div>
+        {isSearch &&
+          <div className="ml-auto">
+            <span className="p-input-icon-left relative w-64">
+              <IconField iconPosition="left">
+                <InputIcon className="pi pi-search" />
+                <InputText value={globalFilter} onChange={(e) => {
+                  setGlobalFilter(e.target.value);
+                  setFilters((prev: any) => ({
+                    ...prev,
+                    global: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
+                  }));
+                }} placeholder="Search" />
+              </IconField>
+            </span>
+          </div>
+        }
       </div>
+
 
       <ConfirmDialog />
 

@@ -6,12 +6,16 @@ import apiService from "../../services/apiService";
 import { useToast } from "../../components/ToastService";
 import { TTypeDatatable } from "../../components/TTypeDatatable";
 import { RoleModel } from "../../models/RoleModel";
+import { Sidebar } from "primereact/sidebar";
+import { RoleForm } from "./RoleForm";
 
 export default function Role() {
     const [roles, setRoles] = useState<RoleModel[]>([]);
     const [activeRoles, setActiveRoles] = useState<RoleModel[]>([]);
     const [inActiveRoles, setInActiveRoles] = useState<RoleModel[]>([]);
     const { showSuccess, showError } = useToast();
+    const [sidebarVisible, setSidebarVisible] = useState(false);
+    const [editedRows, setEditedRows] = useState<any[]>([]);
 
     const baseColumns: ColumnMeta<RoleModel>[] = [
         { field: "id", header: "ID", editable: false, hidden: true },
@@ -85,6 +89,20 @@ export default function Role() {
         await saveRoles(updatedWithActive, true, true);
     }
 
+    const onAdd = () => {
+        setSidebarVisible(true);
+    }
+
+    const onEdit = (row: any) => {
+        setEditedRows([row]);
+        setSidebarVisible(true);
+    }
+
+    const onEditMultiple = (rows: any[]) => {
+        setEditedRows(rows);
+        setSidebarVisible(true);
+    }
+
     return (
         <div className="p-2">
             <h2 className="mb-1 text-lg font-semibold">🧩 Role Management</h2>
@@ -101,10 +119,15 @@ export default function Role() {
                         primaryKey="id"
                         onSave={onActiveSave}
                         onDelete={onActiveDelete}
+                        onAdd={onAdd}
+                        onEdit={onEdit}
+                        onEditMultiple={onEditMultiple}
                         isNew={true}
+                        isEdit={true}
                         isSave={true}
                         isDelete={true}
                         sortableColumns={['name']}
+                    // onEdit={ }
                     />
                 </TabPanel>
 
@@ -124,6 +147,17 @@ export default function Role() {
                     />
                 </TabPanel>
             </TabView>
+
+            <Sidebar
+                visible={sidebarVisible}
+                position="right"
+                onHide={() => setSidebarVisible(false)}
+                style={{ width: '35rem', height: '100%' }}
+                showCloseIcon={true}
+                header="Add Role"
+            >
+                <RoleForm onSave={() => { fetchRoles(); setSidebarVisible(false); }} onCancel={() => { setSidebarVisible(false) }} editedRow={editedRows} />
+            </Sidebar>
         </div>
     );
 }

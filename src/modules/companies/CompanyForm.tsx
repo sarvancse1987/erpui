@@ -230,10 +230,8 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                     {formData.id ? "Edit Company" : "Add Company"}
                 </legend>
 
-                {/* Input Fields */}
                 <div className="flex flex-wrap gap-3 p-1">
 
-                    {/* Company Name */}
                     <div className="flex-1 min-w-[160px]">
                         <strong>Company Name <span className="mandatory-asterisk">*</span></strong>
                         <InputText
@@ -249,7 +247,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                         )}
                     </div>
 
-                    {/* Phone */}
                     <div className="flex-1 min-w-[160px]">
                         <strong>Phone <span className="mandatory-asterisk">*</span></strong>
                         <InputMask
@@ -266,7 +263,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                         )}
                     </div>
 
-                    {/* Email */}
                     <div className="flex-1 min-w-[160px]">
                         <strong>Email</strong>
                         <InputText
@@ -279,7 +275,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                         />
                     </div>
 
-                    {/* Address */}
                     <div className="flex-1 min-w-[160px]">
                         <strong>Address</strong>
                         <InputText
@@ -293,7 +288,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                 </div>
 
                 <div className="flex flex-wrap gap-3 p-1">
-                    {/* City */}
                     <div className="flex-1 min-w-[160px]">
                         <strong>City</strong>
                         <InputText
@@ -321,7 +315,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                         />
                     </div>
 
-                    {/* State */}
                     <div className="flex-1 min-w-[160px]">
                         <strong>State</strong>
                         <Dropdown
@@ -337,7 +330,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                         />
                     </div>
 
-                    {/* District */}
                     <div className="flex-1 min-w-[160px]">
                         <strong>District</strong>
                         <Dropdown
@@ -355,7 +347,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                 </div>
 
                 <div className="flex flex-wrap gap-3 p-1">
-                    {/* GST */}
                     <div className="flex-1 min-w-[160px]">
                         <strong>GST Number</strong>
                         <InputText
@@ -368,7 +359,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                         />
                     </div>
 
-                    {/* Website */}
                     <div className="flex-1 min-w-[160px]">
                         <strong>Website</strong>
                         <InputText
@@ -381,7 +371,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                         />
                     </div>
 
-                    {/* Active */}
                     <div className="flex items-center gap-2 mt-3">
                         <Checkbox
                             checked={formData.isActive ?? false}
@@ -393,78 +382,67 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-3 p-1">
+                <div className="flex justify-end mt-4">
+                    <div className="flex flex-col gap-4">
 
+                        {!previewUrl && (
+                            <div className="upload-dropzone" onClick={openFileDialog}>
+                                <i className="pi pi-upload"></i>
+                                <p className="text-main">Upload Image</p>
+                                <p className="text-sub">PNG / JPG / JPEG</p>
+                            </div>
+                        )}
 
-                    <div className="flex justify-end mt-4">
-                        <div className="flex flex-col gap-4">
+                        <FileUpload
+                            ref={uploadRef}
+                            name="file"
+                            mode="basic"
+                            customUpload
+                            auto={false}
+                            accept="image/*"
+                            maxFileSize={2_000_000}
+                            onSelect={onSelect}
+                            className="hidden"
+                        />
 
-                            {/* Dropzone */}
-                            {!previewUrl && (
-                                <div className="upload-dropzone" onClick={openFileDialog}>
-                                    <i className="pi pi-upload"></i>
-                                    <p className="text-main">Upload Image</p>
-                                    <p className="text-sub">PNG / JPG / JPEG</p>
-                                </div>
-                            )}
-
-                            {/* Hidden FileUpload */}
-                            <FileUpload
-                                ref={uploadRef}
-                                name="file"
-                                mode="basic"
-                                customUpload
-                                auto={false}
-                                accept="image/*"
-                                maxFileSize={2_000_000}
-                                onSelect={onSelect}
-                                className="hidden"
-                            />
-
-                            {/* <CustomWebcam /> */}
-
-                            {/* PREVIEW: fixed box 176x176 */}
-                            {previewUrl && (
-                                <div
-                                    className="relative"
-                                    style={{
-                                        width: 176,
-                                        height: 176,
-                                    }}
-                                >
-                                    {/* container ensures fixed size and centers the image */}
-                                    <div className="block" style={{ width: 160, height: 160, border: "1px dotted #999" }}>
-                                        <div className="relative w-full h-full">
-                                            <img
-                                                src={previewUrl}
-                                                alt="preview"
-                                                className="w-full h-full rounded-lg object-cover border"
-                                            />
-                                            <Button
-                                                type="button"
-                                                icon="pi pi-times-circle"
-                                                severity="danger"
-                                                text
-                                                className="absolute -top-2 -right-2 p-2 rounded-full shadow-md 
+                        {previewUrl && (
+                            <div
+                                className="relative"
+                                style={{
+                                    width: 176,
+                                    height: 176,
+                                }}
+                            >
+                                <div className="block" style={{ width: 160, height: 160, border: "1px dotted #999" }}>
+                                    <div className="relative w-full h-full">
+                                        <img
+                                            src={previewUrl}
+                                            alt="preview"
+                                            className="w-full h-full rounded-lg object-cover border"
+                                        />
+                                        <Button
+                                            type="button"
+                                            icon="pi pi-times-circle"
+                                            severity="danger"
+                                            text
+                                            className="absolute -top-2 -right-2 p-2 rounded-full shadow-md 
                                                                 !text-red-600 
                                                                 !hover:text-red-600 
                                                                 !hover:bg-transparent 
                                                                 transition"
-                                                onClick={() => {
-                                                    setPreviewUrl(null);
-                                                    setSelectedFile(null);
-                                                }}
-                                            />
-                                        </div>
+                                            onClick={() => {
+                                                setPreviewUrl(null);
+                                                setSelectedFile(null);
+                                            }}
+                                        />
                                     </div>
-
                                 </div>
-                            )}
-                        </div>
+
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                {/* Buttons */}
                 <div className="flex justify-end gap-2 mt-4">
                     {onCancel && !isAddNewCompany && (
                         <Button type="button" label="Cancel" icon="pi pi-times-circle" style={{ color: 'red' }}

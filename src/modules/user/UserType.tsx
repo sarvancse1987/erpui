@@ -6,12 +6,16 @@ import apiService from "../../services/apiService";
 import { useToast } from "../../components/ToastService";
 import { TTypeDatatable } from "../../components/TTypeDatatable";
 import { UserTypeModel } from "../../models/UserTypeModel";
+import { Sidebar } from "primereact/sidebar";
+import { UserTypeForm } from "./UserTypeForm";
 
 export default function UserType() {
     const [roles, setRoles] = useState<UserTypeModel[]>([]);
     const [activeRoles, setActiveRoles] = useState<UserTypeModel[]>([]);
     const [inActiveRoles, setInActiveRoles] = useState<UserTypeModel[]>([]);
     const { showSuccess, showError } = useToast();
+    const [sidebarVisible, setSidebarVisible] = useState(false);
+    const [editedRows, setEditedRows] = useState<any[]>([]);
 
     const baseColumns: ColumnMeta<UserTypeModel>[] = [
         { field: "id", header: "ID", editable: false, hidden: true },
@@ -85,6 +89,20 @@ export default function UserType() {
         await saveRoles(updatedWithActive, true, true);
     }
 
+    const onAdd = () => {
+        setSidebarVisible(true);
+    }
+
+    const onEdit = (row: any) => {
+        setEditedRows([row]);
+        setSidebarVisible(true);
+    }
+
+    const onEditMultiple = (rows: any[]) => {
+        setEditedRows(rows);
+        setSidebarVisible(true);
+    }
+
     return (
         <div className="p-2">
             <h2 className="mb-1 text-lg font-semibold">🧩 UserType Management</h2>
@@ -101,7 +119,11 @@ export default function UserType() {
                         primaryKey="id"
                         onSave={onActiveSave}
                         onDelete={onActiveDelete}
+                        onAdd={onAdd}
+                        onEdit={onEdit}
+                        onEditMultiple={onEditMultiple}
                         isNew={true}
+                        isEdit={true}
                         isSave={true}
                         isDelete={true}
                         sortableColumns={['name']}
@@ -124,6 +146,17 @@ export default function UserType() {
                     />
                 </TabPanel>
             </TabView>
+
+            <Sidebar
+                visible={sidebarVisible}
+                position="right"
+                onHide={() => setSidebarVisible(false)}
+                style={{ width: '35rem', height: '100%' }}
+                showCloseIcon={true}
+                header="Add Usertype"
+            >
+                <UserTypeForm onSave={() => { fetchRoles(); setSidebarVisible(false); }} onCancel={() => { setSidebarVisible(false) }} editedRow={editedRows} />
+            </Sidebar>
         </div>
     );
 }

@@ -19,6 +19,7 @@ export default function BrandPage() {
     const [expandedGroup, setExpandedGroup] = useState<any>(null);
     const { showSuccess, showError } = useToast();
     const [sidebarVisible, setSidebarVisible] = useState(false);
+    const [editedRows, setEditedRows] = useState<any[]>([]);
 
     // 🔹 Fetch hierarchy from backend (category → group → brand)
     const fetchHierarchy = async () => {
@@ -27,9 +28,9 @@ export default function BrandPage() {
                 "/ProductCategory/hierarchy?includeCategories=true&includeGroups=true&includeBrands=true"
             );
 
-            const categoriesData: CategoryModel[] = response.categories ?? [];
-            const groupsData: GroupModel[] = response.groups ?? [];
-            const brandsData: BrandModel[] = response.brands ?? [];
+            const categoriesData: CategoryModel[] = response.categories.filter((item: CategoryModel) => item.isActive) ?? [];
+            const groupsData: GroupModel[] = response.groups.filter((item: GroupModel) => item.isActive) ?? [];
+            const brandsData: BrandModel[] = response.brands.filter((item: GroupModel) => item.isActive) ?? [];
 
             // ✅ Build complete hierarchy — even if brand list is empty
             const categoryMap = new Map<number, CategoryModel>();
@@ -95,6 +96,84 @@ export default function BrandPage() {
             <i className="pi pi-layer-group text-blue-500" />
             <span className="font-semibold text-gray-700">{grp.groupName}</span>
         </div>
+    );
+
+    const editRows = (rowData: any) => {
+        if (rowData.groups && rowData.groups.length > 0) {
+            const editedRows = {
+                categoryId: rowData.categoryId,
+                categoryName: rowData.categoryName,
+                groups: rowData.groups
+                    .filter((g: any) => g.brands && g.brands.length > 0) // ✅ ONLY groups with brands
+                    .map((g: any) => ({
+                        groupId: g.groupId,
+                        groupName: g.groupName,
+                        brands: g.brands.map((b: any) => ({
+                            brandId: b.brandId,
+                            brandName: b.brandName
+                        }))
+                    }))
+            };
+
+            // ✅ optional safety check
+            if (editedRows.groups.length > 0) {
+                setEditedRows([editedRows]);
+            }
+        } else {
+            const editedRows = {
+                categoryId: rowData.categoryId,
+                categoryName: "",
+                groups: [{
+                    groupId: 0,
+                    name: "",
+                    brands: []
+                }]
+            }
+            setEditedRows([editedRows]);
+        }
+        setSidebarVisible(true);
+    }
+
+    const editGroupRows = (rowData: any) => {
+        if (rowData) {
+            const editedRows = {
+                categoryId: rowData.categoryId,
+                groupId: rowData.groupId,
+                categoryName: rowData.categoryName,
+                brands: rowData.brands
+            };
+            setEditedRows([editedRows]);
+        } else {
+            const editedRows = {
+                categoryId: rowData.categoryId,
+                categoryName: "",
+                groups: [{
+                    groupId: 0,
+                    name: "",
+                    brands: []
+                }]
+            }
+            setEditedRows([editedRows]);
+        }
+        setSidebarVisible(true);
+    }
+
+    const actionBodyTemplate = (rowData: any) => (
+        <Button
+            icon="pi pi-pencil"
+            className="p-button-sm p-button-rounded p-button-outlined p-button-info"
+            style={{ width: "25px", height: "25px", padding: "0" }}
+            onClick={() => { editRows(rowData) }}
+        />
+    );
+
+    const actionGroupBodyTemplate = (rowData: any) => (
+        <Button
+            icon="pi pi-pencil"
+            className="p-button-sm p-button-rounded p-button-outlined p-button-info"
+            style={{ width: "25px", height: "25px", padding: "0" }}
+            onClick={() => { editGroupRows(rowData) }}
+        />
     );
 
     // 🔹 Show brands for each group
@@ -180,6 +259,7 @@ export default function BrandPage() {
                 >
                     <Column expander style={{ width: "3rem" }} />
                     <Column field="groupName" header="Group" body={groupTemplate} />
+                    <Column body={actionGroupBodyTemplate} header="Actions" style={{ width: "100px" }} frozen={true} />
                 </DataTable>
             </div>
         );
@@ -219,6 +299,7 @@ export default function BrandPage() {
             >
                 <Column expander style={{ width: "3rem" }} />
                 <Column field="categoryName" header="Category" body={categoryTemplate} />
+                <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} frozen={true} />
             </DataTable>
         );
     };
@@ -276,7 +357,7 @@ export default function BrandPage() {
                 showCloseIcon={true}
                 header="Add Group"
             >
-                <CategoryGroupBrandForm type="BRAND" onCancel={onCancel} onSave={onSave} />
+                <CategoryGroupBrandForm type="BRAND" onCancel={onCancel} onSave={onSave} editedRow={editedRows} />
             </Sidebar>
         </div>
     );

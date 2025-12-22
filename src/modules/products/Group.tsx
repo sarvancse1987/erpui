@@ -11,6 +11,10 @@ import { useToast } from "../../components/ToastService";
 import { Button } from "primereact/button";
 import { Sidebar } from "primereact/sidebar";
 import { CategoryGroupBrandForm } from "./CategoryGroupBrandForm";
+import { IconField } from "primereact/iconfield";
+import { InputIcon } from "primereact/inputicon";
+import { InputText } from "primereact/inputtext";
+import { FilterMatchMode } from "primereact/api";
 
 
 export default function GroupPage() {
@@ -21,6 +25,10 @@ export default function GroupPage() {
     const [editedRows, setEditedRows] = useState<any[]>([]);
     const { showSuccess, showError } = useToast();
     const [sidebarVisible, setSidebarVisible] = useState(false);
+    const [globalFilter, setGlobalFilter] = useState<string>("");
+    const [filters, setFilters] = useState<any>({
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS }
+    });
 
     const columns: ColumnMeta<GroupModel>[] = [
         { field: "groupId", header: "ID", editable: false, width: "80px", hidden: true },
@@ -31,15 +39,8 @@ export default function GroupPage() {
 
     const fetchCategoriesAndGroups = async () => {
         try {
-            const response = await apiService.get(
-                "/ProductCategory/hierarchy?includeCategories=true&includeGroups=true"
-            );
-
-            const categoriesList = response.categories ?? [];
-
-            const categoriesArray: CategoryModel[] = categoriesList.filter((item: CategoryModel) => item.isActive);
-            setCategories(categoriesArray);
-
+            const response = await apiService.get("/ProductCategory/hierarchy?includeCategories=true&includeGroups=true");
+            setCategories(response.categories ?? []);
             setGroups(response.groups ?? []);
         } catch (error) {
             console.error("Failed to fetch categories/groups", error);
@@ -51,6 +52,21 @@ export default function GroupPage() {
     useEffect(() => {
         fetchCategoriesAndGroups();
     }, []);
+
+    useEffect(() => {
+        if (!globalFilter) {
+            setExpandedRowKey(null);
+            return;
+        }
+
+        const matched = getCategoriesWithGroupNames(true).find(cat =>
+            cat.groupNames?.toLowerCase().includes(globalFilter.toLowerCase())
+        );
+
+        if (matched) {
+            setExpandedRowKey(matched.categoryId.toString());
+        }
+    }, [globalFilter]);
 
     // 🔹 Template for Category Row
     const categoryTemplate = (category: CategoryModel) => (
@@ -91,7 +107,6 @@ export default function GroupPage() {
         />
     );
 
-    // 🔹 Template for Expanded Row (Groups per Category)
     const rowExpansionTemplate = (category: CategoryModel, activeState: boolean) => {
         // Filter groups for this category and active state
         const categoryGroups = groups.filter(
@@ -151,6 +166,20 @@ export default function GroupPage() {
             }
         };
 
+        const onEdit = (row: any) => {
+            const editRow = {
+                categoryId: row.categoryId,
+                groups: [{
+                    groupId: row.groupId,
+                    groupName: row.groupName,
+                    brands: []
+                }]
+            }
+            setEditedRows([editRow]);
+            setSidebarVisible(true);
+        }
+
+
         return (
             <div className="p-3 bg-gray-50 border-l-4 border-indigo-400 rounded-md mt-2">
                 <TTypedDatatable<GroupModel>
@@ -162,20 +191,41 @@ export default function GroupPage() {
                     paginator
                     rows={5} // default rows per page
                     rowsPerPageOptions={[5, 10, 25]}
-                    isNew={true}
+                    isNew={false}
+                    isEdit={true}
                     isSave={true}
                     isDelete={true}
+                    isSearch={false}
                     sortableColumns={['groupName']}
+                    onEdit={onEdit}
                 />
             </div>
         );
     };
 
-    // 🔹 Reusable parent-child table (Active/Inactive)
-    const renderTable = (activeState: boolean) => (
+    const getCategoriesWithGroupNames = (activeState: boolean) => {
+        return categories.filter(item => item.isActive == activeState).map((cat) => {
+            const groupNames = groups
+                .filter((g) =>
+                    g.categoryId === cat.categoryId &&
+                    g.isActive === activeState
+                )
+                .map((g) => g.groupName)
+                .join(" ");
 
-        <DataTable
-            value={categories}
+            return {
+                ...cat,
+                groupNames
+            };
+        });
+    };
+
+    const renderTable = (activeState: boolean) => {
+        const categoriesWithGroupNames = getCategoriesWithGroupNames(activeState);
+        return (<DataTable
+            value={categoriesWithGroupNames}
+            filters={filters}
+            globalFilterFields={["categoryName", "groupNames"]}
             expandedRows={expandedRowKey ? { [expandedRowKey]: true } : {}}
             onRowToggle={(e) => {
                 const toggledKey = Object.keys(e.data)[0];
@@ -226,7 +276,8 @@ export default function GroupPage() {
             />
             <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} frozen={true} />
         </DataTable>
-    );
+        )
+    }
 
     const add = () => {
         setSidebarVisible(true);
@@ -245,7 +296,6 @@ export default function GroupPage() {
         <div className="p-2">
             <h2 className="mb-1 text-lg font-semibold">🧩 Group Management - 🏗️ (Category → Group)</h2>
             <TabView>
-                {/* ACTIVE TAB */}
                 <TabPanel
                     header={
                         <div className="flex items-center gap-2" style={{ color: 'green' }}>
@@ -253,14 +303,28 @@ export default function GroupPage() {
                             <span>Active</span>
                         </div>
                     }>
-
-                    <div className="flex gap-2 mb-2">
-                        <Button label="Add" icon="pi pi-plus" outlined onClick={add} size="small" className="p-button-sm custom-xs" />
+                    <div className="flex justify-between items-center mb-1">
+                        <div className="flex gap-2 mb-2">
+                            <Button label="Add" icon="pi pi-plus" outlined onClick={add} size="small" className="p-button-sm custom-xs" />
+                        </div>
+                        <div className="ml-auto">
+                            <span className="p-input-icon-left relative w-64">
+                                <IconField iconPosition="left">
+                                    <InputIcon className="pi pi-search" />
+                                    <InputText value={globalFilter} onChange={(e) => {
+                                        const value = e.target.value;
+                                        setGlobalFilter(value);
+                                        setFilters({
+                                            global: { value, matchMode: FilterMatchMode.CONTAINS }
+                                        });
+                                    }} placeholder="Search" />
+                                </IconField>
+                            </span>
+                        </div>
                     </div>
                     {renderTable(true)}
                 </TabPanel>
 
-                {/* INACTIVE TAB */}
                 <TabPanel
                     header={
                         <div className="flex items-center gap-2" style={{ color: 'red' }}>
