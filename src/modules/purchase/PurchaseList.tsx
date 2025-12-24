@@ -638,6 +638,7 @@ export default function PurchaseList() {
                             isNew={false}
                             isSave={false}
                             sortableColumns={["grandTotal", "purchaseDate"]}
+                            page="purchase"
                         />
                     ) : (
                         <div className="space-y-2">
@@ -650,6 +651,7 @@ export default function PurchaseList() {
                                 expandAllInitially={false}
                                 onEdit={handleParentEdit}
                                 sortableColumns={["grandTotal", "purchaseDate"]}
+                                page="purchase"
                             />
                         </div>
                     )}

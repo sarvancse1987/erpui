@@ -104,7 +104,6 @@ export default function BrandPage() {
                 categoryId: rowData.categoryId,
                 categoryName: rowData.categoryName,
                 groups: rowData.groups
-                    .filter((g: any) => g.brands && g.brands.length > 0) // ✅ ONLY groups with brands
                     .map((g: any) => ({
                         groupId: g.groupId,
                         groupName: g.groupName,
@@ -222,10 +221,11 @@ export default function BrandPage() {
                     primaryKey="brandId"
                     onSave={handleSave}
                     onDelete={handleDelete}
-                    isNew={true}
+                    isNew={false}
                     isSave={true}
                     isDelete={true}
                     sortableColumns={['brandName']}
+                    isSearch={false}
                 />
             </div>
         );
@@ -293,6 +293,7 @@ export default function BrandPage() {
                 size="small"
                 scrollable
                 style={{ width: "100%" }}
+                height={800}
                 rowClassName={(rowData, rowIndex: any) =>
                     rowIndex % 2 === 0 ? "bg-gray-50" : "bg-white"
                 }
@@ -317,6 +318,12 @@ export default function BrandPage() {
         setSidebarVisible(false);
     }
 
+    const hasInactiveBrands = categories.some(c =>
+        (c.groups ?? []).some(g =>
+            (g.brands ?? []).some(b => b.isActive === false)
+        )
+    );
+
     return (
         <div className="p-2">
             <h2 className="mb-1 text-lg font-semibold">
@@ -337,16 +344,17 @@ export default function BrandPage() {
 
                     {renderTable(true)}
                 </TabPanel>
-
-                <TabPanel
-                    header={
-                        <div className="flex items-center gap-2" style={{ color: 'red' }}>
-                            <i className="pi pi-times-circle" />
-                            <span>Inactive</span>
-                        </div>
-                    }>
-                    {renderTable(false)}
-                </TabPanel>
+                {hasInactiveBrands && (
+                    <TabPanel
+                        header={
+                            <div className="flex items-center gap-2" style={{ color: 'red' }}>
+                                <i className="pi pi-times-circle" />
+                                <span>Inactive</span>
+                            </div>
+                        }>
+                        {renderTable(false)}
+                    </TabPanel>
+                )}
             </TabView>
 
             <Sidebar
@@ -355,7 +363,7 @@ export default function BrandPage() {
                 onHide={() => setSidebarVisible(false)}
                 style={{ width: '75rem', height: '100%' }}
                 showCloseIcon={true}
-                header="Add Group"
+                header="Add Brand"
             >
                 <CategoryGroupBrandForm type="BRAND" onCancel={onCancel} onSave={onSave} editedRow={editedRows} />
             </Sidebar>

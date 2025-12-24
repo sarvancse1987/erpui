@@ -47,4 +47,5 @@ export interface TTypeDatatableProps<T extends Record<string, any>> {
     isEdit?: boolean;
     isDelete?: boolean;
     isSearch?: boolean;
+    page?: string;
 }

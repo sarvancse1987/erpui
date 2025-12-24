@@ -27,6 +27,7 @@ const InventoryForm = React.lazy(() => import("../modules/inventory/InventoryFor
 const CustomerLedgerList = React.lazy(() => import("../modules/Ledger/CustomerLedgerList"));
 const VoucherList = React.lazy(() => import("../modules/voucher/VoucherList"));
 
+const DemoForm = React.lazy(() => import("../modules/demo/DemoForm"));
 
 export default function AppRouter() {
     return (
@@ -35,6 +36,7 @@ export default function AppRouter() {
             {/* Login Route */}
             <Route element={<MinimalLayout />}>
                 <Route path="/login" element={<Login />} />
+                <Route path="/demo" element={<DemoForm />} />
             </Route>
 
             {/* Protected ERP Layout */}
@@ -108,6 +110,8 @@ export default function AppRouter() {
                     <Route index element={<CustomerLedgerList />} />
                     <Route path="voucher" element={<VoucherList />} />
                 </Route>
+
+
 
             </Route>
 

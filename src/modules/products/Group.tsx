@@ -20,6 +20,7 @@ import { FilterMatchMode } from "primereact/api";
 export default function GroupPage() {
     const [categories, setCategories] = useState<CategoryModel[]>([]);
     const [groups, setGroups] = useState<GroupModel[]>([]);
+    const [inActiveGroups, setInActiveGroups] = useState<boolean>(true);
 
     const [expandedRowKey, setExpandedRowKey] = useState<string | null>(null);
     const [editedRows, setEditedRows] = useState<any[]>([]);
@@ -42,6 +43,7 @@ export default function GroupPage() {
             const response = await apiService.get("/ProductCategory/hierarchy?includeCategories=true&includeGroups=true");
             setCategories(response.categories ?? []);
             setGroups(response.groups ?? []);
+
         } catch (error) {
             console.error("Failed to fetch categories/groups", error);
             setCategories([]);
@@ -77,7 +79,7 @@ export default function GroupPage() {
     );
 
     const editRows = (rowData: any) => {
-        const rows = groups.filter(item => item.categoryId == rowData.categoryId);
+        const rows = groups.filter(item => item.categoryId == rowData.categoryId && item.isActive);
         if (rows.length > 0) {
             const editedRows = {
                 categoryId: rows[0].categoryId,
@@ -204,24 +206,37 @@ export default function GroupPage() {
     };
 
     const getCategoriesWithGroupNames = (activeState: boolean) => {
-        return categories.filter(item => item.isActive == activeState).map((cat) => {
-            const groupNames = groups
-                .filter((g) =>
-                    g.categoryId === cat.categoryId &&
-                    g.isActive === activeState
-                )
-                .map((g) => g.groupName)
-                .join(" ");
+        return categories
+            // ✅ Category must be ACTIVE always
+            .filter(cat => cat.isActive)
+            .map(cat => {
+                // ✅ Pick ONLY matching groups
+                const matchedGroups = groups.filter(
+                    g =>
+                        g.categoryId === cat.categoryId &&
+                        g.isActive === activeState
+                );
 
-            return {
-                ...cat,
-                groupNames
-            };
-        });
+                // ❌ No groups → exclude category
+                if (matchedGroups.length === 0) {
+                    return null;
+                }
+
+                return {
+                    ...cat,
+                    groups: matchedGroups,
+                    groupNames: matchedGroups
+                        .map(g => g.groupName)
+                        .join(", ")
+                };
+            })
+            // ✅ Remove nulls (keep objects only)
+            .filter((cat): cat is any => cat !== null);
     };
 
     const renderTable = (activeState: boolean) => {
         const categoriesWithGroupNames = getCategoriesWithGroupNames(activeState);
+
         return (<DataTable
             value={categoriesWithGroupNames}
             filters={filters}
@@ -292,6 +307,32 @@ export default function GroupPage() {
         setSidebarVisible(false);
     }
 
+    const getCategoriesWithGroupNamesInACtive = (activeState: boolean) => {
+        return categories
+            // ✅ Category must be ACTIVE always
+            .filter(cat => cat.isActive)
+            .map(cat => {
+                const matchedGroups = groups.filter(g =>
+                    g.categoryId === cat.categoryId &&
+                    g.isActive === activeState
+                );
+
+                // ❌ If checking inactive tab and no inactive groups → skip category
+                if (!activeState && matchedGroups.length === 0) {
+                    return null;
+                }
+
+                return {
+                    ...cat,
+                    groupNames: matchedGroups.map(g => g.groupName).join(" ")
+                };
+            })
+            .filter(Boolean); // ✅ remove nulls
+    };
+
+    const inactiveCategories = getCategoriesWithGroupNamesInACtive(false);
+    const hasInactiveCategories = inactiveCategories.length > 0;
+
     return (
         <div className="p-2">
             <h2 className="mb-1 text-lg font-semibold">🧩 Group Management - 🏗️ (Category → Group)</h2>
@@ -325,16 +366,19 @@ export default function GroupPage() {
                     {renderTable(true)}
                 </TabPanel>
 
-                <TabPanel
-                    header={
-                        <div className="flex items-center gap-2" style={{ color: 'red' }}>
-                            <i className="pi pi-times-circle" />
-                            <span>Inactive</span>
-                        </div>
-                    }
-                >
-                    {renderTable(false)}
-                </TabPanel>
+                {
+                    hasInactiveCategories &&
+                    <TabPanel
+                        header={
+                            <div className="flex items-center gap-2" style={{ color: 'red' }}>
+                                <i className="pi pi-times-circle" />
+                                <span>Inactive</span>
+                            </div>
+                        }
+                    >
+                        {renderTable(false)}
+                    </TabPanel>
+                }
             </TabView>
 
             <Sidebar

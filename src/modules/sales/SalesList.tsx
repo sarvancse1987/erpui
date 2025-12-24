@@ -736,6 +736,7 @@ export default function SaleList() {
               onDelete={handleDeleteSale}
               isNew={false}
               isSave={false}
+              page="sale"
             />
           ) : (
             <div className="space-y-2">
@@ -747,6 +748,7 @@ export default function SaleList() {
                 rowKey={"saleId" as keyof SaleModel}
                 expandAllInitially={false}
                 onEdit={handleParentEdit}
+                page="sale"
               />
             </div>
           )}

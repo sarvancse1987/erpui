@@ -34,6 +34,7 @@ interface BrandRow {
   id: string;
   name: string;
   brandId?: number;
+  brandName?: string;
   error?: boolean;
 }
 
@@ -151,9 +152,10 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
               name: grp.groupName,
               categoryId: cat.categoryId,
               groupId: grp.groupId,
-              filteredGroups: groups.filter(
-                (x) => x.groupId === cat.groupId
-              ),
+              filteredGroups: editedRow[0].groups.map((item: any) => ({
+                label: item.groupName,
+                value: item.groupId
+              })),
               brands: grp.brands.map((b: any) => ({
                 id: crypto.randomUUID(),
                 brandId: b.brandId,
@@ -251,7 +253,7 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
         setRows(prev =>
           prev.map(c => ({
             ...c,
-            error: !c.categoryId || c.categoryId === 0, // category dropdown
+            error: !c.categoryId || c.categoryId === 0,
             groups: c.groups.map(g => ({
               ...g,
               error: !g.name || g.name.trim().length === 0
@@ -464,7 +466,7 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
                         severity="danger"
                         outlined
                         disabled={cat.groups.length === 1}
-                        onClick={() =>
+                        onClick={async () => {
                           setRows(r =>
                             r.map((c, i) =>
                               i === ci
@@ -474,8 +476,18 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
                                 }
                                 : c
                             )
-                          )
-                        }
+                          );
+                          const groupData = {
+                            groupId: grp.groupId,
+                            groupName: grp.name,
+                            categoryId: cat.categoryId,
+                            isActive: false
+                          };
+                          var response = await apiService.put(`/ProductGroup/${grp.groupId}`, groupData);
+                          if (response) {
+                            showSuccess("Group deleted successfully");
+                          }
+                        }}
                         className="p-button-sm custom-xs" data-pr-position="left" tooltip="Delete group name"
                       />
                     }
@@ -498,9 +510,9 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
                   severity="danger"
                   outlined
                   disabled={rows.length === 1}
-                  onClick={() =>
-                    setRows(r => r.filter((_, i) => i !== ci))
-                  }
+                  onClick={() => {
+                    setRows(r => r.filter((_, i) => i !== ci));
+                  }}
                   className="p-button-sm custom-xs"
                   data-pr-position="left"
                   tooltip="Delete Group"
@@ -542,6 +554,7 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
                   )
                   handleCategoryChange(ci, e.value)
                 }}
+                disabled={true}
               />
             </div>
 
@@ -610,7 +623,15 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
                                 : c
                             )
                           );
-                          const response = await apiService.get(`/ProductBrand/delete/${grp.brandId}`);
+                          debugger
+                          const brand = {
+                            brandId: grp.brandId,
+                            BrandName: grp.name,
+                            IsActive: false,
+                            CategoryId: cat.categoryId,
+                            GroupId: cat.groupId
+                          };
+                          const response = await apiService.put(`/ProductBrand/${grp.brandId}`, brand);
                           if (response) {
                             showSuccess("Brand delted successfully");
                           }

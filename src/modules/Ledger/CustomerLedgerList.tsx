@@ -5,6 +5,8 @@ import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
 import apiService from "../../services/apiService";
 import { Tag } from "primereact/tag";
+import PurchaseFooterBox from "../purchase/PurchaseFooterBox";
+import { formatINR } from "../../common/common";
 
 export default function CustomerLedgerList() {
     const [customerId, setCustomerId] = useState<number | null>(null);
@@ -57,36 +59,23 @@ export default function CustomerLedgerList() {
         <div className="flex justify-content-end align-items-center gap-4 py-1 pr-3"
             style={{ lineHeight: "1", minHeight: "30px" }}>
 
-            {/* Total Debit – Red */}
-            <div className="flex align-items-center gap-2">
-                <span className="font-semibold">Total Sale:</span>
-                <span className="px-2 py-1 border-round text-white"
-                    style={{ background: "#0ea5e9", fontSize: "0.8rem" }}>
-                    {totalDebit.toFixed(2)}
-                </span>
-            </div>
+            <PurchaseFooterBox
+                label="Total Sale"
+                value={formatINR(totalDebit)}
+                bg="#0ea5e9"
+            />
 
-            {/* Total Credit – Green */}
-            <div className="flex align-items-center gap-2">
-                <span className="font-semibold">Total Received:</span>
-                <span className="px-2 py-1 border-round text-white"
-                    style={{ background: "#22c55e", fontSize: "0.8rem" }}>
-                    {totalCredit.toFixed(2)}
-                </span>
-            </div>
+            <PurchaseFooterBox
+                label="Total Received"
+                value={formatINR(totalCredit)}
+                bg="#22c55e"
+            />
 
-            {/* Final Balance – Yellow */}
-            <div className="flex align-items-center gap-2">
-                <span className="font-semibold">Total Balance:</span>
-                <span className="px-2 py-1 border-round text-dark"
-                    style={{
-                        background: "#ef4444",
-                        fontSize: "0.8rem",
-                        color: "#ffffff"
-                    }}>
-                    {closing.toFixed(2)}
-                </span>
-            </div>
+             <PurchaseFooterBox
+                label="Total Balance"
+                value={formatINR(closing)}
+                bg="#ef4444"
+            />
 
         </div>
     );

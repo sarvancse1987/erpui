@@ -445,7 +445,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
           <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} size="small" className="p-button-sm custom-xs" tooltip="Add product"
             tooltipOptions={{ position: "bottom" }} />
           {isSave && < Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll} disabled={!isSaveEnabled} size="small" className="p-button-sm custom-xs" />}
-          {isDelete && tableData.length > 0 && <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={deleteSelected} disabled={!selectedRows.length} size="small" className="p-button-sm custom-xs" />}
+          {isDelete && tableData.length > 0 && selectedRows.length > 0 && <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={deleteSelected} disabled={!selectedRows.length} size="small" className="p-button-sm custom-xs" />}
         </div>
         <div className="ml-auto">
           <span className="p-input-icon-left relative w-64">

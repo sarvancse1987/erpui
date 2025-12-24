@@ -693,10 +693,18 @@ export const handleNumberInputWithEnter = (e: any) => {
 
   // --- Allow only numbers ---
   const allowedKeys = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"];
-  
+
   if (/^[0-9]$/.test(e.key)) return;    // allow numeric digits
   if (allowedKeys.includes(e.key)) return; // allow navigation keys
 
   // Block all other keys
   e.preventDefault();
 };
+
+
+export const formatINR = (value: number) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    minimumFractionDigits: 2
+  }).format(value);

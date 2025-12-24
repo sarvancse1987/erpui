@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "primereact/button";
@@ -6,6 +6,7 @@ import { FilterMatchMode } from "primereact/api";
 import { IconField } from "primereact/iconfield";
 import { InputIcon } from "primereact/inputicon";
 import { InputText } from "primereact/inputtext";
+import PurchaseFooterBox from "../modules/purchase/PurchaseFooterBox";
 
 interface ColumnMeta<T> {
     field?: keyof T;
@@ -23,6 +24,7 @@ interface ParentChildTableProps<ParentType, ChildType> {
     expandAllInitially?: boolean;
     onEdit?: (row: ParentType) => void;
     sortableColumns?: (keyof ParentType)[];
+    page?: string;
 }
 
 export function ParentChildTable<
@@ -36,7 +38,8 @@ export function ParentChildTable<
     rowKey,
     expandAllInitially = false,
     onEdit,
-    sortableColumns = []
+    sortableColumns = [],
+    page
 }: ParentChildTableProps<ParentType, ChildType>) {
 
     const [expandedRows, setExpandedRows] = useState<any>(
@@ -133,6 +136,109 @@ export function ParentChildTable<
         );
     };
 
+    const totals = useMemo(() => {
+        return parentData.reduce(
+            (acc, row) => {
+                const invoice = row.invoiceAmount ?? 0;
+                const cash = row.cash ?? 0;
+                const upi = row.upi ?? 0;
+                const paid = cash + upi;
+                const balance = invoice - paid;
+
+                acc.invoiceAmount += invoice;
+                acc.paidAmount += paid;
+                acc.balanceAmount += balance;
+                acc.runningAmount += row.runningBalance ?? 0;
+                acc.gstAmount += row.totalGST ?? 0;
+                acc.grandTotal += row.grandTotal ?? 0;
+
+                return acc;
+            },
+            {
+                invoiceAmount: 0,
+                paidAmount: 0,
+                balanceAmount: 0,
+                runningAmount: 0,
+                gstAmount: 0,
+                grandTotal: 0
+            }
+        );
+    }, [parentData]);
+
+    const saleTotals = useMemo(() => {
+        return parentData.reduce(
+            (acc, row: any) => {
+                const cash = row.cash ?? 0;
+                const upi = row.upi ?? 0;
+                const paid = cash + upi;
+
+                acc.grandTotal += row.grandTotal ?? 0;
+                acc.paidAmount += paid;
+                acc.balanceAmount += row.balanceAmount ?? 0;
+                acc.runningAmount += row.runningBalance ?? 0;
+
+                return acc;
+            },
+            {
+                grandTotal: 0,
+                paidAmount: 0,
+                balanceAmount: 0,
+                runningAmount: 0,
+            }
+        );
+    }, [parentData]);
+
+    const formatINR = (value: number) =>
+        new Intl.NumberFormat("en-IN", {
+            style: "currency",
+            currency: "INR",
+            minimumFractionDigits: 2
+        }).format(value);
+
+    const tableFooter =
+        page === "purchase" ? (
+            <div className="custom-footer flex justify-between items-center gap-1 flex-wrap px-2 py-1">
+                <div className="flex items-center gap-1 flex-wrap">
+
+                    {/* Paid Amount */}
+                    <PurchaseFooterBox
+                        label="Paid Amt"
+                        value={formatINR(totals.paidAmount)}
+                        bg="#22c55e"
+                    />
+
+                    {/* Balance Amount */}
+                    <PurchaseFooterBox
+                        label="Balance Amt"
+                        value={formatINR(totals.balanceAmount)}
+                        bg="#be5744ff"
+                    />
+
+                    {/* GST Amount */}
+                    <PurchaseFooterBox
+                        label="GST Amt"
+                        value={formatINR(totals.gstAmount)}
+                        bg="#d3db34ff"
+                    />
+
+                    {/* Grand Total */}
+                    <PurchaseFooterBox
+                        label="Grand Total"
+                        value={formatINR(totals.grandTotal)}
+                    />
+
+                </div>
+            </div>
+        ) : page === "sale" ? (
+            <div className="custom-footer flex justify-between items-center gap-1 flex-wrap px-2 py-1">
+                <div className="flex items-center gap-1 flex-wrap">
+                    <PurchaseFooterBox label="Total Sale" value={formatINR(saleTotals.grandTotal)} />
+                    <PurchaseFooterBox label="Paid Amt" value={formatINR(saleTotals.paidAmount)} bg="#22c55e" />
+                    <PurchaseFooterBox label="Balance Amt" value={formatINR(saleTotals.runningAmount)} bg="#be5744ff" />
+                </div>
+            </div>
+        ) : null;
+
     return (
         <div className="card">
             {/* Toolbar */}
@@ -179,6 +285,10 @@ export function ParentChildTable<
                         ? "expanded-parent-row"
                         : ""
                 }
+                size="small"
+                scrollable
+                style={{ width: "100%" }}
+                footer={tableFooter}
             >
                 <Column expander style={{ width: "3rem" }} />
 

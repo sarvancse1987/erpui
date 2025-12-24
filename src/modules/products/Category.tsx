@@ -147,10 +147,16 @@ export default function Category() {
                             columns={inactiveColumns}
                             data={inactiveCategories}
                             primaryKey="categoryId"
-                            onSave={onInactiveSave}
+                            onSave={onActiveSave}
+                            onDelete={onActiveDelete}
+                            onAdd={add}
+                            onEdit={onEdit}
+                            onEditMultiple={onEditMultiple}
                             isNew={true}
                             isSave={true}
+                            isEdit={true}
                             isDelete={true}
+                            sortableColumns={['categoryName']}
                         />
                     </TabPanel>
                 }

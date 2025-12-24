@@ -9,6 +9,7 @@ import { InputMask } from "primereact/inputmask";
 import { FileUpload, FileUploadSelectEvent } from "primereact/fileupload";
 import { storage } from "../../services/storageService";
 import { handleEnterKey } from "../../common/common";
+import "../../asset/style/MyProfileFileUpload.css";
 
 interface CompanyFormProps {
     company: CompanyModel;

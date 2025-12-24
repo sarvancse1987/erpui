@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="358.001" height="365.838" viewBox="0 0 358.001 365.838">
+<style>
+  @keyframes scale-page-load {
+    0% { 
+      transform: scale(1) translate(0, 0);
+      -webkit-transform: scale(1) translate(0, 0);
+    }
+    50% { 
+      transform: scale(0.889) translate(10%, 36%);
+      -webkit-transform: scale(0.889) translate(10%, 36%);
+    }
+    100% {
+      transform: scale(1) translate(0, 0);
+      -webkit-transform: scale(1) translate(0, 0);
+    }
+  }
+
+  @-webkit-keyframes color {
+      0% { fill: #EF0548; }
+      50% { fill: #FF9C00; } 
+      100% { fill: #4069FF; }
+    }
+
+    #color, #colorx {
+      animation: 3s ease-in-out 0s infinite running color;
+    }
+
+    #colorx  {
+      animation-delay: 1s;
+    }
+</style>
+
+  <g id="page-load-animation-1" transform="translate(-364 -838)">
+    <g id="wifi" style="animation: scale-page-load 3s linear infinite;">
+      <g id="Group_2" data-name="Group 2">
+        <path id="Path_2" data-name="Path 2" d="M326.38,286.7a186.12,186.12,0,0,0,0-207.564l-36.352,37.147a134,134,0,0,1,0,133.282l36.352,37.148Z" transform="translate(364 838)" fill="#04213f"/>
+      </g>
+      <g id="Group_3" data-name="Group 3">
+        <path id="Path_3" data-name="Path 3" d="M263.411,222.36a96.725,96.725,0,0,0,0-78.879l-38.6,39.439Z" transform="translate(364 838)" fill="#04213f"/>
+      </g>
+    </g>
+    <g  data-name="Group 5">
+      <g id="Group_1" data-name="Group 1">
+        <path id="color" data-name="Path 1" d="M211.162,215.784A44.866,44.866,0,0,1,179,229.4c-25.12,0-45.483-20.809-45.483-46.478S153.881,136.44,179,136.44a44.852,44.852,0,0,1,32.161,13.613l33.47-34.208A91.535,91.535,0,0,0,179,88.065c-51.266,0-92.822,42.467-92.822,94.854S127.735,277.766,179,277.766a91.552,91.552,0,0,0,65.631-27.779Z" transform="translate(364 838)" fill="#ef0548"/>
+      </g>
+      <g id="Group_4" data-name="Group 4">
+        <path id="colorx" data-name="Path 4" d="M179,314.512c-71.119,0-128.774-58.918-128.774-131.593S107.882,51.326,179,51.326a127.027,127.027,0,0,1,91.058,38.542l35.516-36.294C273.18,20.476,228.428,0,179,0,80.139,0,0,81.9,0,182.919S80.139,365.838,179,365.838c49.427,0,94.179-20.477,126.574-53.574L270.059,275.97A127.016,127.016,0,0,1,179,314.512Z" transform="translate(364 838)" fill="#ef0548"/>
+      </g>
+    </g>
+  </g>
+</svg>
