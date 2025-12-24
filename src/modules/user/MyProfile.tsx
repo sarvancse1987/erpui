@@ -105,14 +105,24 @@ const MyProfile: React.FC = () => {
                 firstName: profile.firstName,
                 salutation: profile.salutation,
                 id: profile.id,
-                lastName: profile.lastName,
+                lastName: profile.lastName ?? "",
                 phone: profile.phone,
                 userImage: uploadedFileUrl,
             };
 
-            await apiService.put(`/users/uploaduserprofile/${updatedProfile.id}`, updatedProfile);
+            await apiService.put(`/users/updateprofile/${updatedProfile.id}`, updatedProfile);
 
             showSuccess("Profile updated successfully");
+
+            const userImageDto = {
+                imageBase64: previewUrl,
+                id: profile.id
+            };
+            var response = await apiService.post("/users/upload-image", userImageDto);
+            if (response) {
+                const apiBaseUrl = process.env.REACT_APP_SERVICE_API_BASE_URL?.replace("/api", "") || "";
+                storage.updateUserImage(`${apiBaseUrl}${response.fileUrl}`);
+            }
 
             storage.updateUserProfileName(profile.firstName, profile.lastName);
         } catch (err) {
@@ -235,18 +245,10 @@ const MyProfile: React.FC = () => {
                             className="hidden"
                         />
 
-                        {/* Webcam */}
-                        <CustomWebcam
-                            onCapture={(img) => {
-                                setPreviewUrl(img);
-                                setSelectedFile(null);
-                            }}
-                        />
-
                         {/* Final Preview Box */}
                         {previewUrl && (
                             <div className="relative" style={{ width: 176, height: 176 }}>
-                                <div className="block" style={{ width: 160, height: 160, border: "1px dotted #999" }}>
+                                <div className="block" style={{ width: 176, height: 176, border: "1px dotted #999" }}>
                                     <div className="relative w-full h-full">
                                         <img
                                             src={previewUrl}
@@ -269,6 +271,16 @@ const MyProfile: React.FC = () => {
                                 </div>
                             </div>
                         )}
+
+
+
+                        {/* Webcam */}
+                        <CustomWebcam
+                            onCapture={(img) => {
+                                setPreviewUrl(img);
+                                setSelectedFile(null);
+                            }}
+                        />
 
                     </div>
                 </div>

@@ -26,6 +26,7 @@ const LocationList = React.lazy(() => import("../modules/companies/LocationList"
 const InventoryForm = React.lazy(() => import("../modules/inventory/InventoryForm"));
 const CustomerLedgerList = React.lazy(() => import("../modules/Ledger/CustomerLedgerList"));
 const VoucherList = React.lazy(() => import("../modules/voucher/VoucherList"));
+const ShipmentList = React.lazy(() => import("../modules/sales/ShipmentList"));
 
 const DemoForm = React.lazy(() => import("../modules/demo/DemoForm"));
 
@@ -85,6 +86,7 @@ export default function AppRouter() {
                 {/* Sales Module */}
                 <Route path="sales">
                     <Route index element={<SalesList />} />
+                    <Route path="shipments" element={<ShipmentList />} />
                 </Route>
 
                 {/* Inventory Module */}

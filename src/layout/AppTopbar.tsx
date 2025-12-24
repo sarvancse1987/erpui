@@ -101,9 +101,17 @@ const AppTopbar = forwardRef<AppTopbarRef>((_props, ref) => {
             className="profile"
             onClick={(e) => profileOverlayRef.current?.toggle(e)}
           >
-            <div className="avatar-circle">
-              <i className="pi pi-user"></i>
-            </div>
+            {user?.userImage ? (
+              <img
+                src={user.userImage}
+                alt="User"
+                className="avatar-circle"
+              />
+            ) : (
+              <div className="avatar-circle">
+                <i className="pi pi-user"></i>
+              </div>
+            )}
 
             <span className="profile-name">
               {user?.userProfileName}

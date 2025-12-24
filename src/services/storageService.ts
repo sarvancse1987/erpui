@@ -56,6 +56,12 @@ export const storage = {
 
         this.setUser(user);
     },
+    updateUserImage(userImage: string) {
+        const user = this.getUser();
+        if (!user) return;
+        user.userImage = userImage;
+        this.setUser(user);
+    },
     updateUserCompanyLogo(logo: string) {
         const user = this.getUser();
         if (!user) return;
