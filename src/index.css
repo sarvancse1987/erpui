@@ -337,8 +337,8 @@ code {
   font-size: 15px;
 }
 
-.p-datatable-wrapper {
-  max-height: 300px;
+:not(.rolemapping) > .p-datatable-wrapper {
+  max-height: 350px;
   overflow-y: auto !important;
 }
 
@@ -355,5 +355,22 @@ code {
 }
 
 .regularizationTable .p-datatable-scrollable>.p-datatable-wrapper {
-        height: 331px;
-    }
+  height: 331px;
+}
+
+.p-button-info {
+  background-color: #9d76cd !important;
+  border-color: #9d76cd !important;
+  color: white !important;
+}
+
+.p-button-danger {
+  background-color: #e74c3c !important;
+  border-color: #e74c3c !important;
+  color: white !important;
+}
+
+/* Equal row height */
+.rolemapping .p-datatable-tbody > tr {
+  height: 60px; /* same as bodyStyle height */
+}

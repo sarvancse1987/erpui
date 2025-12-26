@@ -708,3 +708,9 @@ export const formatINR = (value: number) =>
     currency: "INR",
     minimumFractionDigits: 2
   }).format(value);
+
+export const parseDDMMYYYY = (dateStr: string): Date | null => {
+  const [dd, mm, yyyy] = dateStr.split('-').map(Number);
+  if (!dd || !mm || !yyyy) return null;
+  return new Date(yyyy, mm - 1, dd);
+};

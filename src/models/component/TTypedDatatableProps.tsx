@@ -48,4 +48,5 @@ export interface TTypeDatatableProps<T extends Record<string, any>> {
     isDelete?: boolean;
     isSearch?: boolean;
     page?: string;
+    showDateFilter?: boolean;
 }

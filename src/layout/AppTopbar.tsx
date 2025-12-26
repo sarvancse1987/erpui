@@ -101,15 +101,15 @@ const AppTopbar = forwardRef<AppTopbarRef>((_props, ref) => {
             className="profile"
             onClick={(e) => profileOverlayRef.current?.toggle(e)}
           >
-            {user?.userImage ? (
+            {user?.userImage && user.userImage.trim() !== null ? (
               <img
                 src={user.userImage}
-                alt="User"
+                alt={user?.userProfileName || "User"}
                 className="avatar-circle"
               />
             ) : (
               <div className="avatar-circle">
-                <i className="pi pi-user"></i>
+                <i className="pi pi-user" />
               </div>
             )}
 

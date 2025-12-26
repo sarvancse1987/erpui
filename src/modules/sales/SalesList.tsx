@@ -737,6 +737,7 @@ export default function SaleList() {
               isNew={false}
               isSave={false}
               page="sale"
+              showDateFilter={true}
             />
           ) : (
             <div className="space-y-2">
@@ -749,6 +750,7 @@ export default function SaleList() {
                 expandAllInitially={false}
                 onEdit={handleParentEdit}
                 page="sale"
+                showDateFilter={true}
               />
             </div>
           )}

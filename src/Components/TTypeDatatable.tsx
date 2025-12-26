@@ -30,7 +30,8 @@ export function TTypeDatatable<T extends Record<string, any>>({
   onEdit,
   onDelete,
   sortableColumns = [],
-  page
+  page,
+  showDateFilter = false
 }: TTypeDatatableProps<T>) {
   const [tableData, setTableData] = useState<T[]>(Array.isArray(data) ? data : []);
   const [editingRows, setEditingRows] = useState<{ [key: string]: boolean }>({});
@@ -39,6 +40,10 @@ export function TTypeDatatable<T extends Record<string, any>>({
   const [filters, setFilters] = useState<any>({});
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
   const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [fromDate, setFromDate] = useState<Date | null>(null);
+  const [toDate, setToDate] = useState<Date | null>(null);
+  const [originalData, setOriginalData] = useState<any[]>([]);
+  const [isDateFiltered, setIsDateFiltered] = useState(false);
 
   useEffect(() => {
     const checkIfMobile = () => {
@@ -62,6 +67,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
 
   useEffect(() => {
     setTableData(Array.isArray(data) ? data.map(d => ({ ...d })) : []);
+    setOriginalData(Array.isArray(data) ? data.map(d => ({ ...d })) : [])
   }, [data]);
 
   const getNextPrimaryKey = (): string => {
@@ -469,10 +475,53 @@ export function TTypeDatatable<T extends Record<string, any>>({
       </div>
     ) : null;
 
+  const parseDDMMYYYY = (dateStr: string): Date | null => {
+    const [dd, mm, yyyy] = dateStr.split('-').map(Number);
+    if (!dd || !mm || !yyyy) return null;
+    return new Date(yyyy, mm - 1, dd);
+  };
+
+  const handleDateSubmit = () => {
+    if (!fromDate || !toDate) return;
+
+    const from = new Date(fromDate);
+    const to = new Date(toDate);
+    to.setHours(23, 59, 59, 999);
+
+    // decide date field based on page
+    const getDateField = (row: any) => {
+      if (page === "purchase") return row.invoiceDate;
+      if (page === "sale") return row.saleOnDate;
+      if (page === "shipment") return row.shipmentDate;
+      if (page === "voucher") return row.voucherDate;
+      return null;
+    };
+
+    const filtered = originalData.filter((row: any) => {
+      const dateValue = getDateField(row);
+      if (!dateValue) return false;
+
+      const rowDate = parseDDMMYYYY(dateValue);
+      if (!rowDate) return false;
+
+      return rowDate >= from && rowDate <= to;
+    });
+
+    setTableData(filtered);
+    setIsDateFiltered(true);
+  };
+
+  const handleClearFilter = () => {
+    if (isDateFiltered) {
+      setFromDate(null);
+      setToDate(null);
+      setTableData(originalData);
+      setIsDateFiltered(false);
+    }
+  }
+
   return (
     <div className="card p-3 h-[calc(100vh-100px)]">
-      {/* Removed overflow-auto 🟢 */}
-
       <div className="flex justify-between items-center mb-3">
         <div className="flex gap-2">
           {isNew && (
@@ -492,25 +541,94 @@ export function TTypeDatatable<T extends Record<string, any>>({
             />
           )}
         </div>
+        {showDateFilter && (
+          <>
+            <div className="ml-auto">
+              <div className="flex items-end gap-2 mb-3 flex-wrap">
+                <div className="flex flex-col">
+                  <Calendar
+                    value={fromDate}
+                    onChange={(e) => setFromDate(e.value ?? null)}
+                    dateFormat="yy-mm-dd"
+                    showIcon
+                    className="w-40"
+                    placeholder="From date"
+                  />
+                </div>
 
-        <div className="ml-auto">
-          <span className="p-input-icon-left relative w-64">
-            <IconField iconPosition="left">
-              <InputIcon className="pi pi-search" />
-              <InputText
-                value={globalFilter}
-                onChange={(e) => {
-                  setGlobalFilter(e.target.value);
-                  setFilters((prev: any) => ({
-                    ...prev,
-                    global: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
-                  }));
-                }}
-                placeholder="Search"
-              />
-            </IconField>
-          </span>
-        </div>
+                <div className="flex flex-col">
+                  <Calendar
+                    value={toDate}
+                    onChange={(e) => setToDate(e.value ?? null)}
+                    dateFormat="yy-mm-dd"
+                    showIcon
+                    className="w-40"
+                    minDate={fromDate ?? undefined}
+                    placeholder="To date"
+                  />
+                </div>
+
+                <Button
+                  icon={"pi pi-check"}
+                  size="small"
+                  disabled={!isDateFiltered && (!fromDate || !toDate)}
+                  onClick={handleDateSubmit}
+                  className="h-[38px]"
+                  severity={"success"}
+                />
+                {isDateFiltered && (
+                  <Button
+                    icon={"pi pi-times"}
+                    size="small"
+                    disabled={!isDateFiltered && (!fromDate || !toDate)}
+                    onClick={handleClearFilter}
+                    className="h-[38px]"
+                    severity={"danger"}
+                  />
+                )}
+              </div>
+            </div>
+
+            <span className="p-input-icon-left relative w-64 ml-2">
+              <IconField iconPosition="left">
+                <InputIcon className="pi pi-search" />
+                <InputText
+                  value={globalFilter}
+                  onChange={(e) => {
+                    setGlobalFilter(e.target.value);
+                    setFilters((prev: any) => ({
+                      ...prev,
+                      global: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
+                    }));
+                  }}
+                  placeholder="Search"
+                />
+              </IconField>
+            </span>
+          </>
+        )}
+
+        {!showDateFilter && (
+          <div className="ml-auto">
+            <span className="p-input-icon-left relative w-64 ml-2">
+              <IconField iconPosition="left">
+                <InputIcon className="pi pi-search" />
+                <InputText
+                  value={globalFilter}
+                  onChange={(e) => {
+                    setGlobalFilter(e.target.value);
+                    setFilters((prev: any) => ({
+                      ...prev,
+                      global: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
+                    }));
+                  }}
+                  placeholder="Search"
+                />
+              </IconField>
+            </span>
+          </div>
+        )}
+
       </div>
 
       <ConfirmDialog />

@@ -27,6 +27,7 @@ export default function VoucherList() {
         { field: "customerName", header: "Customer Name", width: "160px", frozen: true },
         { field: "voucherDate", header: "Date", width: "80px" },
         { field: "voucherTime", header: "Time", width: "90px" },
+        { field: "voucherNo", header: "Voucher No", width: "80px" },
         {
             field: "totalCredit", header: "Received Amt", width: "90px", body: (row) =>
                 <Tag
@@ -111,6 +112,7 @@ export default function VoucherList() {
         { field: "customerName", header: "Customer Name", width: "160px", frozen: true },
         { field: "voucherDate", header: "Date", width: "80px" },
         { field: "voucherTime", header: "Time", width: "90px" },
+        { field: "voucherNo", header: "Voucher No", width: "80px" },
         {
             field: "totalCredit", header: "Received Amt", width: "90px", body: (row) =>
                 <Tag
@@ -285,6 +287,8 @@ export default function VoucherList() {
                             onDelete={handleOnDelete}
                             isNew={false}
                             isSave={false}
+                            page="voucher"
+                            showDateFilter={true}
                         />
                     ) : (
                         <div className="space-y-2">

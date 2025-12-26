@@ -360,7 +360,7 @@ export default function InventoryForm({
               style={{ minWidth: "100px" }}
             />
             <Column field="inventorySupplierName" header="Supplier" style={{ minWidth: "150px" }} />
-
+            <Column field="lastRestockedDate" header="Last Restocked" style={{ minWidth: "100px" }} />
 
             <Column
               header="Edit"

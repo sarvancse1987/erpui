@@ -42,7 +42,7 @@ const LoginPage: React.FC = () => {
             : response.firstName,
           firstName: response.firstName,
           lastName: response.lastName,
-          userImage: `${apiBaseUrl}${response.userImage}`,
+          userImage: response.userImage ? `${apiBaseUrl}${response.userImage}` : '',
           companyName: response.companyName,
           location: response.location,
           companyLogo: `${apiBaseUrl}${response.path}`

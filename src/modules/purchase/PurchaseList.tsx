@@ -79,6 +79,7 @@ export default function PurchaseList() {
         { field: "invoiceNumber", header: "Invoice No", width: "130px" },
         { field: "purchaseRefNo", header: "Pur Ref No", width: "160px" },
         { field: "purchaseDate", header: "Pur Date", width: "100px" },
+        { field: "invoiceDate", header: "Invoice Date", width: "110px" },
         {
             field: "purchaseTypeName",
             header: "Pur Type",
@@ -306,7 +307,6 @@ export default function PurchaseList() {
                 />
             )
         },
-        { field: "invoiceDate", header: "Invoice Date", width: "110px" },
     ];
 
     const parentColumns = [
@@ -314,6 +314,7 @@ export default function PurchaseList() {
         { field: "invoiceNumber", header: "Invoice No", width: "130px" },
         { field: "purchaseRefNo", header: "Ref No", width: "180px" },
         { field: "purchaseDate", header: "Pur Date", width: "130px" },
+        { field: "invoiceDate", header: "Invoice Date", width: "110px" },
         {
             field: "purchaseTypeName",
             header: "Pur Type",
@@ -639,6 +640,7 @@ export default function PurchaseList() {
                             isSave={false}
                             sortableColumns={["grandTotal", "purchaseDate"]}
                             page="purchase"
+                            showDateFilter={true}
                         />
                     ) : (
                         <div className="space-y-2">
@@ -652,6 +654,7 @@ export default function PurchaseList() {
                                 onEdit={handleParentEdit}
                                 sortableColumns={["grandTotal", "purchaseDate"]}
                                 page="purchase"
+                                showDateFilter={true}
                             />
                         </div>
                     )}

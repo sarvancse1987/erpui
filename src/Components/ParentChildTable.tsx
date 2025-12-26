@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "primereact/button";
@@ -7,6 +7,8 @@ import { IconField } from "primereact/iconfield";
 import { InputIcon } from "primereact/inputicon";
 import { InputText } from "primereact/inputtext";
 import PurchaseFooterBox from "../modules/purchase/PurchaseFooterBox";
+import { Calendar } from "primereact/calendar";
+import { parseDDMMYYYY } from "../common/common";
 
 interface ColumnMeta<T> {
     field?: keyof T;
@@ -25,6 +27,7 @@ interface ParentChildTableProps<ParentType, ChildType> {
     onEdit?: (row: ParentType) => void;
     sortableColumns?: (keyof ParentType)[];
     page?: string;
+    showDateFilter?: boolean;
 }
 
 export function ParentChildTable<
@@ -39,9 +42,11 @@ export function ParentChildTable<
     expandAllInitially = false,
     onEdit,
     sortableColumns = [],
-    page
+    page,
+    showDateFilter
 }: ParentChildTableProps<ParentType, ChildType>) {
 
+    const [tableData, setTableData] = useState<any[]>([]);
     const [expandedRows, setExpandedRows] = useState<any>(
         expandAllInitially
             ? parentData.reduce((acc, curr) => {
@@ -55,6 +60,16 @@ export function ParentChildTable<
     const [filters, setFilters] = useState<any>({
         global: { value: "", matchMode: FilterMatchMode.CONTAINS }
     });
+    const [fromDate, setFromDate] = useState<Date | null>(null);
+    const [toDate, setToDate] = useState<Date | null>(null);
+    const [originalData, setOriginalData] = useState<any[]>([]);
+    const [isDateFiltered, setIsDateFiltered] = useState(false);
+
+    useEffect(() => {
+        setTableData(parentData);
+        setOriginalData(parentData)
+    }, [parentData]);
+
 
     const expandAll = () => {
         const all: Record<string, boolean> = {};
@@ -64,9 +79,6 @@ export function ParentChildTable<
 
     const collapseAll = () => setExpandedRows(null);
 
-    // -------------------------
-    // Child table + footer
-    // -------------------------
     const rowExpansionTemplate = (parent: ParentType) => {
         const children: ChildType[] = parent[childField] || [];
 
@@ -239,38 +251,144 @@ export function ParentChildTable<
             </div>
         ) : null;
 
+    const handleDateSubmit = () => {
+        if (!fromDate || !toDate) return;
+
+        const from = new Date(fromDate);
+        const to = new Date(toDate);
+        to.setHours(23, 59, 59, 999);
+
+        // decide date field based on page
+        const getDateField = (row: any) => {
+            if (page === "purchase") return row.invoiceDate;
+            if (page === "sale") return row.saleOnDate;
+            return null;
+        };
+
+        const filtered = originalData.filter((row: any) => {
+            const dateValue = getDateField(row);
+            if (!dateValue) return false;
+
+            const rowDate = parseDDMMYYYY(dateValue);
+            if (!rowDate) return false;
+
+            return rowDate >= from && rowDate <= to;
+        });
+
+        setTableData(filtered);
+        setIsDateFiltered(true);
+    };
+
+    const handleClearFilter = () => {
+        if (isDateFiltered) {
+            setFromDate(null);
+            setToDate(null);
+            setTableData(originalData);
+            setIsDateFiltered(false);
+        }
+    }
+
     return (
         <div className="card">
             {/* Toolbar */}
             <div className="flex justify-content-end gap-2 mb-2">
-                <Button icon="pi pi-plus" label="Expand All" onClick={expandAll} text />
-                <Button icon="pi pi-minus" label="Collapse All" onClick={collapseAll} text />
+                {/* <Button icon="pi pi-plus" label="Expand All" onClick={expandAll} text />
+                <Button icon="pi pi-minus" label="Collapse All" onClick={collapseAll} text /> */}
 
-                <div className="ml-auto">
-                    <span className="p-input-icon-left relative w-64">
-                        <IconField iconPosition="left">
-                            <InputIcon className="pi pi-search" />
-                            <InputText
-                                value={globalFilter}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setGlobalFilter(value);
-                                    setFilters({
-                                        ...filters,
-                                        global: { value, matchMode: FilterMatchMode.CONTAINS }
-                                    });
-                                }}
-                                placeholder="Search"
-                            />
-                        </IconField>
-                    </span>
-                </div>
+                {showDateFilter && (
+                    <>
+                        <div className="ml-auto">
+                            <div className="flex items-end gap-2 mb-3 flex-wrap">
+                                <div className="flex flex-col">
+                                    <Calendar
+                                        value={fromDate}
+                                        onChange={(e) => setFromDate(e.value ?? null)}
+                                        dateFormat="yy-mm-dd"
+                                        showIcon
+                                        className="w-40"
+                                        placeholder="From date"
+                                    />
+                                </div>
+
+                                <div className="flex flex-col">
+                                    <Calendar
+                                        value={toDate}
+                                        onChange={(e) => setToDate(e.value ?? null)}
+                                        dateFormat="yy-mm-dd"
+                                        showIcon
+                                        className="w-40"
+                                        minDate={fromDate ?? undefined}
+                                        placeholder="To date"
+                                    />
+                                </div>
+
+                                <Button
+                                    icon={"pi pi-check"}
+                                    size="small"
+                                    disabled={!isDateFiltered && (!fromDate || !toDate)}
+                                    onClick={handleDateSubmit}
+                                    className="h-[38px]"
+                                    severity={"success"}
+                                />
+                                {isDateFiltered && (
+                                    <Button
+                                        icon={"pi pi-times"}
+                                        size="small"
+                                        disabled={!isDateFiltered && (!fromDate || !toDate)}
+                                        onClick={handleClearFilter}
+                                        className="h-[38px]"
+                                        severity={"danger"}
+                                    />
+                                )}
+                            </div>
+                        </div>
+
+                        <span className="p-input-icon-left relative w-64 ml-2">
+                            <IconField iconPosition="left">
+                                <InputIcon className="pi pi-search" />
+                                <InputText
+                                    value={globalFilter}
+                                    onChange={(e) => {
+                                        setGlobalFilter(e.target.value);
+                                        setFilters((prev: any) => ({
+                                            ...prev,
+                                            global: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
+                                        }));
+                                    }}
+                                    placeholder="Search"
+                                />
+                            </IconField>
+                        </span>
+                    </>
+                )}
+
+                {!showDateFilter && (
+                    <div className="ml-auto">
+                        <span className="p-input-icon-left relative w-64 ml-2">
+                            <IconField iconPosition="left">
+                                <InputIcon className="pi pi-search" />
+                                <InputText
+                                    value={globalFilter}
+                                    onChange={(e) => {
+                                        setGlobalFilter(e.target.value);
+                                        setFilters((prev: any) => ({
+                                            ...prev,
+                                            global: { value: e.target.value, matchMode: FilterMatchMode.CONTAINS },
+                                        }));
+                                    }}
+                                    placeholder="Search"
+                                />
+                            </IconField>
+                        </span>
+                    </div>
+                )}
+
             </div>
 
             {/* Parent table */}
             <DataTable
                 scrollHeight="300px"
-                value={parentData}
+                value={tableData}
                 paginator
                 rows={10}
                 rowsPerPageOptions={[10, 20, 50, 100]}

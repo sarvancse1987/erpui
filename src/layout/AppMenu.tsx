@@ -33,6 +33,7 @@ const AppMenu: React.FC = () => {
             { label: "Users", icon: "pi pi-fw pi-user", to: "/users" },
             { label: "Roles", icon: "pi pi-fw pi-briefcase", to: "/users/roles" },
             { label: "User Types", icon: "pi pi-fw pi-id-card", to: "/users/usertypes" },
+            { label: "Role Mapping", icon: "pi pi-fw pi-lock", to: "/users/rolemapping" },
           ],
         },
         {

@@ -727,7 +727,18 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
             size="normal"
           >
             <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
-            <Column field="productName" header="Name" style={{ minWidth: "200px" }} sortable />
+            <Column header="Name" style={{ minWidth: "200px" }} sortable body={(row) => (
+              <div className="flex items-center gap-2">
+                <span>{row.productName}</span>
+
+                <i
+                  className="pi pi-copy cursor-pointer text-blue-600 hover:text-blue-800"
+                  onClick={() => navigator.clipboard.writeText(row.productName)}
+                  title="Copy Product Name"
+                ></i>
+              </div>
+            )}
+            />
             <Column field="brandName" header="Brand" style={{ minWidth: "120px" }} sortable />
             <Column
               field="quantity"
@@ -820,6 +831,8 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
                       quantity: 0,
                       amount: 0,
                       totalAmount: 0,
+                      isGSTIncludedInPrice: p.isGSTIncludedInPrice,
+                      gstPercent: p.isGSTIncludedInPrice ? ((p.cgstRate ?? 0) + (p.sgstRate ?? 0)) : 0,
                       _tempKey: rowKey,
                       _edited: true,
                     } as unknown as T;

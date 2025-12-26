@@ -20,6 +20,7 @@ const SupplierList = React.lazy(() => import("../modules/supplier/SupplierList")
 const PurchaseList = React.lazy(() => import("../modules/purchase/PurchaseList"));
 const Role = React.lazy(() => import("../modules/user/Role"));
 const UserType = React.lazy(() => import("../modules/user/UserType"));
+const RoleMapping = React.lazy(() => import("../modules/user/RoleMapping"));
 const MyProfile = React.lazy(() => import("../modules/user/MyProfile"));
 const ChangePassword = React.lazy(() => import("../modules/user/ChangePassword"));
 const LocationList = React.lazy(() => import("../modules/companies/LocationList"));
@@ -66,6 +67,7 @@ export default function AppRouter() {
                     <Route index element={<UserList />} />
                     <Route path="roles" element={<Role />} />
                     <Route path="usertypes" element={<UserType />} />
+                    <Route path="rolemapping" element={<RoleMapping />} />
                 </Route>
 
                 {/* Supplier Module */}

@@ -95,7 +95,6 @@ export default function ShipmentList() {
 
     const columns: ColumnMeta<any>[] = [
         { field: "shipmentId", header: "ID", width: "80px", editable: false, hidden: true },
-        { field: "saleRefNo", header: "Sale Ref No", width: "150px" },
         { field: "shipmentDate", header: "Date", width: "150px" },
         { field: "shipmentTime", header: "Time", width: "150px" },
         { field: "shipmentTypeName", header: "Shipment Type", width: "150px" },
@@ -147,6 +146,8 @@ export default function ShipmentList() {
                     onDelete={handleDelete}
                     isNew={false}
                     isSave={false}
+                    page="shipment"
+                    showDateFilter={true}
                 />
             </fieldset>
         </div>
