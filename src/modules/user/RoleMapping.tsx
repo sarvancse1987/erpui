@@ -11,6 +11,7 @@ interface PermissionRow {
   moduleName: string;
   actionId: number;
   actionName: string;
+  isParent?: boolean;
   userPermissions: Record<number, boolean>; // key = userId
   isFirst?: boolean;
   rowCount?: number;
@@ -41,35 +42,51 @@ export default function RoleMapping() {
         return;
       }
 
-      const modules = res.modules;
-      const actions = res.actions;
+      const modules = res.modules; // module list
+      const actions = res.actions; // action + user-permission rows
 
-      const userresponse = await apiService.get("/Users");
-      const apiUsers = userresponse ?? [];
-
+      // 1️⃣ Extract unique users
+      const userMap = new Map<number, User>();
+      actions.forEach((row: any) => {
+        if (row.id && !userMap.has(row.id)) {
+          userMap.set(row.id, { id: row.id, username: row.username });
+        }
+      });
+      const apiUsers: User[] = Array.from(userMap.values());
       setUsers(apiUsers);
 
-      const mapped: PermissionRow[] = actions
-        .filter((a: any) => !a.isParent)
-        .map((a: any) => {
-          const module = modules.find((m: any) => m.id === a.moduleId);
-          // Create a userPermissions object
-          const userPermissions: Record<number, boolean> = {};
-          apiUsers.forEach((u: any) => {
-            userPermissions[u.userId] = a.userPermissions?.[u.userId] ?? false;
-          });
-          return {
-            moduleId: a.moduleId,
-            moduleName: module?.name || "",
-            actionId: a.id,
-            actionName: a.name,
-            userPermissions,
-          };
+      // 2️⃣ Group actions by actionId (each action has multiple rows for each user)
+      const actionMap = new Map<number, any[]>();
+      actions.forEach((row: any) => {
+        if (!actionMap.has(row.actionId)) actionMap.set(row.actionId, []);
+        actionMap.get(row.actionId)!.push(row);
+      });
+
+      // 3️⃣ Build PermissionRow[]
+      const mapped: PermissionRow[] = [];
+      actionMap.forEach((rows, actionId) => {
+        const firstRow = rows[0];
+        const module = modules.find((m: any) => m.id === firstRow.moduleId);
+
+        // map user permissions
+        const userPermissions: Record<number, boolean> = {};
+        rows.forEach((r) => {
+          if (r.id) userPermissions[r.id] = Boolean(r.isActive);
         });
 
+        mapped.push({
+          moduleId: firstRow.moduleId,
+          moduleName: module?.name || "",
+          actionId: firstRow.actionId,
+          actionName: firstRow.actionName,
+          isParent: firstRow.isParent,
+          userPermissions,
+        });
+      });
+
       setData(mapped);
-      setOriginalData(JSON.parse(JSON.stringify(mapped)));
-    } catch {
+      setOriginalData(JSON.parse(JSON.stringify(mapped))); // for Clear button
+    } catch (err) {
       showError("Failed to load permissions");
     } finally {
       setLoading(false);
@@ -106,6 +123,7 @@ export default function RoleMapping() {
     return result;
   }, [grouped, expanded]);
 
+  /* ---------------- SAVE ---------------- */
   const savePermissions = async () => {
     const payload: {
       ModuleActionId: number;
@@ -114,18 +132,16 @@ export default function RoleMapping() {
     }[] = [];
 
     data.forEach((row) => {
-      Object.entries(row.userPermissions)
-        .filter(([userId]) => {
-          const id = Number(userId);
-          return Number.isInteger(id) && id > 0;
-        })
-        .forEach(([userId, isAllowed]) => {
+      Object.entries(row.userPermissions).forEach(([userId, isAllowed]) => {
+        const id = Number(userId);
+        if (id > 0) {
           payload.push({
             ModuleActionId: row.actionId,
-            UserId: Number(userId),
+            UserId: id,
             IsActive: Boolean(isAllowed),
           });
-        });
+        }
+      });
     });
 
     if (payload.length === 0) {
@@ -137,22 +153,19 @@ export default function RoleMapping() {
 
     if (res.status) {
       showSuccess("Permissions saved");
-      setHasChanges(false); // reset dirty state
+      setHasChanges(false);
+      setOriginalData(JSON.parse(JSON.stringify(data)));
     } else {
       showError(res.message);
     }
   };
-
 
   return (
     <div className="p-2 h-[calc(100vh-100px)] overflow-auto">
       <h2 className="mb-1 text-lg font-semibold">🛡️ Role Mapping</h2>
 
       <fieldset className="border border-gray-300 rounded-md p-2 bg-white mb-2">
-        <legend className="text-sm font-semibold px-2 text-gray-700">
-          Role Mapping
-        </legend>
-
+        <legend className="text-sm font-semibold px-2 text-gray-700">Role Mapping</legend>
 
         {hasChanges && (
           <div className="flex gap-2 mb-4">
@@ -169,33 +182,23 @@ export default function RoleMapping() {
               className="p-button-sm custom-xs"
               icon="pi pi-times-circle"
               onClick={() => {
-                setData(JSON.parse(JSON.stringify(originalData))); // restore
+                setData(JSON.parse(JSON.stringify(originalData)));
                 setHasChanges(false);
               }}
             />
           </div>
         )}
 
-        <DataTable
-          value={rows}
-          loading={loading}
-          className="rolemapping"
-          dataKey="actionId"
-          style={{ overflow: "auto", height: "700px" }}
-        >
-          {/* Expand / Collapse */}
-          {/* Expand / Collapse + Module-level Checkbox for all users */}
+        <DataTable value={rows} loading={loading} className="rolemapping" dataKey="actionId" style={{ overflow: "auto", height: "700px" }}>
+          {/* Expand / Collapse + Module-level checkbox */}
           <Column
             body={(row: PermissionRow) => {
               if (!row.isFirst) return null;
 
               const isExpanded = expanded[row.moduleId];
-
-              // Check if all users for all actions in this module are selected
               const allCheckedForModule = grouped[row.moduleId].every((r) =>
                 users.every((u) => r.userPermissions[u.id])
               );
-
               const partiallyCheckedForModule =
                 grouped[row.moduleId].some((r) =>
                   users.some((u) => r.userPermissions[u.id])
@@ -203,7 +206,6 @@ export default function RoleMapping() {
 
               return (
                 <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                  {/* Expand / Collapse button */}
                   {row.rowCount! > 1 && (
                     <Button
                       icon={isExpanded ? "pi pi-angle-down" : "pi pi-angle-right"}
@@ -217,8 +219,6 @@ export default function RoleMapping() {
                       }
                     />
                   )}
-
-                  {/* Module-level checkbox for all users */}
                   <Checkbox
                     checked={allCheckedForModule}
                     inputRef={(el) => {
@@ -226,17 +226,16 @@ export default function RoleMapping() {
                     }}
                     onChange={(e) => {
                       const checked = e.checked ?? false;
-
                       setData((prev) =>
                         prev.map((r) =>
                           r.moduleId === row.moduleId
                             ? {
-                              ...r,
-                              userPermissions: users.reduce((acc, u) => {
-                                acc[u.id] = checked;
-                                return acc;
-                              }, {} as Record<number, boolean>),
-                            }
+                                ...r,
+                                userPermissions: users.reduce((acc, u) => {
+                                  acc[u.id] = checked;
+                                  return acc;
+                                }, {} as Record<number, boolean>),
+                              }
                             : r
                         )
                       );
@@ -249,21 +248,21 @@ export default function RoleMapping() {
             style={{ width: 80, textAlign: "center" }}
           />
 
-          {/* Module */}
+          {/* Module column */}
           <Column
             header="Module"
             body={(row: PermissionRow) => (row.isFirst ? row.moduleName : "")}
-            headerStyle={{ height: '30px', lineHeight: '30px', width: '300px' }}
+            headerStyle={{ width: 300 }}
           />
 
-          {/* Action */}
-          <Column header="Action" field="actionName" headerStyle={{ width: '100px' }} />
+          {/* Action column */}
+          <Column header="Action" field="actionName" headerStyle={{ width: 150 }} />
 
-          {/* Users dynamically */}
+          {/* User checkboxes dynamically */}
           {users.map((user) => {
-            // Calculate if all rows for this user are selected
-            const allChecked = data.every(row => row.userPermissions[user.id]);
-            const partiallyChecked = data.some(row => row.userPermissions[user.id]) && !allChecked;
+            const childRows = data.filter((r) => !r.isParent);
+            const allChecked = childRows.every((row) => row.userPermissions[user.id]);
+            const partiallyChecked = childRows.some((row) => row.userPermissions[user.id]) && !allChecked;
 
             return (
               <Column
@@ -292,35 +291,56 @@ export default function RoleMapping() {
                     />
                   </div>
                 }
-                body={(row: PermissionRow) => (
-                  <div style={{ display: "flex", justifyContent: "flex-start" }}>
-                    <Checkbox
-                      checked={row.userPermissions[user.id]}
-                      onChange={(e) => {
-                        const checked = e.checked ?? false;
-                        setData((prev) =>
-                          prev.map((r) =>
-                            r.actionId === row.actionId
-                              ? {
-                                ...r,
-                                userPermissions: {
-                                  ...r.userPermissions,
-                                  [user.id]: checked,
-                                },
+                body={(row: PermissionRow) => {
+                  const isParentRow = row.isParent;
+                  let checked = row.userPermissions[user.id];
+
+                  if (isParentRow) {
+                    // parent checkbox depends on all child actions
+                    const children = data.filter((r) => r.moduleId === row.moduleId && !r.isParent);
+                    checked = children.every((c) => c.userPermissions[user.id]);
+                  }
+
+                  return (
+                    <div style={{ display: "flex", justifyContent: "flex-start" }}>
+                      <Checkbox
+                        checked={checked}
+                        onChange={(e) => {
+                          const value = e.checked ?? false;
+                          setData((prev) =>
+                            prev.map((r) => {
+                              if (r.actionId === row.actionId) {
+                                return {
+                                  ...r,
+                                  userPermissions: {
+                                    ...r.userPermissions,
+                                    [user.id]: value,
+                                  },
+                                };
                               }
-                              : r
-                          )
-                        );
-                        setHasChanges(true);
-                      }}
-                    />
-                  </div>
-                )}
+                              // If parent clicked, update all children
+                              if (isParentRow && r.moduleId === row.moduleId && !r.isParent) {
+                                return {
+                                  ...r,
+                                  userPermissions: {
+                                    ...r.userPermissions,
+                                    [user.id]: value,
+                                  },
+                                };
+                              }
+                              return r;
+                            })
+                          );
+                          setHasChanges(true);
+                        }}
+                      />
+                    </div>
+                  );
+                }}
                 style={{ textAlign: "left", width: 120 }}
               />
             );
           })}
-
         </DataTable>
       </fieldset>
     </div>

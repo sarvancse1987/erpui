@@ -1,7 +1,29 @@
 import { JSX } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
+import { storage } from "../services/storageService";
+import { resolveRequiredModule } from "./PermissionResolver";
 
-export const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+interface Props {
+    children: JSX.Element;
+}
+
+export const ProtectedRoute = ({ children }: Props) => {
     const token = localStorage.getItem("authToken");
-    return token ? children : <Navigate to="/" replace />;
+    const location = useLocation();
+
+    // 1️⃣ Authentication
+    if (!token) {
+        return <Navigate to="/login" replace />;
+    }
+
+    // 2️⃣ Authorization
+    if ("/unauthorized" != location.pathname) {
+        const requiredModule = resolveRequiredModule(location.pathname);
+
+        if (requiredModule && !storage.hasModule(requiredModule)) {
+            return <Navigate to="/unauthorized" replace />;
+        }
+    }
+
+    return children;
 };

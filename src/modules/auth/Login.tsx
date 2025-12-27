@@ -32,24 +32,27 @@ const LoginPage: React.FC = () => {
         localStorage.setItem("authToken", response.token);
 
         const apiBaseUrl = process.env.REACT_APP_SERVICE_API_BASE_URL?.replace("/api", "") || "";
+        const userInfo = response.userInfo;
         const userData: UserData = {
-          authToken: response.token,
-          companyId: response.companyId,
-          locationId: response.locationId,
-          userId: response.userId,
-          userProfileName: response.lastName
-            ? `${response.firstName} ${response.lastName}`
-            : response.firstName,
-          firstName: response.firstName,
-          lastName: response.lastName,
-          userImage: response.userImage ? `${apiBaseUrl}${response.userImage}` : '',
-          companyName: response.companyName,
-          location: response.location,
-          companyLogo: `${apiBaseUrl}${response.path}`
+          authToken: userInfo.token,
+          companyId: userInfo.companyId,
+          locationId: userInfo.locationId,
+          userId: userInfo.userId,
+          userProfileName: userInfo.lastName
+            ? `${userInfo.firstName} ${userInfo.lastName}`
+            : userInfo.firstName,
+          firstName: userInfo.firstName,
+          lastName: userInfo.lastName,
+          userImage: userInfo.userImage ? `${apiBaseUrl}${userInfo.userImage}` : '',
+          companyName: userInfo.companyName,
+          location: userInfo.location,
+          companyLogo: `${apiBaseUrl}${userInfo.path}`
         };
 
         storage.setUser(userData);
-        setToken(response.token);
+        storage.setUserModule(response.userModule);
+        storage.setUserModuleAction(response.userModuleAction);
+        setToken(userInfo.token);
         navigate("/", { replace: true });
       } else {
         showError(response.data);

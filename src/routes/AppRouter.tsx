@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "../layout/layout";
 import { ProtectedRoute } from "./ProtectedRoute";
 import MinimalLayout from "../layout/MinimalLayout";
+import Unauthorized from "../modules/user/Unauthorized";
 
 const Dashboard = React.lazy(() => import("../modules/dashboard/Dashboard"));
 const ProductList = React.lazy(() => import("../modules/products/ProductList"));
@@ -115,7 +116,7 @@ export default function AppRouter() {
                     <Route path="voucher" element={<VoucherList />} />
                 </Route>
 
-
+                <Route path="/unauthorized" element={<Unauthorized />} />
 
             </Route>
 

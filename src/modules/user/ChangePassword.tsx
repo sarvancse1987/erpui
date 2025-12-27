@@ -60,7 +60,7 @@ const ChangePassword: React.FC = () => {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             toggleMask
-                            className={`w-full mt-1 ${validationErrors.password ? "mandatory-border" : ""}`}
+                            className={`w-full mt-1 ${validationErrors.password ? "p-invalid" : ""}`}
                             placeholder="Enter new password"
                         />
                         {validationErrors.password && (
@@ -75,7 +75,7 @@ const ChangePassword: React.FC = () => {
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             toggleMask
-                            className={`w-full mt-1 ${validationErrors.confirmPassword ? "mandatory-border" : ""}`}
+                            className={`w-full mt-1 ${validationErrors.confirmPassword ? "p-invalid" : ""}`}
                             placeholder="Confirm new password"
                         />
                         {validationErrors.confirmPassword && (
@@ -90,7 +90,7 @@ const ChangePassword: React.FC = () => {
                         label="Save"
                         icon="pi pi-save"
                         severity="success"
-                        className="p-button-sm"
+                        className="p-button-sm custom-xs"
                         onClick={handleSave}
                         loading={loading}
                     />

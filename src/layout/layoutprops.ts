@@ -45,16 +45,16 @@ export interface AppMenuItemProps {
 }
 
 export interface AppMenuItem {
-    label: string;
-    icon?: string;
-    to?: string;
-    url?: string;
-    target?: string;
-    badge?: string;
-    class?: string;
-    preventExact?: boolean;
-    seperator?: boolean;
-    items?: AppMenuItem[];
+  label: string;
+  icon?: string;
+  to?: string;
+  url?: string;
+  target?: string;
+  badge?: string;
+  class?: string;
+  preventExact?: boolean;
+  separator?: boolean; // ✅ correct spelling
+  items?: AppMenuItem[];
 }
 
 export interface ThemeProviderProps {
