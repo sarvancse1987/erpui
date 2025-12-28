@@ -454,7 +454,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
           <PurchaseFooterBox
             label="GST Amt"
             value={formatINR(totals.gstAmount)}
-            bg="#d3db34ff"
+            bg="#dbb434ff"
           />
 
           {/* Grand Total */}
@@ -525,7 +525,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
       <div className="flex justify-between items-center mb-3">
         <div className="flex gap-2">
           {isNew && (
-            <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} size="small" className="p-button-sm custom-xs" />
+            <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} size="small" className="p-button-info custom-xs" />
           )}
           {isSave && (
             <Button label="Save" icon="pi pi-save" onClick={saveAll} size="small" className="p-button-sm custom-xs" />
@@ -574,7 +574,6 @@ export function TTypeDatatable<T extends Record<string, any>>({
                   disabled={!isDateFiltered && (!fromDate || !toDate)}
                   onClick={handleDateSubmit}
                   className="h-[38px]"
-                  severity={"success"}
                 />
                 {isDateFiltered && (
                   <Button

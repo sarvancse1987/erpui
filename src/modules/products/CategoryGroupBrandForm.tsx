@@ -400,7 +400,7 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
         <Button
           icon="pi pi-plus"
           label="Add Category"
-          className="p-button-sm custom-xs"
+          className="p-button-info custom-xs"
           onClick={() =>
             setCategoryRows(r => [...r, emptyCategoryOnly()])
           }
@@ -503,7 +503,7 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
                     ? { ...c, groups: [...c.groups, emptyGroup()] }
                     : c
                 )
-              )} className="p-button-sm custom-xs mr-1" data-pr-position="left" tooltip="Add group" />
+              )} className="p-button-info custom-xs mr-1" data-pr-position="left" tooltip="Add group" />
               {ci > 0 &&
                 <Button
                   icon="pi pi-trash"
@@ -526,9 +526,9 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
       {(type === "GROUP") && (
         <Button
           icon="pi pi-plus"
-          label="Add Category"
+          label="Add Group"
           onClick={() => setRows(r => [...r, emptyCategory()])}
-          className="p-button-sm custom-xs"
+          className="p-button-info custom-xs"
         />
       )}
 
@@ -554,7 +554,6 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
                   )
                   handleCategoryChange(ci, e.value)
                 }}
-                disabled={true}
               />
             </div>
 
@@ -651,7 +650,7 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
                     ? { ...c, brands: [...c.brands, emptyBrand()] }
                     : c
                 )
-              )} className="p-button-sm custom-xs mr-1" data-pr-position="left" tooltip="Add Brand" />
+              )} className="p-button-info custom-xs mr-1" data-pr-position="left" tooltip="Add Brand" />
               {ci > 0 &&
                 <Button
                   icon="pi pi-trash"
@@ -675,14 +674,14 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
           icon="pi pi-plus"
           label="Add Brand"
           onClick={() => setGroupRows(r => [...r, emptyGroup()])}
-          className="p-button-sm custom-xs"
+          className="p-button-info custom-xs"
         />
       )}
 
       {/* ACTIONS */}
       <div className="flex justify-end gap-2 mt-3">
         <Button label="Cancel" outlined severity="danger" onClick={onCancel} className="p-button-sm custom-xs" icon="pi pi-times-circle" style={{ color: 'red' }} />
-        <Button label="Save" icon="pi pi-save" severity="success" onClick={handleSave} className="p-button-sm custom-xs" />
+        <Button label="Save" icon="pi pi-save" onClick={handleSave} className="p-button-sm custom-xs" />
       </div>
     </fieldset>
   );

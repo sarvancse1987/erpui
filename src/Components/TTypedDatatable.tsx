@@ -438,8 +438,8 @@ export function TTypedDatatable<T extends Record<string, any>>({
 
       <div className="flex justify-between items-center mb-1">
         <div className="flex gap-2">
-          {isNew && <Button label="Add" icon="pi pi-plus" outlined onClick={addRowNew} size="small" className="p-button-sm custom-xs" />}
-          {isEdit && selectedRows.length > 1 && <Button label="Edit" icon="pi pi-pencil" outlined onClick={onEditNew} size="small" className="p-button-sm custom-xs" />}
+          {isNew && <Button label="Add" icon="pi pi-plus" outlined onClick={addRowNew} size="small" className="p-button-info custom-xs" />}
+          {isEdit && selectedRows.length > 1 && <Button label="Edit" icon="pi pi-pencil" outlined onClick={onEditNew} size="small" className="p-button-info custom-xs" />}
           {isSave && isSaveEnabled && <Button label="Save" icon="pi pi-save" onClick={saveAll} disabled={!isSaveEnabled} size="small" className="p-button-sm custom-xs" />}
           {isDelete && selectedRows.length > 0 && (
             <Button

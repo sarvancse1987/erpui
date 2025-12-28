@@ -164,14 +164,14 @@ export default function CustomerList() {
                 </TabPanel>
 
                 <TabPanel header={
-                    <div className="flex items-center gap-2" style={{ color: 'green' }}>
+                    <div className="flex items-center gap-2" style={{ color: '#4083f2' }}>
                         <i className="pi pi-plus-circle" />
                         <span>Add New</span>
                     </div>
                 }>
                     <div className="flex gap-2 mb-4">
-                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewCustomer} className="p-button-sm custom-xs" />
-                        <Button label="Save" icon="pi pi-save" onClick={handleSaveCustomers} disabled={!newCustomers.length} className="p-button-sm custom-xs" />
+                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewCustomer} className="p-button-info custom-xs" />
+                        {newCustomers.length > 0 && (<Button label="Save" icon="pi pi-save" onClick={handleSaveCustomers} className="p-button-sm custom-xs" />)}
                     </div>
 
                     {newCustomers.length === 0 ? (

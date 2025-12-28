@@ -174,14 +174,14 @@ export default function LocationList() {
 
                 {/* === ADD NEW TAB === */}
                 <TabPanel header={
-                    <div className="flex items-center gap-2" style={{ color: 'green' }}>
+                    <div className="flex items-center gap-2" style={{ color: '#4083f2' }}>
                         <i className="pi pi-plus-circle" />
                         <span>Add New</span>
                     </div>
                 }>
                     <div className="flex gap-2 mb-4">
-                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewLocation} className="p-button-sm custom-xs" />
-                        <Button label="Save" icon="pi pi-save" onClick={handleSaveLocations} disabled={!newLocations.length} className="p-button-sm custom-xs" />
+                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewLocation} className="p-button-info custom-xs" />
+                        {newLocations.length > 0 && (<Button label="Save" icon="pi pi-save" onClick={handleSaveLocations} className="p-button-sm custom-xs" />)}
                     </div>
 
                     {newLocations.length === 0 ? (

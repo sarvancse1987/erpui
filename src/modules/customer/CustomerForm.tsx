@@ -351,7 +351,7 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({
 
                 <div className="flex justify-end gap-2 mt-4">
                     <Button type="button" label="Cancel" icon="pi pi-times-circle" style={{ color: 'red' }} outlined onClick={onCancel} className="p-button-sm custom-xs" />
-                    {isEditSidebar && <Button type="submit" label="Update" icon="pi pi-save" severity="success" className="p-button-sm custom-xs" />}
+                    {isEditSidebar && <Button type="submit" label="Update" icon="pi pi-save" className="p-button-sm custom-xs" />}
                 </div>
 
             </fieldset>

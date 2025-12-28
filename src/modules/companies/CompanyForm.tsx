@@ -452,7 +452,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({
 
                     {isEditSidebar && (
                         <Button type="submit" label="Update" icon="pi pi-save"
-                            severity="success"
                             className="p-button-sm custom-xs" />
                     )}
                 </div>

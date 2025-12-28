@@ -337,7 +337,7 @@ code {
   font-size: 15px;
 }
 
-:not(.rolemapping) > .p-datatable-wrapper {
+:not(.rolemapping)>.p-datatable-wrapper {
   max-height: 350px;
   overflow-y: auto !important;
 }
@@ -364,13 +364,13 @@ code {
   color: white !important;
 }
 
-.p-button-danger {
-  background-color: #e74c3c !important;
-  border-color: #e74c3c !important;
-  color: white !important;
+/* Equal row height */
+.rolemapping .p-datatable-tbody>tr {
+  height: 60px;
+  /* same as bodyStyle height */
 }
 
-/* Equal row height */
-.rolemapping .p-datatable-tbody > tr {
-  height: 60px; /* same as bodyStyle height */
+.p-tag.p-tag-success {
+  background-color: #9b75cf;
+  color: #ffffff;
 }

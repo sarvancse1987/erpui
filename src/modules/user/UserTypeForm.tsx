@@ -150,12 +150,12 @@ export const UserTypeForm: React.FC<UserTypeFormProps> = ({
 
 
             <div className="flex justify-content-between">
-                <Button icon="pi pi-plus" label="Add Usertype" outlined onClick={() => addRow(roles, setRoles)} className="p-button-sm custom-xs" />
+                <Button icon="pi pi-plus" label="Add Usertype" outlined onClick={() => addRow(roles, setRoles)} className="p-button-info custom-xs" />
             </div>
 
             <div className="flex justify-end gap-2 mt-3">
                 <Button label="Cancel" outlined severity="danger" onClick={onCancel} className="p-button-sm custom-xs" icon="pi pi-times-circle" style={{ color: 'red' }} />
-                <Button label="Save" icon="pi pi-save" severity="success" onClick={() => { saveData() }} className="p-button-sm custom-xs" />
+                <Button label="Save" icon="pi pi-save" onClick={() => { saveData() }} className="p-button-sm custom-xs" />
             </div>
 
         </fieldset >

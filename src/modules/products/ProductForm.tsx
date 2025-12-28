@@ -406,7 +406,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               type="submit"
               label={formData.productId ? "Update" : "Save"}
               icon="pi pi-save"
-              severity="success"
               className="p-button-sm custom-xs"
             />
           )}

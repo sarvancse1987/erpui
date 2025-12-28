@@ -328,7 +328,6 @@ export function ParentChildTable<
                                     disabled={!isDateFiltered && (!fromDate || !toDate)}
                                     onClick={handleDateSubmit}
                                     className="h-[38px]"
-                                    severity={"success"}
                                 />
                                 {isDateFiltered && (
                                     <Button

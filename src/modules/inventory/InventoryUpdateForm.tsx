@@ -224,8 +224,7 @@ const InventoryUpdateForm: React.FC<InventoryUpdateFormProps> = ({
                         type="button"
                         label="Update"
                         icon="pi pi-save"
-                        severity="success"
-                        className="p-button-sm custom-xs"
+                        className="p-button-infosm custom-xs"
                         onClick={handleSubmit}
                     />
                 </div>

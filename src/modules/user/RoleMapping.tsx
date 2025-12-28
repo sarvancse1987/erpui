@@ -209,7 +209,7 @@ export default function RoleMapping() {
                   {row.rowCount! > 1 && (
                     <Button
                       icon={isExpanded ? "pi pi-angle-down" : "pi pi-angle-right"}
-                      className="p-button-rounded p-button-sm"
+                      className="p-button-rounded p-button-info"
                       style={{ width: "35px", height: "35px" }}
                       onClick={() =>
                         setExpanded((prev) => ({

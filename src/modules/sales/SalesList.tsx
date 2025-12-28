@@ -757,7 +757,7 @@ export default function SaleList() {
         </TabPanel>
 
         <TabPanel header={
-          <div className="flex items-center gap-2" style={{ color: 'green' }}>
+          <div className="flex items-center gap-2" style={{ color: '#4083f2' }}>
             <i className="pi pi-plus-circle" />
             <span>Add New</span>
           </div>

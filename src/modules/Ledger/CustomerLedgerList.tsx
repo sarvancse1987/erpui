@@ -7,6 +7,7 @@ import apiService from "../../services/apiService";
 import { Tag } from "primereact/tag";
 import PurchaseFooterBox from "../purchase/PurchaseFooterBox";
 import { formatINR } from "../../common/common";
+import { MultiSelect } from "primereact/multiselect";
 
 export default function CustomerLedgerList() {
     const [customerId, setCustomerId] = useState<number | null>(null);
@@ -71,7 +72,7 @@ export default function CustomerLedgerList() {
                 bg="#22c55e"
             />
 
-             <PurchaseFooterBox
+            <PurchaseFooterBox
                 label="Total Balance"
                 value={formatINR(closing)}
                 bg="#ef4444"
@@ -160,17 +161,28 @@ export default function CustomerLedgerList() {
                 </legend>
 
                 <div className="flex gap-2 mb-3">
-                    <Dropdown
+                    {/* <Dropdown
                         value={customerId}
                         options={customers}
                         placeholder="Select Customer"
                         className="w-20rem"
                         onChange={(e) => setCustomerId(e.value)}
                         showClear
+                    /> */}
+
+                    <MultiSelect
+                        value={customerId}
+                        options={customers}
+                        onChange={(e) => setCustomerId(e.value)}
+                        placeholder="Select Supplier"
+                        className="w-20rem"
+                        display="chip"
+                        filter
+                        showClear
                     />
                     <Button
                         icon="pi pi-refresh"
-                        severity="secondary"
+                        className="p-button-info"
                         onClick={loadLedger}
                     />
                 </div>

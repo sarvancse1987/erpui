@@ -124,6 +124,7 @@ const LoginPage: React.FC = () => {
                 label="Password"
                 validate={true}
                 error={errors.password}
+                type="password"
               />
             </div>
 

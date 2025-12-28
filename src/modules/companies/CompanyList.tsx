@@ -191,14 +191,14 @@ export default function CompanyList() {
                 </TabPanel>
 
                 <TabPanel header={
-                    <div className="flex items-center gap-2" style={{ color: 'green' }}>
+                    <div className="flex items-center gap-2" style={{ color: '#4083f2' }}>
                         <i className="pi pi-plus-circle" />
                         <span>Add New</span>
                     </div>
                 }>
                     <div className="flex gap-2 mb-4">
-                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewCompany} className="p-button-sm custom-xs" />
-                        <Button label="Save" icon="pi pi-save" onClick={handleSaveCompanies} disabled={!newCompanies.length} className="p-button-sm custom-xs" />
+                        <Button label="Add" icon="pi pi-plus" outlined onClick={addNewCompany} className="p-button-info custom-xs" />
+                        {newCompanies.length > 0 && (<Button label="Save" icon="pi pi-save" onClick={handleSaveCompanies} className="p-button-sm custom-xs" />)}
                     </div>
 
                     {newCompanies.length === 0 ? (

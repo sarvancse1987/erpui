@@ -226,7 +226,6 @@ export const VoucherForm: React.FC<VoucherFormProps> = ({
                         <Button type="submit"
                             label="Update"
                             icon="pi pi-save"
-                            severity="success"
                             className="p-button-sm custom-xs" onClick={handleSave} />
                     </div>
                 )}

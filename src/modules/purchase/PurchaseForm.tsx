@@ -587,7 +587,6 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
               type="submit"
               label="Update"
               icon="pi pi-save"
-              severity="success"
               className="p-button-sm custom-xs"
               onClick={handleUpdateForm}
             />

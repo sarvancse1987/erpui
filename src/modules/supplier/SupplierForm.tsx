@@ -374,7 +374,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                             outlined onClick={onCancel} className="p-button-sm custom-xs" />
                     )}
                     {isEditSidebar && (
-                        <Button type="submit" label="Update" icon="pi pi-save" severity="success" className="p-button-sm custom-xs" />
+                        <Button type="submit" label="Update" icon="pi pi-save" className="p-button-sm custom-xs" />
                     )}
                 </div>
             </fieldset>

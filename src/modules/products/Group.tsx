@@ -339,14 +339,14 @@ export default function GroupPage() {
             <TabView>
                 <TabPanel
                     header={
-                        <div className="flex items-center gap-2" style={{ color: 'green' }}>
+                        <div className="flex items-center gap-2" style={{ color: '#4083f2' }}>
                             <i className="pi pi-check-circle" />
                             <span>Active</span>
                         </div>
                     }>
                     <div className="flex justify-between items-center mb-1">
                         <div className="flex gap-2 mb-2">
-                            <Button label="Add" icon="pi pi-plus" outlined onClick={add} size="small" className="p-button-sm custom-xs" />
+                            <Button label="Add" icon="pi pi-plus" outlined onClick={add} size="small" className="p-button-info custom-xs" />
                         </div>
                         <div className="ml-auto">
                             <span className="p-input-icon-left relative w-64">

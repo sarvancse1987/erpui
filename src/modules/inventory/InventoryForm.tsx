@@ -383,9 +383,9 @@ export default function InventoryForm({
         </TabPanel>
 
         <TabPanel header={
-          <div className="flex items-center gap-2" style={{ color: 'green' }}>
-            <i className="pi pi-plus" />
-            <span>Add</span>
+          <div className="flex items-center gap-2" style={{ color: '#4083f2' }}>
+            <i className="pi pi-plus-circle" />
+            <span>Add New</span>
           </div>
         }>
           <div className={`border border-gray-200 rounded-md p-1 w-full"}`}>
@@ -394,12 +394,12 @@ export default function InventoryForm({
                 Add / Update Inventory
               </legend>
               <div className="flex gap-2 mb-2">
-                <Button label="Add Inventory" icon="pi pi-plus" onClick={() => setIsSidebarOpen(true)} className="p-button-sm custom-xs" size="small" />
+                <Button label="Add" icon="pi pi-plus" onClick={() => setIsSidebarOpen(true)} className="p-button-info custom-xs" size="small" />
                 {selectedInventoryProducts.length > 0 && (
                   <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={handleDeleteInventory} className="p-button-sm custom-xs" size="small" />)}
 
                 {inventoryProducts.length > 0 && (
-                  <Button label="Save" icon="pi pi-save" onClick={handleSaveForm} className="p-button-sm custom-xs" severity="success" />)}
+                  <Button label="Save" icon="pi pi-save" onClick={handleSaveForm} className="p-button-sm custom-xs"/>)}
 
               </div>
 
@@ -682,7 +682,7 @@ export default function InventoryForm({
               <div className="flex justify-end gap-2 mt-4">
                 <Button type="button" label="Cancel" icon="pi pi-times-circle" style={{ color: 'red' }}
                   outlined onClick={() => setIsSidebarOpen(false)} className="p-button-sm custom-xs" />
-                {selectedProducts.length > 0 && (<Button type="button" label="Add Selected" icon="pi pi-save" severity="success" className="p-button-sm custom-xs" onClick={onAddSelectedProduct} />)}
+                {selectedProducts.length > 0 && (<Button type="button" label="Add Selected" icon="pi pi-save" className="p-button-info custom-xs" onClick={onAddSelectedProduct} />)}
               </div>
             </Sidebar>
 

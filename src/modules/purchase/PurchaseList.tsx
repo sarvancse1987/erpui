@@ -269,7 +269,7 @@ export default function PurchaseList() {
                     }).format(row.totalGST)}
                     className="amount-tag"
                     style={{
-                        backgroundColor: "#d3db34ff",
+                        backgroundColor: "#dbb434ff",
                         color: "white",
                         fontWeight: "500",
                         fontSize: "0.85rem",
@@ -661,7 +661,7 @@ export default function PurchaseList() {
                 </TabPanel>
 
                 <TabPanel header={
-                    <div className="flex items-center gap-2" style={{ color: 'green' }}>
+                    <div className="flex items-center gap-2" style={{ color: '#4083f2' }}>
                         <i className="pi pi-plus-circle" />
                         <span>Add New</span>
                     </div>

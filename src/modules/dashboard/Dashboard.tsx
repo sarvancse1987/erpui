@@ -131,7 +131,7 @@ export default function Dashboard() {
                 <h2 className="text-2xl font-semibold text-gray-800">
 
                 </h2>
-                <Button label="Add Sale" icon="pi pi-plus" onClick={() => navigate("/sales")} className="p-button-sm custom-xs" />
+                <Button label="Add Sale" icon="pi pi-plus" onClick={() => navigate("/sales")} className="p-button-info custom-xs" />
             </div>
 
             {/* ================= KPI CARDS ================= */}

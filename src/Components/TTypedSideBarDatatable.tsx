@@ -420,8 +420,8 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
     <div className="card p-3 h-[calc(100vh-100px)] overflow-auto">
       <div className="flex justify-between items-center mb-1">
         <div className="flex gap-2 mb-1 flex-none">
-          <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} size="small" className="p-button-sm custom-xs" />
-          {isSave && < Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll} disabled={!isSaveEnabled} size="small" className="p-button-sm custom-xs" />}
+          <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} size="small" className="p-button-info custom-xs" />
+          {isSave && < Button label="Save" icon="pi pi-save" severity="success" onClick={saveAll} disabled={!isSaveEnabled} size="small" className="p-button-info custom-xs" />}
           {isDelete && tableData.length > 0 && selectedRows.length > 0 && <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={deleteSelected} disabled={!selectedRows.length} size="small" className="p-button-sm custom-xs" />}
         </div>
         <div className="ml-auto">
@@ -760,8 +760,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
             <Button
               label="Add Selected"
               icon="pi pi-check"
-              severity="success"
-              className="p-button-sm custom-xs"
+              className="p-button-info custom-xs"
               onClick={() => {
                 if (sidebarSelectedProducts.length <= 0) {
                   showError("Select at least one product");

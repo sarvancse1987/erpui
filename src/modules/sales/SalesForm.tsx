@@ -617,7 +617,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
           </div>
 
           <div className="min-w-[50px] mt-4">
-            <Button icon="pi pi-plus" onClick={() => setShowCustomerAdd(true)} className="p-button-sm custom-md"
+            <Button icon="pi pi-plus" onClick={() => setShowCustomerAdd(true)} className="p-button-info custom-sm"
               tooltip="Add New Customer"
               tooltipOptions={{ position: "bottom" }} />
           </div>

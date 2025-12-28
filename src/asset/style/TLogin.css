@@ -94,3 +94,105 @@
 .WelcomeContent {
     color: white;
 }
+
+
+
+
+
+.login-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #eef2f7, #f9fbfd);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-container {
+  width: 900px;
+  height: 520px;
+  background: #fff;
+  display: flex;
+  border-radius: 14px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.login-left {
+  flex: 1;
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  color: #fff;
+  padding: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-left h1 {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+.login-left p {
+  font-size: 15px;
+  opacity: 0.9;
+}
+
+.app-logo {
+  width: 80px;
+  margin-bottom: 30px;
+}
+
+.login-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 360px;
+}
+
+.login-card h2 {
+  font-size: 26px;
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 25px;
+}
+
+.field {
+  margin-bottom: 20px;
+}
+
+.forgot-container {
+  text-align: right;
+  margin-bottom: 20px;
+}
+
+.forgot-container a {
+  font-size: 13px;
+  color: #2563eb;
+}
+
+.login-btn {
+  width: 100%;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.powered {
+  margin-top: 30px;
+  text-align: center;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.powered img {
+  margin-top: 6px;
+  height: 24px;
+}
