@@ -30,4 +30,5 @@ export const RoutePermissionMap: Record<string, string> = {
 
     "/myprofile": "My Profile",
     "/changepassword": "Change Password",
+    "/quotations": "Quotations",
 };

@@ -39,7 +39,8 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
   onAdjustmentsChange,
   savedAdjustments,
   onShipment,
-  shipmentInfo
+  shipmentInfo,
+  page
 }: TTypedDatatableProps<T> & {
   products?: ProductModel[]
 }) {
@@ -484,15 +485,16 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
           footer={
             <div className="custom-footer flex justify-between items-center gap-1 flex-wrap px-2 py-1">
               <div className="flex items-center gap-1 min-w-[200px] adjustment-section">
-                <Button
-                  label=""
-                  icon="pi pi-truck"
-                  severity={(shipmentModel?.shipmentId ?? 0) > 0 ? "success" : "info"}
-                  style={{ fontSize: '0.85rem', padding: '2px 2px', height: '36px' }}
-                  tooltip={(shipmentModel?.shipmentId ?? 0) > 0 ? "View Shipment" : "Add Shipment"}
-                  tooltipOptions={{ position: "bottom" }}
-                  onClick={handleShipment}
-                />
+                {page != "quotation" && (
+                  <Button
+                    label=""
+                    icon="pi pi-truck"
+                    severity={(shipmentModel?.shipmentId ?? 0) > 0 ? "success" : "info"}
+                    style={{ fontSize: '0.85rem', padding: '2px 2px', height: '36px' }}
+                    tooltip={(shipmentModel?.shipmentId ?? 0) > 0 ? "View Shipment" : "Add Shipment"}
+                    tooltipOptions={{ position: "bottom" }}
+                    onClick={handleShipment}
+                  />)}
 
                 <Dropdown
                   value={selectedAdjustment}

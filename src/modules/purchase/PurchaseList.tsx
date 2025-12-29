@@ -493,7 +493,26 @@ export default function PurchaseList() {
     ];
 
     const childColumns: ColumnMeta<PurchaseItemModel>[] = [
-        { field: "productName", header: "Product Name", width: "220px" },
+        {
+            field: "productName", header: "Product Name", width: "220px", body: (row: PurchaseItemModel) => (
+                <div className="flex items-center gap-2">
+                    <span className="truncate max-w-[150px]">
+                        {row.productName || ""}
+                    </span>
+
+                    {row.productName && (
+                        <i
+                            className="pi pi-copy cursor-pointer text-blue-600 hover:text-blue-800"
+                            title="Copy Product Name"
+                            onClick={(e) => {
+                                e.stopPropagation(); // ✅ prevent row click/edit
+                                navigator.clipboard.writeText(row.productName);
+                            }}
+                        />
+                    )}
+                </div>
+            ),
+        },
         {
             field: "unitPrice", header: "Rate", width: "170px",
             body: (row: PurchaseItemModel) =>

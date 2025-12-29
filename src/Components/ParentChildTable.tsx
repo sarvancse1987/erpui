@@ -249,6 +249,12 @@ export function ParentChildTable<
                     <PurchaseFooterBox label="Balance Amt" value={formatINR(saleTotals.runningAmount)} bg="#be5744ff" />
                 </div>
             </div>
+        ): page === "quotation" ? (
+            <div className="custom-footer flex justify-between items-center gap-1 flex-wrap px-2 py-1">
+                <div className="flex items-center gap-1 flex-wrap">
+                    <PurchaseFooterBox label="Total" value={formatINR(saleTotals.grandTotal)} />
+                </div>
+            </div>
         ) : null;
 
     const handleDateSubmit = () => {

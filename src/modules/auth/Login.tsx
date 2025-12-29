@@ -46,7 +46,8 @@ const LoginPage: React.FC = () => {
           userImage: userInfo.userImage ? `${apiBaseUrl}${userInfo.userImage}` : '',
           companyName: userInfo.companyName,
           location: userInfo.location,
-          companyLogo: `${apiBaseUrl}${userInfo.path}`
+          companyLogo: `${apiBaseUrl}${userInfo.path}`,
+          userRole: userInfo.roleName
         };
 
         storage.setUser(userData);

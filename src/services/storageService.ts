@@ -13,6 +13,7 @@ export interface UserData {
     companyName?: string;
     location?: string;
     companyLogo?: string;
+    userRole: string;
 }
 
 export const storage = {
@@ -32,15 +33,15 @@ export const storage = {
             return null;
         }
     },
-
     getToken(): string {
         return this.getUser()?.authToken || "";
     },
-
+    getRole(): string {
+        return this.getUser()?.userRole || "";
+    },
     clear() {
         localStorage.removeItem("user");
     },
-
     updateUserProfileName(firstName: string, lastName?: string) {
         const user = this.getUser();
         if (!user) return;

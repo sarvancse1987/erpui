@@ -10,14 +10,16 @@ interface Props {
 export const ProtectedRoute = ({ children }: Props) => {
     const token = localStorage.getItem("authToken");
     const location = useLocation();
-
+    const isUnauthorizedPage = location.pathname === "/unauthorized";
+    const isRoleMappingPage = location.pathname === "/users/rolemapping";
+    const isAdmin = storage.getRole() === "Admin";
     // 1️⃣ Authentication
     if (!token) {
         return <Navigate to="/login" replace />;
     }
 
     // 2️⃣ Authorization
-    if ("/unauthorized" != location.pathname) {
+    if (!(isUnauthorizedPage || (isAdmin && isRoleMappingPage))) {
         const requiredModule = resolveRequiredModule(location.pathname);
 
         if (requiredModule && !storage.hasModule(requiredModule)) {

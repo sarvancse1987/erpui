@@ -38,7 +38,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
     totalGST: 0,
     grandTotal: 0,
     isActive: true,
-    purchaseTypeId: 0,
+    purchaseTypeId: 1,
     cash: 0,
     upi: 0,
     freightAmount: 0,
@@ -120,7 +120,24 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
       required: true,
       width: "200px",
       frozen: true,
-      body: (row: PurchaseItemModel) => row.productName || "",
+      body: (row: PurchaseItemModel) => (
+        <div className="flex items-center gap-2">
+          <span className="truncate max-w-[150px]">
+            {row.productName || ""}
+          </span>
+
+          {row.productName && (
+            <i
+              className="pi pi-copy cursor-pointer text-blue-600 hover:text-blue-800"
+              title="Copy Product Name"
+              onClick={(e) => {
+                e.stopPropagation(); // ✅ prevent row click/edit
+                navigator.clipboard.writeText(row.productName);
+              }}
+            />
+          )}
+        </div>
+      ),
       placeholder: "Product Name"
     },
     {
@@ -577,6 +594,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             isNew={isEditSidebar}
             onAdjustmentsChange={handleAdjustmentsChange}
             savedAdjustments={savedAdjustments}
+            page="purchase"
           />
         </div>
 

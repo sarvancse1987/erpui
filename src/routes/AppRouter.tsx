@@ -4,6 +4,7 @@ import Layout from "../layout/layout";
 import { ProtectedRoute } from "./ProtectedRoute";
 import MinimalLayout from "../layout/MinimalLayout";
 import Unauthorized from "../modules/user/Unauthorized";
+import QuotationList from "../modules/quotation/QuotationList";
 
 const Dashboard = React.lazy(() => import("../modules/dashboard/Dashboard"));
 const ProductList = React.lazy(() => import("../modules/products/ProductList"));
@@ -89,6 +90,7 @@ export default function AppRouter() {
                 {/* Sales Module */}
                 <Route path="sales">
                     <Route index element={<SalesList />} />
+                    <Route path="quotations" element={<QuotationList />} />
                     <Route path="shipments" element={<ShipmentList />} />
                 </Route>
 
@@ -117,6 +119,10 @@ export default function AppRouter() {
                 </Route>
 
                 <Route path="/unauthorized" element={<Unauthorized />} />
+
+                <Route path="quotations">
+                    <Route index element={<QuotationList />} />
+                </Route>
 
             </Route>
 

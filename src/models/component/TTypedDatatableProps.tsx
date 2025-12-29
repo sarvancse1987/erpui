@@ -25,6 +25,7 @@ export interface TTypedDatatableProps<T extends Record<string, any>> {
     savedAdjustments?: Record<number, number | undefined>;
     onShipment?: (updatedData: T[]) => void;
     shipmentInfo?: ShipmentModel | null;
+    page: string;
 }
 
 export interface TTypeDatatableProps<T extends Record<string, any>> {

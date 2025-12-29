@@ -212,6 +212,14 @@ const AppMenu: React.FC = () => {
       },
     ];
 
+    if (storage.hasModule("Quotations")) {
+      salesItems.push({
+        label: "Quotations",
+        icon: "pi pi-file-edit",
+        to: "/sales/quotations",
+      });
+    }
+
     if (storage.hasModule("Shipments")) {
       salesItems.push({
         label: "Shipments",

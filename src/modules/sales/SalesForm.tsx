@@ -166,7 +166,25 @@ export const SalesForm: React.FC<SalesFormProps> = ({
       type: "textdisabled",
       width: "240px",
       frozen: true,
-      body: (row) => row.productName || ""
+      body: (row: SaleItemModel) => (
+        <div className="flex items-center gap-2">
+          <span className="truncate max-w-[150px]">
+            {row.productName || ""}
+          </span>
+
+          {row.productName && (
+            <i
+              className="pi pi-copy cursor-pointer text-blue-600 hover:text-blue-800"
+              title="Copy Product Name"
+              onClick={(e) => {
+                e.stopPropagation(); // ✅ prevent row click/edit
+                navigator.clipboard.writeText(row.productName ?? "");
+              }}
+            />
+          )}
+        </div>
+      ),
+      placeholder: "Product Name"
     },
     {
       field: "salePrice",
@@ -729,6 +747,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
             savedAdjustments={savedAdjustments}
             onShipment={handleShipmentInfo}
             shipmentInfo={formData?.shipment}
+            page="sale"
           />
         </div>
 
