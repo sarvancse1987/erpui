@@ -713,14 +713,14 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
               )}
             />
             <Column field="salePrice" header="Rate" style={{ minWidth: "120px" }} body={(row: any) =>
-              new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.salePrice)
+              new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(row.salePrice == 0 ? row.inventoryPurchasePrice : row.salePrice)
             } sortField="salePrice" sortable />
             <Column
               field="availableQuantity"
               header="Quantity"
               style={{ minWidth: "120px" }}
               body={(row: any) => {
-                const value = row.availableQuantity;
+                const value = row.quantity;
 
                 let symbol = "";
                 let bgColor = "";
@@ -757,7 +757,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
 
           <div className="mt-3 flex justify-end gap-2">
             <Button label="Cancel" outlined onClick={() => setProductSidebarVisible(false)} icon="pi pi-times-circle" style={{ color: 'red' }} className="p-button-sm custom-xs" />
-            <Button
+            {sidebarSelectedProducts.length > 0 && (<Button
               label="Add Selected"
               icon="pi pi-check"
               className="p-button-info custom-xs"
@@ -797,7 +797,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                 setSidebarSelectedProducts([]);
                 setProductSidebarVisible(false);
               }}
-            />
+            />)}
           </div>
         </Sidebar>
       </div>

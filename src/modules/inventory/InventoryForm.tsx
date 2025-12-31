@@ -192,6 +192,7 @@ export default function InventoryForm({
       await apiService.post("/Inventory/bulk", inventoryPayload);
       await fetchBrands();
       setActiveIndex(0);
+      setInventoryProducts([]);
       showSuccess("Inventory saved successfully!");
     } catch (err) {
       console.error(err);
@@ -399,7 +400,7 @@ export default function InventoryForm({
                   <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={handleDeleteInventory} className="p-button-sm custom-xs" size="small" />)}
 
                 {inventoryProducts.length > 0 && (
-                  <Button label="Save" icon="pi pi-save" onClick={handleSaveForm} className="p-button-sm custom-xs"/>)}
+                  <Button label="Save" icon="pi pi-save" onClick={handleSaveForm} className="p-button-sm custom-xs" />)}
 
               </div>
 
@@ -622,9 +623,10 @@ export default function InventoryForm({
                 selection={selectedProducts}
                 onSelectionChange={(e) => setSelectedProducts(e.value)}
                 dataKey="productId"
-                selectionMode="checkbox"
+                selectionMode="multiple"
                 scrollable
-                scrollHeight="420px"
+                scrollHeight="300px"
+                size="small"
                 paginator
                 rows={10}
                 rowsPerPageOptions={[5, 10, 25, 50]}
@@ -666,13 +668,41 @@ export default function InventoryForm({
                 <Column
                   field="availableQuantity"
                   header="Ava. Qty"
-                  body={(row) =>
-                    new Intl.NumberFormat("en-IN", {
-                      style: "currency",
-                      currency: "INR"
-                    }).format(row.availableQuantity)
-                  }
-                  style={{ minWidth: "100px" }}
+                  style={{ minWidth: "120px" }}
+                  sortable
+                  body={(row: any) => {
+                    const value = row.quantity;
+
+                    // Determine quantity symbol and background
+                    let symbol = "";
+                    let bgColor = "";
+                    if (value === 0) {
+                      symbol = "❌"; // Out of stock
+                      bgColor = "quantity-zero";
+                    } else if (value < 5) {
+                      symbol = "⚠️"; // Low stock
+                      bgColor = "quantity-low";
+                    } else {
+                      symbol = "✅"; // Sufficient stock
+                      bgColor = "quantity-high";
+                    }
+
+                    return (
+                      <div
+                        style={{
+                          backgroundColor: bgColor,
+                          padding: "4px",
+                          borderRadius: "4px",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px"
+                        }}
+                      >
+                        <span>{symbol}</span>
+                        <span>{value}</span> {/* quantity number */}
+                      </div>
+                    );
+                  }}
                 />
                 <Column field="inventorySupplierName" header="Supplier" style={{ minWidth: "150px" }} />
 

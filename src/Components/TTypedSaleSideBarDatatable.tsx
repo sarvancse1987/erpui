@@ -808,7 +808,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
 
           <div className="mt-3 flex justify-end gap-2">
             <Button label="Cancel" outlined onClick={() => setProductSidebarVisible(false)} icon="pi pi-times-circle" style={{ color: 'red' }} className="p-button-sm custom-xs" />
-            <Button
+            {sidebarSelectedProducts.length > 0 && (<Button
               label="Add Selected"
               icon="pi pi-check"
               className="p-button-info custom-xs"
@@ -853,6 +853,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
                 setProductSidebarVisible(false);
               }}
             />
+            )}
           </div>
         </Sidebar>
 

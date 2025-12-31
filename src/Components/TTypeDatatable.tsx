@@ -494,6 +494,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
       if (page === "sale") return row.saleOnDate;
       if (page === "shipment") return row.shipmentDate;
       if (page === "voucher") return row.voucherDate;
+      if (page === "dailyexpense") return row.expenseDate;
       return null;
     };
 

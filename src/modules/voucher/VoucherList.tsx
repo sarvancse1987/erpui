@@ -275,9 +275,7 @@ export default function VoucherList() {
                         </div>
                     </div>
 
-                    {vouchers.length === 0 ? (
-                        <p>No voucher found.</p>
-                    ) : viewType === "simple" ? (
+                    {viewType === "simple" ? (
                         <TTypeDatatable<VoucherModel>
                             data={vouchers}
                             columns={columns}

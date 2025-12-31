@@ -269,6 +269,22 @@ const AppMenu: React.FC = () => {
       });
     }
 
+    if (storage.hasModule("DailyExpense")) {
+      ledgerItems.push({
+        label: "Daily Expense",
+        icon: "pi pi-fw pi-shopping-cart",
+        to: "/ledger/dailyexpense",
+      });
+    }
+
+    if (storage.hasModule("DailyBook")) {
+      ledgerItems.push({
+        label: "Daily Book",
+        icon: "pi pi-fw pi-book",
+        to: "/ledger/dailybook",
+      });
+    }
+
     model.push({
       label: "Ledger",
       icon: "pi pi-fw pi-home",
