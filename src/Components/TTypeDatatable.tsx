@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   DataTable,
-  DataTableRowEditCompleteEvent,
   DataTableRowEditEvent,
 } from "primereact/datatable";
 import { Column } from "primereact/column";
@@ -19,6 +18,8 @@ import { ColumnMeta } from "../models/component/ColumnMeta";
 import { FilterMatchMode } from "primereact/api";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import PurchaseFooterBox from "../modules/purchase/PurchaseFooterBox";
+import { MultiSelect } from "primereact/multiselect";
+import { Tooltip } from "primereact/tooltip";
 
 export function TTypeDatatable<T extends Record<string, any>>({
   columns,
@@ -31,7 +32,8 @@ export function TTypeDatatable<T extends Record<string, any>>({
   onDelete,
   sortableColumns = [],
   page,
-  showDateFilter = false
+  showDateFilter = false,
+  showDdlFilter = false
 }: TTypeDatatableProps<T>) {
   const [tableData, setTableData] = useState<T[]>(Array.isArray(data) ? data : []);
   const [editingRows, setEditingRows] = useState<{ [key: string]: boolean }>({});
@@ -44,6 +46,8 @@ export function TTypeDatatable<T extends Record<string, any>>({
   const [toDate, setToDate] = useState<Date | null>(null);
   const [originalData, setOriginalData] = useState<any[]>([]);
   const [isDateFiltered, setIsDateFiltered] = useState(false);
+  const [ddlFilterValues, setDdlFilterValues] = useState<any[]>([]);
+  const [isDdlFiltered, setIsDdlFiltered] = useState(false);
 
   useEffect(() => {
     const checkIfMobile = () => {
@@ -315,14 +319,29 @@ export function TTypeDatatable<T extends Record<string, any>>({
     return true;
   };
 
-  const actionBodyTemplate = (rowData: T) => (
-    <Button
-      icon="pi pi-pencil"
-      className="p-button-sm p-button-rounded p-button-outlined p-button-info"
-      style={{ width: "25px", height: "25px", padding: "0" }}
-      onClick={() => onEdit?.(rowData)}
-    />
-  );
+  const actionBodyTemplate = (rowData: T) => {
+    const tooltipClass = `edit-btn-${rowData[primaryKey]}`;
+
+    return (
+      <>
+        <Button
+          icon="pi pi-pencil"
+          className={`p-button-sm p-button-rounded p-button-outlined p-button-info ${tooltipClass}`}
+          style={{ width: "25px", height: "25px", padding: "0" }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit?.(rowData);
+          }}
+        />
+
+        <Tooltip
+          target={`.${tooltipClass}`}
+          content="Edit"
+          position="top"
+        />
+      </>
+    );
+  };
 
   const handleDelete = () => {
     if (selectedRows.length === 0) return;
@@ -425,6 +444,64 @@ export function TTypeDatatable<T extends Record<string, any>>({
   }, [tableData]);
 
 
+  const ledgerTotals = useMemo(() => {
+    return tableData.reduce(
+      (acc, row: any) => {
+        const debit = row.debit ?? 0;
+        const credit = row.credit ?? 0;
+
+        acc.totalSale += debit + credit;
+        acc.totalReceived += credit;
+        acc.balanceAmount += debit;
+
+        return acc;
+      },
+      {
+        totalSale: 0,
+        totalReceived: 0,
+        balanceAmount: 0,
+      }
+    );
+  }, [tableData]);
+
+  const getDdlFilterField = (row: any) => {
+    if (page === "purchase") return row.supplierId;
+    if (page === "sale") return row.customerId;
+    if (page === "quotation") return row.customerId;
+    if (page === "voucher") return row.customerId;
+    if (page === "dailyexpense") return row.expenseCategoryId;
+    if (page === "customerledge") return row.customerId;
+    return null;
+  };
+
+  const getDdlFilterLabel = (row: any) => {
+    if (page === "purchase") return row.supplierName;
+    if (page === "sale") return row.customerName;
+    if (page === "quotation") return row.customerName;
+    if (page === "voucher") return row.customerName;
+    if (page === "dailyexpense") return row.expenseCategoryName;
+    if (page === "customerledge") return row.customerName;
+    return "";
+  };
+
+  const ddlOptions = useMemo(() => {
+    const map = new Map<any, string>();
+
+    originalData.forEach((row: any) => {
+      const value = getDdlFilterField(row);
+      const label = getDdlFilterLabel(row); // optional
+
+      if (value != null && !map.has(value)) {
+        map.set(value, label ?? String(value));
+      }
+    });
+
+    return Array.from(map.entries()).map(([value, label]) => ({
+      value,
+      label
+    }));
+  }, [originalData, page]);
+
   const formatINR = (value: number) =>
     new Intl.NumberFormat("en-IN", {
       style: "currency",
@@ -473,12 +550,36 @@ export function TTypeDatatable<T extends Record<string, any>>({
           <PurchaseFooterBox label="Balance Amt" value={formatINR(saleTotals.runningAmount)} bg="#be5744ff" />
         </div>
       </div>
+    ) : page === "customerledge" ? (
+      <div className="custom-footer flex justify-between items-center gap-1 flex-wrap px-2 py-1">
+        <div className="flex items-center gap-1 flex-wrap">
+          <PurchaseFooterBox label="Total Sale" value={formatINR(ledgerTotals.totalSale)} />
+          <PurchaseFooterBox label="Paid Amt" value={formatINR(ledgerTotals.totalReceived)} bg="#22c55e" />
+          <PurchaseFooterBox label="Balance Amt" value={formatINR(ledgerTotals.balanceAmount)} bg="#be5744ff" />
+        </div>
+      </div>
     ) : null;
 
   const parseDDMMYYYY = (dateStr: string): Date | null => {
     const [dd, mm, yyyy] = dateStr.split('-').map(Number);
     if (!dd || !mm || !yyyy) return null;
     return new Date(yyyy, mm - 1, dd);
+  };
+
+  const handleDdlSubmit = (values: any[]) => {
+    if (!values || values.length === 0) {
+      setTableData(originalData);
+      setIsDdlFiltered(false);
+      return;
+    }
+
+    const filtered = originalData.filter((row: any) => {
+      const fieldValue = getDdlFilterField(row);
+      return values.includes(fieldValue);
+    });
+
+    setTableData(filtered);
+    setIsDdlFiltered(true);
   };
 
   const handleDateSubmit = () => {
@@ -495,6 +596,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
       if (page === "shipment") return row.shipmentDate;
       if (page === "voucher") return row.voucherDate;
       if (page === "dailyexpense") return row.expenseDate;
+      if (page === "customerledge") return row.lastUpdated;
       return null;
     };
 
@@ -521,6 +623,17 @@ export function TTypeDatatable<T extends Record<string, any>>({
     }
   }
 
+  const getDdlPlaceholder = () => {
+    if (page === "purchase") return "Select Supplier";
+    if (page === "sale") return "Select Customer";
+    if (page === "quotation") return "Select Customer";
+    if (page === "shipment") return "Select Transporter";
+    if (page === "voucher") return "Select Customer";
+    if (page === "dailyexpense") return "Select Expense Category";
+    if (page === "customerledge") return "Select Customer";
+    return "Select";
+  };
+
   return (
     <div className="card p-3 h-[calc(100vh-100px)]">
       <div className="flex justify-between items-center mb-3">
@@ -542,10 +655,30 @@ export function TTypeDatatable<T extends Record<string, any>>({
             />
           )}
         </div>
+
         {showDateFilter && (
           <>
             <div className="ml-auto">
               <div className="flex items-end gap-2 mb-3 flex-wrap">
+
+                {showDdlFilter && (
+                  <MultiSelect
+                    value={ddlFilterValues}
+                    options={ddlOptions}
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder={getDdlPlaceholder()}
+                    className="w-20rem"
+                    display="chip"
+                    filter
+                    showClear
+                    onChange={(e) => {
+                      setDdlFilterValues(e.value);
+                      handleDdlSubmit(e.value);
+                    }}
+                  />
+                )}
+
                 <div className="flex flex-col">
                   <Calendar
                     value={fromDate}

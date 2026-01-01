@@ -9,6 +9,7 @@ import apiService from "../../services/apiService";
 import { ColumnMeta } from "../../models/component/ColumnMeta";
 import { TTypeDatatable } from "../../components/TTypeDatatable";
 import { TTypedDatatable } from "../../components/TTypedDatatable";
+import { customerNameTemplate } from "../../common/common";
 
 export default function SupplierList() {
     const [suppliers, setSuppliers] = useState<SupplierModel[]>([]);
@@ -129,7 +130,10 @@ export default function SupplierList() {
 
     const columns: ColumnMeta<SupplierModel>[] = [
         { field: "supplierId", header: "ID", width: "80px", editable: false, hidden: true },
-        { field: "supplierName", header: "Name", width: "220px" },
+        {
+            field: "supplierName", header: "Name", width: "220px", body: (row: SupplierModel) =>
+                customerNameTemplate(row.supplierId, row.supplierName),
+        },
         { field: "contactPerson", header: "Contact", width: "180px" },
         { field: "phone", header: "Phone", width: "160px" },
         { field: "gstNumber", header: "GST", width: "120px" },

@@ -777,7 +777,7 @@ export function TTypedSideBarDatatable<T extends Record<string, any>>({
                     return {
                       productId: p.productId,
                       productName: p.productName,
-                      unitPrice: p.salePrice,
+                      unitPrice: p.salePrice == 0 ? p.inventoryPurchasePrice : p.salePrice,
                       gstPercent: 18,
                       _tempKey: rowKey,
                       _edited: true,

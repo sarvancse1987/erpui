@@ -7,6 +7,7 @@ import Unauthorized from "../modules/user/Unauthorized";
 import QuotationList from "../modules/quotation/QuotationList";
 import { DailyExpenseForm } from "../modules/voucher/DailyExpenseForm";
 import DailyExpenseList from "../modules/voucher/DailyExpenseList";
+import DailyBookForm from "../modules/voucher/DailyBookForm";
 
 const Dashboard = React.lazy(() => import("../modules/dashboard/Dashboard"));
 const ProductList = React.lazy(() => import("../modules/products/ProductList"));
@@ -119,7 +120,7 @@ export default function AppRouter() {
                     <Route index element={<CustomerLedgerList />} />
                     <Route path="voucher" element={<VoucherList />} />
                     <Route path="dailyexpense" element={<DailyExpenseList />} />
-                    <Route path="dailybook" element={<VoucherList />} />
+                    <Route path="dailybook" element={<DailyBookForm />} />
                 </Route>
 
                 <Route path="/unauthorized" element={<Unauthorized />} />

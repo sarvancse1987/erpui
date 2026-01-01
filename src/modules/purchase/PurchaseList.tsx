@@ -12,6 +12,7 @@ import { Tag } from "primereact/tag";
 import { RadioButton } from "primereact/radiobutton";
 import { ParentChildTable } from "../../components/ParentChildTable";
 import { PurchaseItemModel } from "../../models/purchase/PurchaseItemModel";
+import { customerNameTemplate } from "../../common/common";
 
 export default function PurchaseList() {
     const [purchases, setPurchases] = useState<PurchaseModel[]>([]);
@@ -75,7 +76,10 @@ export default function PurchaseList() {
     const columns: ColumnMeta<PurchaseModel>[] = [
         { field: "purchaseId", header: "ID", width: "80px", editable: false, hidden: true },
         { field: "supplierId", header: "ID", width: "80px", editable: false, hidden: true },
-        { field: "supplierName", header: "Supplier Name", width: "220px", frozen: true },
+        {
+            field: "supplierName", header: "Supplier Name", width: "220px", frozen: true, body: (row: PurchaseModel) =>
+                customerNameTemplate(row.supplierId, row.supplierName ?? ""),
+        },
         { field: "invoiceNumber", header: "Invoice No", width: "130px" },
         { field: "purchaseRefNo", header: "Pur Ref No", width: "160px" },
         { field: "purchaseDate", header: "Pur Date", width: "100px" },
@@ -310,7 +314,26 @@ export default function PurchaseList() {
     ];
 
     const parentColumns = [
-        { field: "supplierName", header: "Supplier", width: "130px" },
+        {
+            field: "supplierName", header: "Supplier", width: "130px", body: (row: PurchaseModel) => (
+                <div className="flex items-center gap-2">
+                    <span className="truncate max-w-[150px]">
+                        {row.supplierName || ""}
+                    </span>
+
+                    {row.supplierName && (
+                        <i
+                            className="pi pi-copy cursor-pointer text-blue-600 hover:text-blue-800"
+                            title="Copy Product Name"
+                            onClick={(e) => {
+                                e.stopPropagation(); // ✅ prevent row click/edit
+                                navigator.clipboard.writeText(row.supplierName ?? "");
+                            }}
+                        />
+                    )}
+                </div>
+            ),
+        },
         { field: "invoiceNumber", header: "Invoice No", width: "130px" },
         { field: "purchaseRefNo", header: "Ref No", width: "180px" },
         { field: "purchaseDate", header: "Pur Date", width: "130px" },
@@ -660,6 +683,7 @@ export default function PurchaseList() {
                             sortableColumns={["grandTotal", "purchaseDate"]}
                             page="purchase"
                             showDateFilter={true}
+                            showDdlFilter={true}
                         />
                     ) : (
                         <div className="space-y-2">
@@ -674,6 +698,7 @@ export default function PurchaseList() {
                                 sortableColumns={["grandTotal", "purchaseDate"]}
                                 page="purchase"
                                 showDateFilter={true}
+                                showDdlFilter={true}
                             />
                         </div>
                     )}

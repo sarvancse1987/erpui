@@ -9,6 +9,7 @@ import { InputText } from "primereact/inputtext";
 import PurchaseFooterBox from "../modules/purchase/PurchaseFooterBox";
 import { Calendar } from "primereact/calendar";
 import { parseDDMMYYYY } from "../common/common";
+import { MultiSelect } from "primereact/multiselect";
 
 interface ColumnMeta<T> {
     field?: keyof T;
@@ -28,6 +29,7 @@ interface ParentChildTableProps<ParentType, ChildType> {
     sortableColumns?: (keyof ParentType)[];
     page?: string;
     showDateFilter?: boolean;
+    showDdlFilter?: boolean;
 }
 
 export function ParentChildTable<
@@ -43,7 +45,8 @@ export function ParentChildTable<
     onEdit,
     sortableColumns = [],
     page,
-    showDateFilter
+    showDateFilter,
+    showDdlFilter
 }: ParentChildTableProps<ParentType, ChildType>) {
 
     const [tableData, setTableData] = useState<any[]>([]);
@@ -64,6 +67,8 @@ export function ParentChildTable<
     const [toDate, setToDate] = useState<Date | null>(null);
     const [originalData, setOriginalData] = useState<any[]>([]);
     const [isDateFiltered, setIsDateFiltered] = useState(false);
+    const [ddlFilterValues, setDdlFilterValues] = useState<any[]>([]);
+    const [isDdlFiltered, setIsDdlFiltered] = useState(false);
 
     useEffect(() => {
         setTableData(parentData);
@@ -249,7 +254,7 @@ export function ParentChildTable<
                     <PurchaseFooterBox label="Balance Amt" value={formatINR(saleTotals.runningAmount)} bg="#be5744ff" />
                 </div>
             </div>
-        ): page === "quotation" ? (
+        ) : page === "quotation" ? (
             <div className="custom-footer flex justify-between items-center gap-1 flex-wrap px-2 py-1">
                 <div className="flex items-center gap-1 flex-wrap">
                     <PurchaseFooterBox label="Total" value={formatINR(saleTotals.grandTotal)} />
@@ -294,6 +299,68 @@ export function ParentChildTable<
         }
     }
 
+    const getDdlFilterField = (row: any) => {
+        if (page === "purchase") return row.supplierId;
+        if (page === "sale") return row.customerId;
+        if (page === "quotation") return row.customerId;
+        if (page === "voucher") return row.accountId;
+        if (page === "dailyexpense") return row.expenseCategoryId;
+        return null;
+    };
+
+    const getDdlFilterLabel = (row: any) => {
+        if (page === "purchase") return row.supplierName;
+        if (page === "sale") return row.customerName;
+        if (page === "quotation") return row.customerName;
+        if (page === "voucher") return row.accountName;
+        if (page === "dailyexpense") return row.expenseCategoryName;
+        return "";
+    };
+
+    const ddlOptions = useMemo(() => {
+        const map = new Map<any, string>();
+
+        originalData.forEach((row: any) => {
+            const value = getDdlFilterField(row);
+            const label = getDdlFilterLabel(row); // optional
+
+            if (value != null && !map.has(value)) {
+                map.set(value, label ?? String(value));
+            }
+        });
+
+        return Array.from(map.entries()).map(([value, label]) => ({
+            value,
+            label
+        }));
+    }, [originalData, page]);
+
+    const handleDdlSubmit = (values: any[]) => {
+        if (!values || values.length === 0) {
+            setTableData(originalData);
+            setIsDdlFiltered(false);
+            return;
+        }
+
+        const filtered = originalData.filter((row: any) => {
+            const fieldValue = getDdlFilterField(row);
+            return values.includes(fieldValue);
+        });
+
+        setTableData(filtered);
+        setIsDdlFiltered(true);
+    };
+
+    const getDdlPlaceholder = () => {
+        if (page === "purchase") return "Select Supplier";
+        if (page === "sale") return "Select Customer";
+        if (page === "quotation") return "Select Customer";
+        if (page === "shipment") return "Select Transporter";
+        if (page === "voucher") return "Select Customer";
+        if (page === "dailyexpense") return "Select Expense Category";
+        return "Select";
+    };
+
     return (
         <div className="card">
             {/* Toolbar */}
@@ -305,6 +372,25 @@ export function ParentChildTable<
                     <>
                         <div className="ml-auto">
                             <div className="flex items-end gap-2 mb-3 flex-wrap">
+
+                                {showDdlFilter && (
+                                    <MultiSelect
+                                        value={ddlFilterValues}
+                                        options={ddlOptions}
+                                        optionLabel="label"
+                                        optionValue="value"
+                                        placeholder={getDdlPlaceholder()}
+                                        className="w-20rem"
+                                        display="chip"
+                                        filter
+                                        showClear
+                                        onChange={(e) => {
+                                            setDdlFilterValues(e.value);
+                                            handleDdlSubmit(e.value);
+                                        }}
+                                    />
+                                )}
+
                                 <div className="flex flex-col">
                                     <Calendar
                                         value={fromDate}

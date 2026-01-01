@@ -2,6 +2,7 @@ import { useState } from "react";
 import apiService from "../services/apiService";
 import { decryptData } from "../services/crypto-js";
 import { UserAccessVm } from "../models/CommonVm";
+import { Tooltip } from "primereact/tooltip";
 
 export const validateForm = (fields: any) => {
   const errors: Record<string, string> = {};
@@ -713,4 +714,30 @@ export const parseDDMMYYYY = (dateStr: string): Date | null => {
   const [dd, mm, yyyy] = dateStr.split('-').map(Number);
   if (!dd || !mm || !yyyy) return null;
   return new Date(yyyy, mm - 1, dd);
+};
+
+export const customerNameTemplate = (id: number, name: string) => {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="truncate max-w-[150px]">{name}</span>
+
+      {name && (
+        <>
+          <i
+            className={`pi pi-copy cursor-pointer text-blue-600 hover:text-blue-800 copy-icon-${id}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigator.clipboard.writeText(name);
+            }}
+          />
+
+          <Tooltip
+            target={`.copy-icon-${id}`}
+            content="Copy"
+            position="top"
+          />
+        </>
+      )}
+    </div>
+  );
 };

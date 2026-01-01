@@ -8,7 +8,8 @@ import apiService from "../../services/apiService";
 import { ColumnMeta } from "../../models/component/ColumnMeta";
 import { TTypeDatatable } from "../../components/TTypeDatatable";
 import { CustomerModel } from "../../models/customer/CustomerModel";
-import { TTypedDatatable } from "../../components/TTypedDatatable";
+import { Tooltip } from "primereact/tooltip";
+import { customerNameTemplate } from "../../common/common";
 
 export default function CustomerList() {
     const [customers, setCustomers] = useState<CustomerModel[]>([]);
@@ -130,7 +131,10 @@ export default function CustomerList() {
 
     const columns: ColumnMeta<CustomerModel>[] = [
         { field: "customerId", header: "ID", width: "80px", editable: false, hidden: true },
-        { field: "customerName", header: "Name", width: "220px", required: true },
+        {
+            field: "customerName", header: "Name", width: "220px", required: true, body: (row: CustomerModel) =>
+                customerNameTemplate(row.customerId, row.customerName),
+        },
         { field: "phone", header: "Phone", width: "140px" },
         { field: "email", header: "Email", width: "170px" },
         { field: "gstNumber", header: "GST", width: "130px" },

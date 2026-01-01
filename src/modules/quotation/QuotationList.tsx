@@ -12,6 +12,7 @@ import { QuotationForm } from "./QuotationForm";
 import { Button } from "primereact/button";
 import { QuotationModel } from "../../models/quotation/QuotationModel";
 import { QuotationItemModel } from "../../models/quotation/QuotationItemModel";
+import { customerNameTemplate } from "../../common/common";
 
 export default function QuotationList() {
   const [quotations, setQuotations] = useState<QuotationModel[]>([]);
@@ -104,7 +105,10 @@ export default function QuotationList() {
 
   const columns: ColumnMeta<QuotationModel>[] = [
     { field: "customerId", header: "ID", editable: false, hidden: true },
-    { field: "customerName", header: "Customer Name", width: "160px", frozen: true },
+    {
+      field: "customerName", header: "Customer Name", width: "160px", frozen: true, body: (row: QuotationModel) =>
+        customerNameTemplate(row.customerId ?? 0, row.customerName ?? ""),
+    },
     { field: "quotationRefNo", header: "Quotation Ref No", width: "160px" },
     { field: "quotationDate", header: "Quotation Date", width: "90px" },
     {
@@ -134,7 +138,7 @@ export default function QuotationList() {
     {
       field: "print",
       header: "Print",
-      width: "60px",
+      width: "27px",
       body: (row: QuotationModel) => (
         <Button
           icon="pi pi-print"
@@ -142,6 +146,7 @@ export default function QuotationList() {
           tooltip="Print Bill"
           tooltipOptions={{ position: 'top' }}
           onClick={() => handlePrint(row)}
+          style={{ width: "25px", height: "25px", padding: "0" }}
         />
       ),
     },
@@ -178,7 +183,7 @@ export default function QuotationList() {
     {
       field: "print",
       header: "Print",
-      width: "80px",
+      width: "27px",
       body: (row: QuotationModel) => (
         <Button
           icon="pi pi-print"
@@ -186,6 +191,7 @@ export default function QuotationList() {
           tooltip="Print Bill"
           tooltipOptions={{ position: 'top' }}
           onClick={() => handlePrint(row)}
+          style={{ width: "25px", height: "25px", padding: "0" }}
         />
       ),
     },
@@ -297,6 +303,7 @@ export default function QuotationList() {
               isSave={false}
               page="quotation"
               showDateFilter={true}
+              showDdlFilter={true}
             />
           ) : (
             <div className="space-y-2">
@@ -310,6 +317,7 @@ export default function QuotationList() {
                 onEdit={handleParentEdit}
                 page="quotation"
                 showDateFilter={true}
+                showDdlFilter={true}
               />
             </div>
           )}

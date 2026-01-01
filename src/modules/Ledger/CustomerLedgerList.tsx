@@ -8,6 +8,8 @@ import { Tag } from "primereact/tag";
 import PurchaseFooterBox from "../purchase/PurchaseFooterBox";
 import { formatINR } from "../../common/common";
 import { MultiSelect } from "primereact/multiselect";
+import { ColumnMeta } from "../../models/component/ColumnMeta";
+import { TTypeDatatable } from "../../components/TTypeDatatable";
 
 export default function CustomerLedgerList() {
     const [customerId, setCustomerId] = useState<number | null>(null);
@@ -150,6 +152,59 @@ export default function CustomerLedgerList() {
         );
     };
 
+    const ledgerColumns: ColumnMeta<any>[] = [
+        {
+            field: "customerName",
+            header: "Customer Name",
+            editable: false,
+        },
+        {
+            field: "lastUpdated",
+            header: "Date",
+            editable: false,
+        },
+        {
+            field: "lastUpdatedTime",
+            header: "Time",
+            editable: false,
+        },
+        {
+            field: "ledgerType",
+            header: "Type",
+            editable: false,
+            body: typeTemplate, // your custom function
+        },
+        {
+            field: "openingBalance",
+            header: "Opening Bal",
+            editable: false,
+            body: openingBalanceTemplate,
+        },
+        {
+            field: "openingBalance",
+            header: "Total",
+            editable: false,
+            body: totalTemplate,
+        },
+        {
+            field: "credit",
+            header: "Credit",
+            editable: false,
+            body: paidTemplate,
+        },
+        {
+            field: "debit",
+            header: "Debit",
+            editable: false,
+            body: debitTemplate,
+        },
+        {
+            field: "closingBalance",
+            header: "Closing Bal.",
+            editable: false,
+            body: balanceTemplate,
+        },
+    ];
 
     return (
         <div className="p-2 h-[calc(100vh-100px)] overflow-auto">
@@ -160,16 +215,7 @@ export default function CustomerLedgerList() {
                     Customer Ledger Summary
                 </legend>
 
-                <div className="flex gap-2 mb-3">
-                    {/* <Dropdown
-                        value={customerId}
-                        options={customers}
-                        placeholder="Select Customer"
-                        className="w-20rem"
-                        onChange={(e) => setCustomerId(e.value)}
-                        showClear
-                    /> */}
-
+                {/* <div className="flex gap-2 mb-3">
                     <MultiSelect
                         value={customerId}
                         options={customers}
@@ -185,9 +231,9 @@ export default function CustomerLedgerList() {
                         className="p-button-info"
                         onClick={loadLedger}
                     />
-                </div>
+                </div> */}
 
-                <DataTable
+                {/* <DataTable
                     value={ledger}
                     dataKey="customerLedgerId"
                     scrollable
@@ -224,7 +270,19 @@ export default function CustomerLedgerList() {
                         header="Closing Bal."
                         body={balanceTemplate}
                     />
-                </DataTable>
+                </DataTable> */}
+
+                <TTypeDatatable
+                    data={ledger}
+                    columns={ledgerColumns}
+                    primaryKey="customerLedgerId"
+                    isNew={false}
+                    isSave={false}
+                    isDelete={false}
+                    showDateFilter={true}
+                    showDdlFilter={true}
+                    page="customerledge"
+                />
             </fieldset>
         </div>
     );

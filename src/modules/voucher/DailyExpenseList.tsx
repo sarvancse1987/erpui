@@ -125,9 +125,17 @@ export default function DailyExpenseList() {
         setSelectedExpense(editedData);
     }
 
-    const handleOnDelete = () => {
-
-    }
+    const handleOnDelete = async (rows: DailyExpenseModel[]) => {
+        try {
+            const ids = rows.map((r) => r.dailyExpenseId);
+            await apiService.post("/DailyExpense/bulk-delete", ids);
+            showSuccess("Daily expense(s) deleted successfully!");
+            await loadDailyExpenses();
+        } catch (err) {
+            console.error(err);
+            showError("Error deleting daily expenses");
+        }
+    };
 
     const createEmptyExpense = (): DailyExpenseModel => ({
         dailyExpenseId: 0,
@@ -229,6 +237,7 @@ export default function DailyExpenseList() {
                         isSave={false}
                         page="dailyexpense"
                         showDateFilter={true}
+                        showDdlFilter={true}
                     />
                 </TabPanel>
 

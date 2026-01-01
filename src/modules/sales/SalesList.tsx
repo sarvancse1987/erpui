@@ -12,6 +12,7 @@ import { TTypeDatatable } from "../../components/TTypeDatatable";
 import { ParentChildTable } from "../../components/ParentChildTable";
 import { SalesForm } from "./SalesForm";
 import { Button } from "primereact/button";
+import { customerNameTemplate } from "../../common/common";
 
 export default function SaleList() {
   const [sales, setSales] = useState<SaleModel[]>([]);
@@ -105,7 +106,10 @@ export default function SaleList() {
 
   const columns: ColumnMeta<SaleModel>[] = [
     { field: "customerId", header: "ID", editable: false, hidden: true },
-    { field: "customerName", header: "Customer Name", width: "160px", frozen: true },
+    {
+      field: "customerName", header: "Customer Name", width: "160px", frozen: true, body: (row: SaleModel) =>
+        customerNameTemplate(row.customerId, row.customerName ?? ""),
+    },
     { field: "saleRefNo", header: "Sale Ref No", width: "160px" },
     { field: "saleOnDate", header: "Sale Date", width: "90px" },
     {
@@ -356,13 +360,14 @@ export default function SaleList() {
     {
       field: "print",
       header: "Print",
-      width: "60px",
+      width: "27px",
       body: (row: SaleModel) => (
         <Button
           icon="pi pi-print"
           className="p-button-sm p-button-text p-button-info"
           tooltip="Print Bill"
           tooltipOptions={{ position: 'top' }}
+          style={{ width: "25px", height: "25px", padding: "0" }}
           onClick={() => handlePrint(row)}
         />
       ),
@@ -370,7 +375,26 @@ export default function SaleList() {
   ];
 
   const parentColumns = [
-    { field: "customerName", header: "Customer Name", width: "130px" },
+    {
+      field: "customerName", header: "Customer Name", width: "130px", body: (row: SaleModel) => (
+        <div className="flex items-center gap-2">
+          <span className="truncate max-w-[150px]">
+            {row.customerName || ""}
+          </span>
+
+          {row.customerName && (
+            <i
+              className="pi pi-copy cursor-pointer text-blue-600 hover:text-blue-800"
+              title="Copy Product Name"
+              onClick={(e) => {
+                e.stopPropagation(); // ✅ prevent row click/edit
+                navigator.clipboard.writeText(row.customerName ?? "");
+              }}
+            />
+          )}
+        </div>
+      ),
+    },
     { field: "saleRefNo", header: "Sale Ref No", width: "180px" },
     { field: "saleOnDate", header: "Sale Date", width: "130px" },
     {
@@ -619,13 +643,14 @@ export default function SaleList() {
     {
       field: "print",
       header: "Print",
-      width: "80px",
+      width: "27px",
       body: (row: SaleModel) => (
         <Button
           icon="pi pi-print"
           className="p-button-sm p-button-text p-button-info"
           tooltip="Print Bill"
           tooltipOptions={{ position: 'top' }}
+          style={{ width: "25px", height: "25px", padding: "0" }}
           onClick={() => handlePrint(row)}
         />
       ),
@@ -738,6 +763,7 @@ export default function SaleList() {
               isSave={false}
               page="sale"
               showDateFilter={true}
+              showDdlFilter={true}
             />
           ) : (
             <div className="space-y-2">
@@ -751,6 +777,7 @@ export default function SaleList() {
                 onEdit={handleParentEdit}
                 page="sale"
                 showDateFilter={true}
+                showDdlFilter={true}
               />
             </div>
           )}

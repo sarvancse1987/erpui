@@ -287,6 +287,7 @@ export default function VoucherList() {
                             isSave={false}
                             page="voucher"
                             showDateFilter={true}
+                            showDdlFilter={true}
                         />
                     ) : (
                         <div className="space-y-2">
@@ -298,6 +299,9 @@ export default function VoucherList() {
                                 rowKey={"customerId" as keyof VoucherCustomerModel}
                                 expandAllInitially={false}
                                 onEdit={handleParentEdit}
+                                page="voucher"
+                                showDateFilter={true}
+                                showDdlFilter={true}
                             />
                         </div>
                     )}

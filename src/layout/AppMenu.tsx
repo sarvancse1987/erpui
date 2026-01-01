@@ -263,7 +263,7 @@ const AppMenu: React.FC = () => {
 
     if (storage.hasModule("Voucher")) {
       ledgerItems.push({
-        label: "Voucher",
+        label: "Customer Voucher",
         icon: "pi pi-fw pi-file-edit",
         to: "/ledger/voucher",
       });
