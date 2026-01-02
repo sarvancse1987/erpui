@@ -135,12 +135,12 @@ export const DailyExpenseForm: React.FC<DailyExpenseFormProps> = ({
           <div className="flex-1 min-w-[140px]">
             <strong className="text-sm">Expense Date <span className="mandatory-asterisk">*</span></strong>
             <Calendar
-              value={formData.expenseDate ? new Date(formData.expenseDate) : null}
+              value={formData.expenseDate}
               onChange={e => handleChange("expenseDate", e.value ?? null)}
               dateFormat="dd-mm-yy"
               showIcon
               showButtonBar
-              className={`w-full mt-1 text-sm ${getErrorMessage("expenseDate") ? "mandatory-border" : ""}`}
+              className={`w-full mt-1 text-sm ${getErrorMessage("expenseDate") ? "p-invalid" : ""}`}
             />
             {getErrorMessage("expenseDate") && (
               <span className="mandatory-error">{getErrorMessage("expenseDate")}</span>
@@ -156,7 +156,7 @@ export const DailyExpenseForm: React.FC<DailyExpenseFormProps> = ({
               placeholder="Select Type"
               showClear
               filter
-              className={`w-full mt-1 text-sm ${getErrorMessage("expenseCategoryId") ? "mandatory-border" : ""}`}
+              className={`w-full mt-1 text-sm ${getErrorMessage("expenseCategoryId") ? "p-invalid" : ""}`}
             />
             {getErrorMessage("expenseCategoryId") && (
               <span className="mandatory-error">{getErrorMessage("expenseCategoryId")}</span>
@@ -173,7 +173,7 @@ export const DailyExpenseForm: React.FC<DailyExpenseFormProps> = ({
                 placeholder="Select Type"
                 showClear
                 filter
-                className={`w-full mt-1 text-sm ${getErrorMessage("employeeId") ? "mandatory-border" : ""}`}
+                className={`w-full mt-1 text-sm ${getErrorMessage("employeeId") ? "p-invalid" : ""}`}
               />
               {getErrorMessage("employeeId") && (
                 <span className="mandatory-error">{getErrorMessage("employeeId")}</span>
@@ -188,7 +188,7 @@ export const DailyExpenseForm: React.FC<DailyExpenseFormProps> = ({
               currency="INR"
               locale="en-IN"
               onChange={(e) => handleChange("amount", e.value)}
-              className={`w-full mt-1 text-sm ${getErrorMessage("amount") ? "mandatory-border" : ""}`}
+              className={`w-full mt-1 text-sm ${getErrorMessage("amount") ? "p-invalid" : ""}`}
               inputStyle={{ width: "120px" }}
             />
             {getErrorMessage("amount") && (

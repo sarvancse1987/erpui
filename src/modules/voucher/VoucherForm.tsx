@@ -202,7 +202,7 @@ export const VoucherForm: React.FC<VoucherFormProps> = ({
                             currency="INR"
                             locale="en-IN"
                             onChange={e => handleChange("totalCredit", e.value ?? 0)}
-                            className="w-full mt-1"
+                            className={`w-full mt-1 ${errors.totalCredit ? "p-invalid" : ""}`}
                             placeholder="Amount"
                         />
                         {errors.totalCredit && <small className="mandatory-error">{errors.totalCredit}</small>}

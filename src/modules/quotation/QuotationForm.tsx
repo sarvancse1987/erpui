@@ -384,7 +384,8 @@ export const QuotationForm: React.FC<QuotationFormProps> = ({
               dateFormat="dd-mm-yy"
               showIcon
               showButtonBar
-              className="flex items-center gap-1 h-[38px]"
+              className={`flex items-center gap-1 h-[38px] ${validationErrors?.quotationDate ? "p-invalid" : ""}`}
+              placeholder="Quotation Date"
             />
             {validationErrors?.quotationDate && <span className="mandatory-error text-xs">{validationErrors.quotationDate}</span>}
           </div>

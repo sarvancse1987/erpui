@@ -266,7 +266,7 @@ export const UsersForm: React.FC<UsersFormProps> = ({
                     <div className="flex-1 min-w-[160px]">
                         <strong>Role <span className="mandatory-asterisk">*</span></strong>
                         <Dropdown
-                            className={`w-full mt-1 ${getErrorMessage("roleId") ? "mandatory-border" : ""}`}
+                            className={`w-full mt-1 ${getErrorMessage("roleId") ? "p-invalid" : ""}`}
                             value={formData.roleId ?? null}
                             options={allRoles}
                             onChange={e => handleChange("roleId", e.value)}
@@ -281,7 +281,7 @@ export const UsersForm: React.FC<UsersFormProps> = ({
                     <div className="flex-1 min-w-[160px]">
                         <strong>User Type <span className="mandatory-asterisk">*</span></strong>
                         <Dropdown
-                            className={`w-full mt-1 ${getErrorMessage("userTypeId") ? "mandatory-border" : ""}`}
+                            className={`w-full mt-1 ${getErrorMessage("userTypeId") ? "p-invalid" : ""}`}
                             value={formData.userTypeId ?? null}
                             options={allUserTypes}
                             onChange={e => handleChange("userTypeId", e.value)}
@@ -296,7 +296,7 @@ export const UsersForm: React.FC<UsersFormProps> = ({
                     <div className="flex-1 min-w-[160px]">
                         <strong>Company <span className="mandatory-asterisk">*</span></strong>
                         <Dropdown
-                            className={`w-full mt-1 ${getErrorMessage("companyId") ? "mandatory-border" : ""}`}
+                            className={`w-full mt-1 ${getErrorMessage("companyId") ? "p-invalid" : ""}`}
                             value={formData.companyId ?? null}
                             options={allCompanies}
                             onChange={e => handleCompanyChange(e.value)}
@@ -312,7 +312,7 @@ export const UsersForm: React.FC<UsersFormProps> = ({
                     <div className="flex-1 min-w-[160px]">
                         <strong>Location <span className="mandatory-asterisk">*</span></strong>
                         <Dropdown
-                            className={`w-full mt-1 ${getErrorMessage("locationId") ? "mandatory-border" : ""}`}
+                            className={`w-full mt-1 ${getErrorMessage("locationId") ? "p-invalid" : ""}`}
                             value={formData.locationId ?? null}
                             options={allLocations.filter(l => !formData.companyId || l.companyId === formData.companyId)}
                             onChange={e => handleChange("locationId", e.value)}

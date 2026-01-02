@@ -519,7 +519,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
               currency="INR"
               locale="en-IN"
               onChange={(e) => handleChange("cash", e.value)}
-              className="w-full mt-1 text-sm"
+              className={`w-full mt-1 text-sm ${validationErrors?.cash ? "p-invalid" : ""}`}
               inputStyle={{ width: "120px" }}
               placeholder="Cash"
               tabIndex={4}
@@ -558,7 +558,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
               dateFormat="dd-mm-yy"
               showIcon
               showButtonBar
-              className="w-full h-8 text-sm p-1"
+              className={`w-full h-8 text-sm p-1 ${validationErrors?.invoiceDate ? "p-invalid" : ""}`}
             />
             {validationErrors?.invoiceDate && <span className="mandatory-error text-xs">{validationErrors.invoiceDate}</span>}
           </div>
@@ -573,7 +573,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
               dateFormat="dd-mm-yy"
               showIcon
               showButtonBar
-              className="w-full h-8 text-sm p-1"
+              className={`w-full h-8 text-sm p-1 ${validationErrors?.purchaseDate ? "p-invalid" : ""}`}
             />
             {validationErrors?.purchaseDate && <span className="mandatory-error text-xs">{validationErrors.purchaseDate}</span>}
           </div>

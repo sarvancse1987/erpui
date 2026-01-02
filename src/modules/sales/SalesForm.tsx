@@ -627,11 +627,6 @@ export const SalesForm: React.FC<SalesFormProps> = ({
               onSelect={c => handleChange("customerId", c.customerId)}
               isValid={!!validationErrors?.customerId}
             />
-            {validationErrors?.customerId && (
-              <span className="mandatory-error text-xs">
-                {validationErrors.customerId}
-              </span>
-            )}
           </div>
 
           <div className="min-w-[50px] mt-4">
@@ -663,8 +658,9 @@ export const SalesForm: React.FC<SalesFormProps> = ({
                 currency="INR"
                 locale="en-IN"
                 onChange={(e) => handleChange("cash", e.value)}
-                className="w-full mt-1 text-sm"
+                className={`w-full mt-1 text-sm ${validationErrors?.cash ? "p-invalid" : ""}`}
                 inputStyle={{ width: "120px" }}
+                placeholder="Cash"
               />
               {validationErrors?.cash && <span className="mandatory-error text-xs">{validationErrors.cash}</span>}
             </div>
@@ -681,6 +677,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
                 onChange={(e) => handleChange("upi", e.value)}
                 className="w-full mt-1 text-sm"
                 inputStyle={{ width: "120px" }}
+                placeholder="UPI"
               />
               {validationErrors?.upi && <span className="mandatory-error text-xs">{validationErrors.upi}</span>}
             </div>
@@ -693,6 +690,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
                 value={formData.chequeNo}
                 onChange={(e) => handleChange("chequeNo", e.target.value)}
                 className="w-full mt-1 text-sm"
+                placeholder="Cheque No"
               />
               {validationErrors?.chequeNo && <span className="mandatory-error text-xs">{validationErrors.chequeNo}</span>}
             </div>
@@ -705,6 +703,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
                 value={formData.bankName}
                 onChange={(e) => handleChange("bankName", e.target.value)}
                 className="w-full mt-1 text-sm"
+                placeholder="Bank name"
               />
               {validationErrors?.bankName && <span className="mandatory-error text-xs">{validationErrors.bankName}</span>}
             </div>
@@ -718,6 +717,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
               dateFormat="dd-mm-yy"
               showIcon
               showButtonBar
+              placeholder="Sale Date"
             />
             {validationErrors?.saleDate && <span className="mandatory-error text-xs">{validationErrors.saleDate}</span>}
           </div>

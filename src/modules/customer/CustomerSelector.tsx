@@ -101,8 +101,13 @@ export const CustomerSelector: React.FC<CustomerSelectorProps> = ({
                         setShowTable(true);
                     }
                 }}
-               style={{ width: "100%" }}
+                style={{ width: "100%" }}
             />
+            {isValid && (
+                <span className="mandatory-error text-xs">
+                    Customer is required
+                </span>
+            )}
 
             {showTable && (
                 <>

@@ -191,7 +191,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               Category <span className="mandatory-asterisk">*</span>
             </strong>
             <Dropdown
-              className={`w-full mt-1 ${getErrorMessage("productCategoryId") ? "mandatory-border" : ""}`}
+              className={`w-full mt-1 ${getErrorMessage("productCategoryId") ? "p-invalid" : ""}`}
               value={formData.productCategoryId}
               options={categories}
               optionLabel="label"
@@ -213,7 +213,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               Group <span className="mandatory-asterisk">*</span>
             </strong>
             <Dropdown
-              className={`w-full mt-1 ${getErrorMessage("productGroupId") ? "mandatory-border" : ""}`}
+              className={`w-full mt-1 ${getErrorMessage("productGroupId") ? "p-invalid" : ""}`}
               value={formData.productGroupId}
               options={filteredGroups}
               optionLabel="label"
@@ -234,7 +234,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               Brand <span className="mandatory-asterisk">*</span>
             </strong>
             <Dropdown
-              className={`w-full mt-1 ${getErrorMessage("productBrandId") ? "mandatory-border" : ""}`}
+              className={`w-full mt-1 ${getErrorMessage("productBrandId") ? "p-invalid" : ""}`}
               value={formData.productBrandId}
               options={filteredBrands}
               optionLabel="label"
@@ -253,7 +253,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           <div className="flex-1 min-w-[140px]">
             <strong>Unit</strong>
             <Dropdown
-              className={`w-full mt-1 ${getErrorMessage("primaryUnitId") ? "mandatory-border" : ""}`}
+              className={`w-full mt-1 ${getErrorMessage("primaryUnitId") ? "p-invalid" : ""}`}
               value={formData.primaryUnitId}
               options={units}
               optionLabel="label"

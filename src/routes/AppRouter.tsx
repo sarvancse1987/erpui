@@ -7,7 +7,7 @@ import Unauthorized from "../modules/user/Unauthorized";
 import QuotationList from "../modules/quotation/QuotationList";
 import { DailyExpenseForm } from "../modules/voucher/DailyExpenseForm";
 import DailyExpenseList from "../modules/voucher/DailyExpenseList";
-import DailyBookForm from "../modules/voucher/DailyBookForm";
+import DailyBookForm from "../modules/voucher/DailyBookList";
 
 const Dashboard = React.lazy(() => import("../modules/dashboard/Dashboard"));
 const ProductList = React.lazy(() => import("../modules/products/ProductList"));

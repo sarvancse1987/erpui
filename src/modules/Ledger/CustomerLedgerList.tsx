@@ -215,63 +215,6 @@ export default function CustomerLedgerList() {
                     Customer Ledger Summary
                 </legend>
 
-                {/* <div className="flex gap-2 mb-3">
-                    <MultiSelect
-                        value={customerId}
-                        options={customers}
-                        onChange={(e) => setCustomerId(e.value)}
-                        placeholder="Select Supplier"
-                        className="w-20rem"
-                        display="chip"
-                        filter
-                        showClear
-                    />
-                    <Button
-                        icon="pi pi-refresh"
-                        className="p-button-info"
-                        onClick={loadLedger}
-                    />
-                </div> */}
-
-                {/* <DataTable
-                    value={ledger}
-                    dataKey="customerLedgerId"
-                    scrollable
-                    scrollHeight="300px"
-                    size="normal"
-                    paginator
-                    rows={20}
-                    loading={loading}
-                    className="p-datatable-sm"
-                    footer={footerTemplate()}
-                    rowsPerPageOptions={[5, 10, 25, 50]}
-                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-                >
-                    <Column field="customerName" header="Customer Name" />
-                    <Column field="lastUpdated" header="Date" />
-                    <Column field="lastUpdatedTime" header="Time" />
-                    <Column field="ledgerType" header="Type" body={typeTemplate} />
-                    <Column field="openingBalance" header="Opening Bal" body={openingBalanceTemplate} />
-                    <Column field="openingBalance" header="Total" body={totalTemplate} />
-                    <Column
-                        field="credit"
-                        header="Credit"
-                        body={paidTemplate}
-                    />
-                    <Column
-                        field="debit"
-                        header="Debit"
-                        body={debitTemplate}
-                    />
-
-                    <Column
-                        field="closingBalance"
-                        header="Closing Bal."
-                        body={balanceTemplate}
-                    />
-                </DataTable> */}
-
                 <TTypeDatatable
                     data={ledger}
                     columns={ledgerColumns}

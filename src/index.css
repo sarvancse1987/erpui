@@ -337,9 +337,13 @@ code {
   font-size: 15px;
 }
 
-:not(.rolemapping)>.p-datatable-wrapper {
-  max-height: 350px;
-  overflow-y: auto !important;
+:root {
+  --datatable-height: 300px;
+}
+
+:not(.rolemapping) > .p-datatable-wrapper {
+  max-height: var(--datatable-height);
+  overflow-y: auto;
 }
 
 .p-tooltip .p-tooltip-text {

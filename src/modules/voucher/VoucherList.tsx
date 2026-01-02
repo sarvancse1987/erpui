@@ -248,7 +248,7 @@ export default function VoucherList() {
                 <TabPanel header={
                     <div className="flex items-center gap-2 text-blue-600 font-semibold">
                         <i className="pi pi-file-edit" />
-                        <span>Vouchers</span>
+                        <span>Customer Vouchers</span>
                     </div>
                 }>
 

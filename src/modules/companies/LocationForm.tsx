@@ -182,7 +182,7 @@ export const LocationForm: React.FC<LocationFormProps> = ({
                     <div className="flex-1 min-w-[160px]">
                         <strong>Company Name<span className="mandatory-asterisk">*</span></strong>
                         <Dropdown
-                            className={`w-full mt-1 ${getErrorMessage("companyId") ? "mandatory-border" : ""}`}
+                            className={`w-full mt-1 ${getErrorMessage("companyId") ? "p-invalid" : ""}`}
                             value={formData.companyId ?? null}
                             options={companies}
                             optionLabel="label"
