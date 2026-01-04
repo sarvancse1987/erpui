@@ -255,7 +255,7 @@ const AppMenu: React.FC = () => {
   if (storage.hasModule("Ledger")) {
     const ledgerItems: AppMenuItem[] = [
       {
-        label: "Ledger",
+        label: "Customer Ledger",
         icon: "pi pi-fw pi-home",
         to: "/ledger",
       },

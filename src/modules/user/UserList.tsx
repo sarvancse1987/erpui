@@ -173,7 +173,7 @@ export default function UserList() {
                     </div>
 
                     {newUsers.length === 0 ? (
-                        <p className="text-gray-500">No new users. Click “Add New” to create.</p>
+                        <p className="text-gray-500">Click “Add” to create.</p>
                     ) : (
                         newUsers.map((u, idx) => (
                             <UsersForm

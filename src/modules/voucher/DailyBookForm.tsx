@@ -9,14 +9,18 @@ import { InputNumber } from "primereact/inputnumber";
 import { InputTextarea } from "primereact/inputtextarea";
 import { SupplierModel } from "../../models/supplier/SupplierModel";
 import { LedgerTransactionType } from "../../models/companies/LedgerTransactionType";
+import { CustomerModel } from "../../models/customer/CustomerModel";
+import { UserModel } from "../../models/UserModel";
+import { parseDate } from "../../common/common";
 
 interface DailyBookFormProps {
     onSave: (isSaved: boolean) => void;
-    onCancel?: () => VoidFunction;
+    onCancel?: () => void;
     isEditSidebar: boolean;
+    editedData?: CompanyLedgerModel;
 }
 
-const DailyBookForm: React.FC<DailyBookFormProps> = ({ isEditSidebar, onSave, onCancel }) => {
+const DailyBookForm: React.FC<DailyBookFormProps> = ({ isEditSidebar, onSave, onCancel, editedData }) => {
     const [form, setForm] = useState<CompanyLedgerModel>({
         companyLedgerId: 0,
         transactionDate: new Date(),
@@ -31,23 +35,123 @@ const DailyBookForm: React.FC<DailyBookFormProps> = ({ isEditSidebar, onSave, on
     const [categoryOptions, setCategoryOptions] = useState<any[]>([]);
     const [categoryType, setCategoryType] = useState<string>("");
     const [suppliers, setSuppliers] = useState<SupplierModel[]>([]);
-    const { showSuccess, showError } = useToast();
+    const [customers, setCustomers] = useState<CustomerModel[]>([]);
+    const [employees, setEmployees] = useState<UserModel[]>([]);
+    const { showSuccess } = useToast();
 
     const loadMasters = async () => {
         const vt = await apiService.get("/CompanyLedger/GetCompanyLedgerCategory");
         setCategoryOptions(
             vt.map((x: any) => ({ label: x.companyLedgerCategoryName, value: x.companyLedgerCategoryId }))
         );
-
-        const suppliersRes = await apiService.get("/Supplier/getallsupplier");
-        if (suppliersRes && suppliersRes.status) {
-            setSuppliers(suppliersRes.suppliers.map((x: any) => ({ label: x.supplierName, value: x.supplierId })) ?? []);
-        }
     };
 
     useEffect(() => {
         loadMasters();
     }, []);
+
+    const applyCategoryChange = async (categoryId: number, sourceData?: CompanyLedgerModel, categoryOptionsValue?: any) => {
+        const selectedOption = categoryOptionsValue.find((opt: any) => opt.value === categoryId);
+
+        if (!selectedOption) return;
+
+        const nextCategoryType = selectedOption.label as LedgerTransactionType;
+
+        setCategoryType(nextCategoryType);
+
+        // Normalize form values
+        setForm(prev => ({
+            ...prev,
+            ...(sourceData ?? {}),
+            companyLedgerCategoryId: categoryId,
+
+            supplierId:
+                nextCategoryType === LedgerTransactionType.Purchase
+                    ? sourceData?.supplierId ?? prev.supplierId
+                    : undefined,
+
+            customerId:
+                nextCategoryType === LedgerTransactionType.Refund ||
+                    nextCategoryType === LedgerTransactionType.SaleReceipt
+                    ? sourceData?.customerId ?? prev.customerId
+                    : undefined,
+
+            employeeId:
+                nextCategoryType === LedgerTransactionType.Salary
+                    ? sourceData?.employeeId ?? prev.employeeId
+                    : undefined,
+        }));
+
+        // Lazy load data
+        if (
+            nextCategoryType === LedgerTransactionType.Purchase &&
+            suppliers.length === 0
+        ) {
+            const res = await apiService.get("/Supplier/getallsupplier");
+            if (res?.status) {
+                setSuppliers(
+                    res.suppliers.map((x: any) => ({
+                        label: x.supplierName,
+                        value: x.supplierId,
+                    }))
+                );
+            }
+        }
+
+        if (
+            (nextCategoryType === LedgerTransactionType.Refund ||
+                nextCategoryType === LedgerTransactionType.SaleReceipt) &&
+            customers.length === 0
+        ) {
+            const res = await apiService.get("/Customer/details");
+            setCustomers(
+                res?.customers?.map((x: any) => ({
+                    label: x.customerName,
+                    value: x.customerId,
+                })) ?? []
+            );
+        }
+
+        if (
+            nextCategoryType === LedgerTransactionType.Salary &&
+            employees.length === 0
+        ) {
+            const res = await apiService.get("/Users");
+            setEmployees(res?.map((x: any) => ({ label: `${x.firstName} ${x.lastName}`, value: x.id, })) ?? []);
+        }
+    };
+
+
+    useEffect(() => {
+        if (!editedData) return;
+
+        const initEdit = async () => {
+            // Load category options
+            const vt = await apiService.get("/CompanyLedger/GetCompanyLedgerCategory");
+
+            const options = vt.map((x: any) => ({
+                label: x.companyLedgerCategoryName,
+                value: x.companyLedgerCategoryId,
+            }));
+
+            setCategoryOptions(options);
+
+            // Apply category logic (🔥 reuse)
+            await applyCategoryChange(editedData.companyLedgerCategoryId ?? 0,
+                {
+                    ...editedData,
+                    transactionDate: isEditSidebar
+                        ? parseDate(editedData.transactionDate ?? new Date()) ?? undefined
+                        : new Date(),
+                },
+                options
+            );
+        };
+
+        initEdit();
+    }, [editedData, isEditSidebar]);
+
+
 
     const handleChange = (field: keyof CompanyLedgerModel, value: any) => {
         setForm(prev => ({ ...prev, [field]: value }));
@@ -58,9 +162,13 @@ const DailyBookForm: React.FC<DailyBookFormProps> = ({ isEditSidebar, onSave, on
 
         if (!form.transactionDate) errs.transactionDate = "Transaction Date required";
         if (!form.companyLedgerCategoryId) errs.companyLedgerCategoryId = "Transaction Type required";
-        if (!form.credit || form.credit == 0) errs.credit = "Amount required";
-        if (categoryType && categoryType == LedgerTransactionType.Purchase && !form.supplierId)
+        if (!form.credit || form.credit === 0) errs.credit = "Amount required";
+        if (categoryType && categoryType === LedgerTransactionType.Purchase && !form.supplierId)
             errs.supplierId = "Supplier name required";
+        if (categoryType && (categoryType === LedgerTransactionType.Refund || categoryType === LedgerTransactionType.SaleReceipt) && !form.customerId)
+            errs.customerId = "Customer name required";
+        if (categoryType && categoryType === LedgerTransactionType.Salary && !form.employeeId)
+            errs.employeeId = "Employee name required";
 
         setErrors(errs);
         return Object.keys(errs).length === 0;
@@ -69,26 +177,45 @@ const DailyBookForm: React.FC<DailyBookFormProps> = ({ isEditSidebar, onSave, on
     const handleSave = async () => {
         if (!validate()) return;
 
-        if (form.companyLedgerCategoryId == 0) {
+        if (form.companyLedgerCategoryId === 0) {
             var response = await apiService.post("/CompanyLedger", form);
             if (response)
                 showSuccess("Company Ledger saved successfully!");
 
             onSave(true);
         } else {
-            var response = await apiService.put(`/CompanyLedger/${form.companyLedgerCategoryId}`, form);
-            if (response)
+            var responseUpdate = await apiService.put(`/CompanyLedger/${form.companyLedgerCategoryId}`, form);
+            if (responseUpdate)
                 showSuccess("Company Ledger saved successfully!");
 
             onSave(true);
         }
     };
 
-    const onCategoryChange = (eventValue: number) => {
+    const onCategoryChange = async (eventValue: number) => {
         const selectedOption = categoryOptions.find(
             (opt) => opt.value === eventValue
         );
         setCategoryType(selectedOption.label);
+
+        if (selectedOption.label && selectedOption.label === LedgerTransactionType.Purchase && suppliers.length === 0) {
+            const suppliersRes = await apiService.get("/Supplier/getallsupplier");
+            if (suppliersRes && suppliersRes.status) {
+                setSuppliers(suppliersRes.suppliers.map((x: any) => ({ label: x.supplierName, value: x.supplierId })) ?? []);
+            }
+        }
+
+        if (selectedOption.label && (selectedOption.label === LedgerTransactionType.Refund || selectedOption.label === LedgerTransactionType.SaleReceipt)
+            && customers.length === 0) {
+            const customersRes = await apiService.get("/Customer/details");
+            setCustomers(customersRes?.customers.map((x: any) => ({ label: x.customerName, value: x.customerId })) ?? []);
+        }
+
+        if (selectedOption.label && (selectedOption.label === LedgerTransactionType.Salary)
+            && employees.length === 0) {
+            const res = await apiService.get(`/Users`);
+            setEmployees(res?.map((x: any) => ({ label: `${x.firstName} ${x.lastName}`, value: x.id })) ?? []);
+        }
     }
 
     return (
@@ -140,7 +267,7 @@ const DailyBookForm: React.FC<DailyBookFormProps> = ({ isEditSidebar, onSave, on
                         {errors.companyLedgerCategoryId && <small className="mandatory-error">{errors.companyLedgerCategoryId}</small>}
                     </div>
 
-                    {categoryType && categoryType == LedgerTransactionType.Purchase && (
+                    {categoryType && categoryType === LedgerTransactionType.Purchase && (
                         <div className="flex-1 min-w-[180px]">
                             <strong className="text-sm">Supplier Name <span className="mandatory-asterisk">*</span></strong>
                             <Dropdown
@@ -153,6 +280,36 @@ const DailyBookForm: React.FC<DailyBookFormProps> = ({ isEditSidebar, onSave, on
                                 placeholder="Supplier"
                             />
                             {errors.supplierId && <small className="mandatory-error">{errors.supplierId}</small>}
+                        </div>)}
+
+                    {categoryType && (categoryType === LedgerTransactionType.Refund || categoryType === LedgerTransactionType.SaleReceipt) && (
+                        <div className="flex-1 min-w-[180px]">
+                            <strong className="text-sm">Customer Name <span className="mandatory-asterisk">*</span></strong>
+                            <Dropdown
+                                value={form.customerId}
+                                options={customers}
+                                onChange={(e) => {
+                                    handleChange("customerId", e.value);
+                                }}
+                                className={`w-full mt-1 ${errors.customerId ? "p-invalid" : ""}`}
+                                placeholder="Customer"
+                            />
+                            {errors.customerId && <small className="mandatory-error">{errors.customerId}</small>}
+                        </div>)}
+
+                    {categoryType && (categoryType === LedgerTransactionType.Salary) && (
+                        <div className="flex-1 min-w-[180px]">
+                            <strong className="text-sm">Employee Name <span className="mandatory-asterisk">*</span></strong>
+                            <Dropdown
+                                value={form.employeeId}
+                                options={employees}
+                                onChange={(e) => {
+                                    handleChange("employeeId", e.value);
+                                }}
+                                className={`w-full mt-1 ${errors.employeeId ? "p-invalid" : ""}`}
+                                placeholder="Employee"
+                            />
+                            {errors.employeeId && <small className="mandatory-error">{errors.employeeId}</small>}
                         </div>)}
 
                     <div className="flex-1 min-w-[180px]">

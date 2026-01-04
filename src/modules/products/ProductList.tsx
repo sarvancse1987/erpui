@@ -54,7 +54,7 @@ export default function ProductList() {
       setProducts(initialProducts);
 
       const suppliers = await apiService.get("/Supplier/getallsupplier");
-      setAllsuppliers((suppliers?.suppliers ?? []).map((u: any) => ({ label: `${u.supplierName}-${u.city}`, value: u.supplierId })));
+      setAllsuppliers((suppliers?.suppliers ?? []).map((u: any) => ({ label: `${u.supplierName}${u.city != null ? ("-" + `${u.city}`) : ""}`, value: u.supplierId })));
     } catch (err) {
       console.error("Error loading product data", err);
     } finally {
@@ -409,7 +409,7 @@ export default function ProductList() {
 
             <div className="space-y-4">
               {newProducts.length === 0 ? (
-                <p className="text-gray-500">No new products. Click "Add New" to create.</p>
+                <p className="text-gray-500">Click "Add" to create.</p>
               ) : (
                 newProducts.map((product, idx) => (
                   <ProductForm

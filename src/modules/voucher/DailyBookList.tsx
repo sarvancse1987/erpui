@@ -7,11 +7,13 @@ import { CompanyLedgerDetailModel } from "../../models/companies/CompanyLedgerDe
 import { TTypeDatatable } from "../../components/TTypeDatatable";
 import { ColumnMeta } from "../../models/component/ColumnMeta";
 import { Tag } from "primereact/tag";
+import { Sidebar } from "primereact/sidebar";
 
 export default function DailyBookList() {
     const [activeIndex, setActiveIndex] = useState(0);
     const [selectedLedger, setSelectedLedger] = useState<CompanyLedgerModel | null>(null);
     const [ledgers, setLedgers] = useState<CompanyLedgerDetailModel[]>([]);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const formatLocalDateTime = (date: Date) => {
         const pad = (n: number) => n.toString().padStart(2, "0");
@@ -107,6 +109,11 @@ export default function DailyBookList() {
         { field: "employeeName", header: "Employee Name", width: "90px" },
     ];
 
+    const handleOpenEdit = (editedData: any) => {
+        setIsSidebarOpen(true);
+        setSelectedLedger(editedData);
+    }
+
     return (
         <div className="p-2 h-[calc(100vh-100px)] overflow-auto">
             <h2 className="text-lg font-semibold mb-1">🧾 Company Ledger Management</h2>
@@ -122,7 +129,7 @@ export default function DailyBookList() {
                         data={ledgers}
                         columns={columns}
                         primaryKey="companyLedgerId"
-                        //onEdit={handleOpenEdit}
+                        onEdit={handleOpenEdit}
                         isDelete={true}
                         //onDelete={handleOnDelete}
                         isNew={false}
@@ -140,11 +147,31 @@ export default function DailyBookList() {
                     </div>
                 }>
                     <div className="space-y-4">
-                        <DailyBookForm isEditSidebar={false} onSave={() => { }} />
+                        <DailyBookForm isEditSidebar={false} onSave={() => { loadData(); setActiveIndex(0) }} />
                     </div>
                 </TabPanel>
 
             </TabView>
+
+
+            <Sidebar visible={isSidebarOpen}
+                position="right"
+                onHide={() => setIsSidebarOpen(false)}
+                header="Edit Company Ledger"
+                style={{ width: '70rem' }}>
+                {selectedLedger ? (
+                    <DailyBookForm isEditSidebar={true} onSave={() => {
+                        loadData();
+                        setActiveIndex(0);
+                        setIsSidebarOpen(false)
+                    }}
+                        onCancel={() =>
+                            setIsSidebarOpen(false)
+                        }
+                        editedData={selectedLedger} />
+                ) : <p className="p-4 text-gray-500 text-center">Select a ledger to edit.</p>}
+            </Sidebar>
+
         </div>
     )
 }

@@ -179,7 +179,7 @@ export default function CustomerList() {
                     </div>
 
                     {newCustomers.length === 0 ? (
-                        <p className="text-gray-500">No new customers. Click “Add” to create.</p>
+                        <p className="text-gray-500">Click “Add” to create.</p>
                     ) : (
                         newCustomers.map((c, idx) => (
                             <CustomerForm

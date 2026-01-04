@@ -5,7 +5,7 @@ export interface CompanyLedgerCategory {
 
 export interface CompanyLedgerModel {
     companyLedgerId: number;
-    transactionDate: Date;
+    transactionDate?: Date;
     companyLedgerCategoryId: number | null;
 
     description?: string;
@@ -17,4 +17,6 @@ export interface CompanyLedgerModel {
     referenceType?: string;
     isOpeningEntry: boolean;
     supplierId?: number;
+    customerId?: number;
+    employeeId?: number;
 }

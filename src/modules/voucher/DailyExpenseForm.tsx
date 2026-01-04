@@ -8,7 +8,6 @@ import { InputTextarea } from "primereact/inputtextarea";
 import { Button } from "primereact/button";
 import { parseDate } from "../../common/common";
 import { ExpenseCategoryEnum } from "../../models/voucher/ExpenseCategoryEnum";
-import apiService from "../../services/apiService";
 
 interface DailyExpenseFormProps {
   expense: DailyExpenseModel;
@@ -25,15 +24,14 @@ interface DailyExpenseFormProps {
 export const DailyExpenseForm: React.FC<DailyExpenseFormProps> = ({
   expense, index = 0, validationErrors = {}, onSave, onCancel, isEditSidebar, isAddNewExpense, categories, users
 }) => {
-  const { showSuccess, showError } = useToast();
   const [localValidationErrors, setLocalValidationErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState<DailyExpenseModel>({ ...expense });
   const [categoryOptions, setCategoryOptions] = useState<any[]>([]);
   const [isEmployee, setIsEmployee] = useState<boolean>(false);
 
   const onChangeCategoryType = (type: number) => {
-    const categoryName = categories.find(item => item.value == type);
-    if (categoryName && categoryName.label == ExpenseCategoryEnum.DailyWagesSalary) {
+    const categoryName = categories.find(item => item.value === type);
+    if (categoryName && categoryName.label === ExpenseCategoryEnum.DailyWagesSalary) {
       setIsEmployee(true);
     } else {
       setIsEmployee(false);
