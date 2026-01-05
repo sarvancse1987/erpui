@@ -23,6 +23,9 @@ import { useToast } from "./ToastService";
 import { storage } from "../services/storageService";
 import SaleShipmentForm from "../modules/shipment/ShipmentForm";
 import { ShipmentModel } from "../models/shipment/ShipmentModel";
+import SpeechRecognition, {
+  useSpeechRecognition,
+} from "react-speech-recognition";
 
 export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
   columns,
@@ -73,6 +76,14 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
   const user = storage.getUser();
   const [showShipment, setShowShipment] = useState(false);
   const [shipmentModel, setShipmentModel] = useState<ShipmentModel | null>(null);
+
+  const {
+    listening,
+    transcript,
+    resetTranscript,
+    browserSupportsSpeechRecognition,
+  } = useSpeechRecognition();
+
 
   const loadFreightData = async () => {
     try {
@@ -439,6 +450,30 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
     setShowShipment(false);
   };
 
+  useEffect(() => {
+    if (transcript) {
+      setSidebarSearchText(transcript);
+    }
+  }, [transcript]);
+
+  const toggleVoice = () => {
+    if (!browserSupportsSpeechRecognition) {
+      showError("Voice recognition is not supported in this browser");
+      return;
+    }
+
+
+    if (listening) {
+      SpeechRecognition.stopListening();
+    } else {
+      resetTranscript();
+      SpeechRecognition.startListening({
+        continuous: false,
+        language: "en-IN",
+      });
+    }
+  };
+
   return (
     <div className="card p-3 h-[calc(100vh-100px)] overflow-auto">
       <div className="flex justify-between items-center mb-1">
@@ -691,14 +726,22 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
               showClear
             />
           </div>
+          <div className="mb-3 flex items-center gap-2">
+            <InputText
+              value={sidebarSearchText}
+              onChange={(e) => setSidebarSearchText(e.target.value)}
+              placeholder="Search Products"
+              className="w-full mb-3"
+            />
 
-          <InputText
-            value={sidebarSearchText}
-            onChange={(e) => setSidebarSearchText(e.target.value)}
-            placeholder="Search Products"
-            className="w-full mb-3"
-          />
-
+            <Button
+              icon={listening ? "pi pi-stop" : "pi pi-microphone"}
+              className={`p-button-rounded ${listening ? "p-button-warning" : "p-button-danger"}`}
+              onClick={toggleVoice}
+              tooltip={listening ? "Stop Listening" : "Voice Command"}
+              tooltipOptions={{ position: "bottom" }}
+            />
+          </div>
           <DataTable
             value={
               products.filter((p) => {
