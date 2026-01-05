@@ -92,6 +92,9 @@ export default function ProductList() {
     brandDescription: "",
     filteredGroups: [],
     filteredBrands: [],
+    imagePreviewUrl: "",
+    imageFile: null,
+    tempKey: crypto.randomUUID()
   });
 
   const updateGSTPrice = (product: ProductModel) => {
@@ -108,7 +111,12 @@ export default function ProductList() {
   const handleUpdateNewProduct = (index: number, updatedProduct: ProductModel) => {
     setNewProducts((prev) => {
       const copy = [...prev];
-      copy[index] = updatedProduct;
+
+      copy[index] = {
+        ...copy[index],     // 🔐 preserves imageFile
+        ...updatedProduct,
+      };
+
       return copy;
     });
   };
@@ -138,7 +146,29 @@ export default function ProductList() {
     }
 
     try {
-      await apiService.post("/Product/bulk", newProducts);
+      const savedProducts = await apiService.post("/Product/bulk", newProducts);
+      for (let i = 0; i < savedProducts.length; i++) {
+        const saved = savedProducts[i];
+        const local = newProducts[i];
+
+        // 📁 FILE UPLOAD
+        if (local.imageFile instanceof File) {
+          const formData = new FormData();
+          formData.append("file", local.imageFile);
+          formData.append("productId", saved.productId.toString());
+
+          await apiService.upload("/product/upload/uploadproductimage", formData);
+        } else {
+          // 📷 BASE64 (Webcam)
+          if (local.imagePreviewUrl) {
+            await apiService.post("/product/upload-image", {
+              id: saved.productId,
+              imageBase64: local.imagePreviewUrl,
+            });
+          }
+        }
+      }
+
       await loadAllData();
       setNewProducts([]);
       setValidationErrors({});
@@ -413,7 +443,7 @@ export default function ProductList() {
               ) : (
                 newProducts.map((product, idx) => (
                   <ProductForm
-                    key={idx}
+                    key={product.tempKey}
                     product={product}
                     index={idx}
                     categories={categories}

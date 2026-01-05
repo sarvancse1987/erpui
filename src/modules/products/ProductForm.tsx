@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Dropdown } from "primereact/dropdown";
 import { InputText } from "primereact/inputtext";
 import { InputNumber } from "primereact/inputnumber";
@@ -7,6 +7,9 @@ import { Button } from "primereact/button";
 import { ProductModel } from "../../models/product/ProductModel";
 import { OptionModel } from "../../models/product/OptionModel";
 import { handleEnterKey } from "../../common/common";
+import { FileUpload, FileUploadSelectEvent } from "primereact/fileupload";
+import CustomWebcam from "../webcam/CustomWebcam";
+import "../../asset/style/MyProfileFileUpload.css";
 
 interface ProductFormProps {
   product: ProductModel;
@@ -39,6 +42,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   const [filteredGroups, setFilteredGroups] = useState<OptionModel[]>([]);
   const [filteredBrands, setFilteredBrands] = useState<OptionModel[]>([]);
   const [localValidationErrors, setLocalValidationErrors] = useState<Record<string, string>>({});
+  const uploadRef = useRef<FileUpload>(null);
+  const [webcamKey, setWebcamKey] = useState(0);
+  const imageObjectUrlRef = useRef<string | null>(null);
+  const [isDatabase, setIsDatabase] = useState<boolean>(false);
 
   useEffect(() => {
     if (formData.productCategoryId) {
@@ -64,7 +71,18 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     if (!product.productGroupId) setFilteredBrands([]);
 
     setLocalValidationErrors({});
+    if (product.imagePreviewUrl) {
+      setIsDatabase(true);
+    }
   }, [product]);
+
+  useEffect(() => {
+    return () => {
+      if (imageObjectUrlRef.current) {
+        URL.revokeObjectURL(imageObjectUrlRef.current);
+      }
+    };
+  }, []);
 
   const updateGSTPrice = (data: ProductModel) => {
     const totalGST = (data.cgstRate ?? 0) + (data.sgstRate ?? 0) + (data.igstRate ?? 0);
@@ -161,6 +179,34 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     if (!validateForm()) return;
     onSave(formData);
   };
+
+  const onSelect = (e: FileUploadSelectEvent) => {
+    const file = e.files[0];
+    if (!file) return;
+
+    setIsDatabase(false);
+    // Revoke old URL if exists
+    if (imageObjectUrlRef.current) {
+      URL.revokeObjectURL(imageObjectUrlRef.current);
+    }
+
+    const url = URL.createObjectURL(file);
+    imageObjectUrlRef.current = url;
+
+    setFormData(prev => ({
+      ...prev,
+      imageFile: file,
+      imagePreviewUrl: url,
+    }));
+
+    uploadRef.current?.clear();
+  };
+
+  const openFileDialog = () => {
+    uploadRef.current?.getInput()?.click();
+  };
+
+  const apiBaseUrl = process.env.REACT_APP_SERVICE_API_BASE_URL?.replace("/api", "") || "";
 
   return (
     <form onSubmit={handleSubmit}>
@@ -396,6 +442,80 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               tabIndex={13}
               onKeyDown={handleEnterKey}
             />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-3 p-1">
+
+          {/* Image Section */}
+          <div className="flex justify-end mt-4">
+            <div className="flex flex-col gap-4">
+
+              {/* Upload Box */}
+              {(!formData.imagePreviewUrl || formData.imagePreviewUrl == "") && (
+                <div className="upload-dropzone" onClick={openFileDialog}>
+                  <i className="pi pi-upload"></i>
+                  <p className="text-main">Upload Image</p>
+                  <p className="text-sub">PNG / JPG / JPEG</p>
+                </div>
+              )}
+
+              <FileUpload
+                ref={uploadRef}
+                name="file"
+                mode="basic"
+                customUpload
+                auto={false}
+                accept="image/*"
+                maxFileSize={2_000_000}
+                onSelect={onSelect}
+                className="hidden"
+              />
+
+              {/* Final Preview Box */}
+              {formData.imagePreviewUrl && (
+                <div className="relative" style={{ width: 176, height: 176 }}>
+                  <div className="block" style={{ width: 176, height: 176, border: "1px dotted #999" }}>
+                    <div className="relative w-full h-full">
+
+                      <img
+                        src={isDatabase == true ? apiBaseUrl + formData.imagePreviewUrl : formData.imagePreviewUrl}
+                        alt="preview"
+                        className="w-full h-full rounded-lg object-cover border"
+                      />
+
+                      <Button
+                        type="button"
+                        icon="pi pi-times-circle"
+                        severity="danger"
+                        text
+                        className="absolute -top-2 -right-2 p-2 rounded-full"
+                        onClick={() => {
+                          const clearedProduct = {
+                            ...formData,
+                            imagePreviewUrl: null,
+                            imageFile: null,
+                          };
+                          setIsDatabase(false);
+                          setFormData(clearedProduct);
+                          onSave(clearedProduct);       // ✅ ONE update only
+                          setWebcamKey(prev => prev + 1);
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Webcam */}
+              <CustomWebcam
+                key={webcamKey}
+                onCapture={(img) => {
+                  setIsDatabase(false);
+                  handleChange("imagePreviewUrl", img);
+                }}
+              />
+            </div>
           </div>
         </div>
 

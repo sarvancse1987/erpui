@@ -2,7 +2,6 @@ import axios from "axios";
 import type { AxiosInstance } from "axios";
 import { handleApiError } from "./handleApiError";
 import { getCookie } from "../common/common";
-import { useContext } from "react";
 import { ToastContext } from "../components/ToastContext";
 import { storage } from "./storageService";
 

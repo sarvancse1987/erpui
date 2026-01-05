@@ -37,6 +37,10 @@ export interface ProductModel {
 
     filteredGroups?: OptionModel[];
     filteredBrands?: OptionModel[];
+
+    imageFile?: File | null;
+    imagePreviewUrl?: string | null;
+    tempKey: string;
 }
 
 
