@@ -9,6 +9,7 @@ import SpeechRecognition, {
     useSpeechRecognition,
 } from "react-speech-recognition";
 
+import { useVoiceCommands } from "../speecherp/useVoiceCommands"; // <-- correct path
 /* ================= TYPES ================= */
 
 interface KpiCardProps {
@@ -29,56 +30,7 @@ export default function Dashboard() {
 
     /* ================= VOICE COMMANDS ================= */
 
-    const commands = [
-        {
-            command: ["open sales", "go to sales", "open sale", "go to sale"],
-            callback: () => navigate("/sales"),
-        },
-        {
-            command: ["open inventory", "go to inventory"],
-            callback: () => navigate("/inventory"),
-        },
-        {
-            command: ["open quotation", "open quotations"],
-            callback: () => navigate("/sales/quotations"),
-        },
-        {
-            command: ["open daily expense", "open expense"],
-            callback: () => navigate("/ledger/dailyexpense"),
-        },
-        {
-            command: ["open ledger", "go to ledger"],
-            callback: () => navigate("/ledger"),
-        },
-        {
-            command: ["open voucher", "go to voucher"],
-            callback: () => navigate("/ledger/voucher"),
-        },
-        {
-            command: ["open users", "go to users"],
-            callback: () => navigate("/users"),
-        },
-        {
-            command: ["open roles", "go to roles"],
-            callback: () => navigate("/roles"),
-        },
-        {
-            command: ["open usertypes", "go to usertype", "go to usertypes"],
-            callback: () => navigate("/usertypes"),
-        },
-        {
-            command: ["open suppliers", "go to supplier", "go to suppliers"],
-            callback: () => navigate("/suppliers"),
-        },
-        {
-            command: ["open customers", "go to customers", "go to customer"],
-            callback: () => navigate("/customers"),
-        },
-        {
-            command: ["open purchase", "go to purchase"],
-            callback: () => navigate("/purchase"),
-        },
-    ];
+    const commands = useVoiceCommands();
 
     const {
         listening,
