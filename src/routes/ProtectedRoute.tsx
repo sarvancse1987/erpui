@@ -3,6 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { storage } from "../services/storageService";
 import { resolveRequiredModule } from "./PermissionResolver";
 
+
 interface Props {
     children: JSX.Element;
 }

@@ -197,6 +197,23 @@ export default function ProductList() {
           p.productId === updatedProduct.productId ? { ...updatedProduct } : p
         )
       );
+
+      if (updatedProduct.imageFile instanceof File) {
+        const formData = new FormData();
+        formData.append("file", updatedProduct.imageFile);
+        formData.append("productId", updatedProduct.productId.toString());
+
+        await apiService.upload("/product/upload/uploadproductimage", formData);
+      } else {
+        // 📷 BASE64 (Webcam)
+        if (updatedProduct.imagePreviewUrl) {
+          await apiService.post("/product/upload-image", {
+            id: updatedProduct.productId,
+            imageBase64: updatedProduct.imagePreviewUrl,
+          });
+        }
+      }
+
       await loadAllData();
       showSuccess('Product updated successfully!');
 

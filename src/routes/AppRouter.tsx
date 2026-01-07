@@ -5,7 +5,6 @@ import { ProtectedRoute } from "./ProtectedRoute";
 import MinimalLayout from "../layout/MinimalLayout";
 import Unauthorized from "../modules/user/Unauthorized";
 import QuotationList from "../modules/quotation/QuotationList";
-import { DailyExpenseForm } from "../modules/voucher/DailyExpenseForm";
 import DailyExpenseList from "../modules/voucher/DailyExpenseList";
 import DailyBookForm from "../modules/voucher/DailyBookList";
 
