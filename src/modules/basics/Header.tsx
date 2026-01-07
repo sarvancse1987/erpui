@@ -1,100 +1,48 @@
-import React from "react";
+// src/layout/Header.tsx
+import { Menubar } from "primereact/menubar";
 import { useNavigate } from "react-router-dom";
+import "../../asset/basiclayout/Header.css";
 
-const Header = () => {
-    const navigate = useNavigate();
+export const Header = () => {
+  const navigate = useNavigate();
 
-    const redirect = (id: any) => {
-        switch (id) {
-            case 1:
-                navigate("/");
-                break;
-            case 2:
-                navigate("/services");
-                break;
-            case 3:
-                navigate("/about");
-                break;
-            case 4:
-                navigate("/contact");
-                break;
-            case 5:
-                navigate("/team");
-                break;
-            case 6:
-                navigate("/portfolio");
-                break;
-            case 7:
-                navigate("/service-details");
-                break;
-            case 8:
-                navigate("/blog-1");
-                break;
-            case 9:
-                navigate("/blog-2");
-                break;
-            case 11:
-                navigate("/404");
-                break;
-            default:
-                navigate("/");
-        }
-    };
+  // Center menu items
+  const centerItems = [
+    { label: "Home", icon: "pi pi-home", command: () => navigate("/home") },
+    { label: "About Us", icon: "pi pi-info-circle", command: () => navigate("/about") },
+    { label: "Products", icon: "pi pi-box", command: () => navigate("/product") },
+    { label: "Services", icon: "pi pi-cog", command: () => navigate("/services") },
+    { label: "Contact", icon: "pi pi-phone", command: () => navigate("/contact") }
+  ];
 
-    return (
-        <>
-            {/* HEADER */}
-            <header className="header header-1 transparent header-2">
+  // Right aligned items
+  const endItems = (
+    <div className="flex gap-2">
+      <button
+        className="p-button p-button-text p-button-sm"
+        onClick={() => navigate("/login")}
+      >
+        <i className="pi pi-sign-in mr-2"></i>
+        Login
+      </button>
 
-                {/* MAIN HEADER */}
-                <div className="main-header-wraper">
-                    <div className="container">
-                        <div className="flex align-items-center justify-content-between border-top-1">
-                            {/* LOGO MOBILE */}
-                            <div className="header-logo d-xl-none">
-                                <a onClick={() => redirect(1)}>
-                                    <img src="assets/img/logo/logo-2.png" alt="logo" />
-                                </a>
-                            </div>
+      <button
+        className="p-button p-button-outlined p-button-sm"
+        onClick={() => navigate("/signup")}
+      >
+        <i className="pi pi-user-plus mr-2"></i>
+        Signup
+      </button>
+    </div>
+  );
 
-                            {/* MENU */}
-                            <div className="header-menu d-none d-xl-block">
-                                <ul className="main-menu">
-                                    <li><a onClick={() => redirect(1)}>Home</a></li>
-                                    <li><a onClick={() => redirect(2)}>Our Services</a></li>
-
-                                    <li>
-                                        <a onClick={() => redirect(3)}>
-                                            About <i className="fas fa-caret-down"></i>
-                                        </a>
-                                        <ul>
-                                            <li><a onClick={() => redirect(4)}>Contact</a></li>
-                                            <li><a onClick={() => redirect(5)}>Team Details</a></li>
-                                            <li><a onClick={() => redirect(7)}>Service Details</a></li>
-                                            <li><a onClick={() => redirect(11)}>404</a></li>
-                                        </ul>
-                                    </li>
-
-                                    <li><a onClick={() => redirect(6)}>Portfolio</a></li>
-                                </ul>
-                            </div>
-
-                            {/* RIGHT */}
-                            <div className="header-right d-flex align-items-center">
-                                <div className="header-search">
-                                    <span className="fas fa-search"></span>
-                                </div>
-
-                                <div className="mobile-nav-bar d-xl-none ml-3">
-                                    <i className="fal fa-bars"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </header>
-        </>
-    );
+  return (
+    <div className="app-header shadow-2">
+      <Menubar
+        model={centerItems}
+        className="custom-menubar"
+        end={endItems}
+      />
+    </div>
+  );
 };
-
-export default Header;

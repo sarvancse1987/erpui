@@ -7,6 +7,11 @@ import Unauthorized from "../modules/user/Unauthorized";
 import QuotationList from "../modules/quotation/QuotationList";
 import DailyExpenseList from "../modules/voucher/DailyExpenseList";
 import DailyBookForm from "../modules/voucher/DailyBookList";
+import { Home } from "../modules/basics/Home";
+import { Products } from "../modules/basics/Products";
+import Services from "../modules/basics/Services";
+import { Contact } from "../modules/basics/Contact";
+import About from "../modules/basics/About";
 
 const Dashboard = React.lazy(() => import("../modules/dashboard/Dashboard"));
 const ProductList = React.lazy(() => import("../modules/products/ProductList"));
@@ -42,7 +47,11 @@ export default function AppRouter() {
             {/* Login Route */}
             <Route element={<MinimalLayout />}>
                 <Route path="/login" element={<Login />} />
-                <Route path="/demo" element={<DemoForm />} />
+                <Route path="/home" element={<Home />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/product" element={<Products />} />
+                <Route path="/services" element={<Services />} />
+                <Route path="/contact" element={<Contact />} />
             </Route>
 
             {/* Protected ERP Layout */}

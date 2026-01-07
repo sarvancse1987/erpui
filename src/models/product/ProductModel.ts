@@ -41,6 +41,7 @@ export interface ProductModel {
     imageFile?: File | null;
     imagePreviewUrl?: string | null;
     tempKey: string;
+    isListOut?: boolean;
 }
 
 

@@ -46,12 +46,12 @@
 
 /* Keep MainLoginCard centered */
 .MainLoginCard {
-    height: 100vh;
+    height: 80vh;
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f5f5fc;
+    background: #99c6dc;
 }
 
 /* Card flex container */
