@@ -1,4 +1,3 @@
-// src/pages/Products.tsx
 import { Card } from "primereact/card";
 import { Button } from "primereact/button";
 import { Checkbox } from "primereact/checkbox";
@@ -8,10 +7,21 @@ import { ProductModel } from "../../models/product/ProductModel";
 import "../../asset/basiclayout/Product.css";
 import noProductImg from "../../asset/img/no-product.jpg";
 
+interface GroupBrand {
+  groupId: number;
+  groupName: string;
+  brands: {
+    brandId: number;
+    brandName: string;
+  }[];
+}
+
 export const Products = () => {
   const [products, setProducts] = useState<ProductModel[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<number[]>([]);
+  const [expandedGroups, setExpandedGroups] = useState<number[]>([]);
 
+  /* ================= LOAD DATA ================= */
   const loadAllData = async () => {
     try {
       const hierarchy = await apiService.get(
@@ -21,15 +31,16 @@ export const Products = () => {
       const apiBaseUrl =
         process.env.REACT_APP_SERVICE_API_BASE_URL?.replace("/api", "") || "";
 
-      const initialProducts: ProductModel[] =
-        (hierarchy.products ?? []).map((item: any) => ({
+      const mappedProducts: ProductModel[] = (hierarchy.products ?? []).map(
+        (item: any) => ({
           ...item,
           imagePreviewUrl: item.imagePreviewUrl
             ? apiBaseUrl + item.imagePreviewUrl
             : noProductImg,
-        }));
+        })
+      );
 
-      setProducts(initialProducts);
+      setProducts(mappedProducts);
     } catch (err) {
       console.error("Error loading product data", err);
     }
@@ -39,27 +50,60 @@ export const Products = () => {
     loadAllData();
   }, []);
 
-  /* ================= BRAND LIST ================= */
-  const brands = useMemo(() => {
-    const map = new Map<number, string>();
+  /* ================= GROUP → BRAND MAP ================= */
+  const groupBrandMap: GroupBrand[] = useMemo(() => {
+    const map = new Map<number, GroupBrand>();
+
     products.forEach((p) => {
-      if (p.productBrandId && p.brandName) {
-        map.set(p.productBrandId, p.brandName);
+      if (
+        !p.productGroupId ||
+        !p.groupName ||
+        !p.productBrandId ||
+        !p.brandName
+      )
+        return;
+
+      if (!map.has(p.productGroupId)) {
+        map.set(p.productGroupId, {
+          groupId: p.productGroupId,
+          groupName: p.groupName,
+          brands: [],
+        });
+      }
+
+      const group = map.get(p.productGroupId)!;
+
+      if (!group.brands.some((b) => b.brandId === p.productBrandId)) {
+        group.brands.push({
+          brandId: p.productBrandId,
+          brandName: p.brandName,
+        });
       }
     });
-    return Array.from(map.entries()).map(([id, name]) => ({
-      brandId: id,
-      brandName: name,
-    }));
+
+    return Array.from(map.values());
   }, [products]);
 
-  /* ================= FILTERED PRODUCTS ================= */
+  /* ================= FILTER PRODUCTS ================= */
   const filteredProducts = useMemo(() => {
     if (selectedBrands.length === 0) return products;
-    return products.filter((p) => selectedBrands.includes(p.productBrandId));
+    return products.filter((p) =>
+      selectedBrands.includes(p.productBrandId)
+    );
   }, [products, selectedBrands]);
 
   /* ================= HANDLERS ================= */
+
+  // Group = expand / collapse ONLY
+  const onGroupToggle = (groupId: number) => {
+    setExpandedGroups((prev) =>
+      prev.includes(groupId)
+        ? prev.filter((id) => id !== groupId)
+        : [...prev, groupId]
+    );
+  };
+
+  // Brand = actual filter
   const onBrandChange = (brandId: number, checked: boolean) => {
     setSelectedBrands((prev) =>
       checked ? [...prev, brandId] : prev.filter((id) => id !== brandId)
@@ -70,32 +114,53 @@ export const Products = () => {
     console.log("Added to cart:", product);
   };
 
+  /* ================= UI ================= */
   return (
-    <div className="grid p-4">
-      {/* ===== LEFT: BRAND FILTER ===== */}
+    <div className="grid p-2">
+      {/* ========== LEFT FILTER ========== */}
       <div className="col-12 md:col-3">
-        <Card title="Brands" className="filter-card">
-          {brands.map((brand) => (
-            <div key={brand.brandId} className="flex align-items-center mb-2">
-              <Checkbox
-                inputId={`brand-${brand.brandId}`}
-                checked={selectedBrands.includes(brand.brandId)}
-                onChange={(e) =>
-                  onBrandChange(brand.brandId, e.checked!)
-                }
-              />
-              <label
-                htmlFor={`brand-${brand.brandId}`}
-                className="ml-2 cursor-pointer"
+        <Card title="Filters" className="filter-card">
+          {groupBrandMap.map((group) => (
+            <div key={group.groupId} className="mb-3">
+              {/* GROUP */}
+              <div
+                className="flex align-items-center font-semibold cursor-pointer"
+                onClick={() => onGroupToggle(group.groupId)}
               >
-                {brand.brandName}
-              </label>
+                <i
+                  className={`pi ${expandedGroups.includes(group.groupId)
+                      ? "pi-chevron-down"
+                      : "pi-chevron-right"
+                    } mr-2`}
+                />
+                {group.groupName}
+              </div>
+
+              {/* BRANDS */}
+              {expandedGroups.includes(group.groupId) && (
+                <div className="ml-4 mt-2">
+                  {group.brands.map((brand) => (
+                    <div
+                      key={brand.brandId}
+                      className="flex align-items-center mb-2"
+                    >
+                      <Checkbox
+                        checked={selectedBrands.includes(brand.brandId)}
+                        onChange={(e) =>
+                          onBrandChange(brand.brandId, e.checked!)
+                        }
+                      />
+                      <span className="ml-2">{brand.brandName}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </Card>
       </div>
 
-      {/* ===== RIGHT: PRODUCTS ===== */}
+      {/* ========== PRODUCTS ========== */}
       <div className="col-12 md:col-9">
         <div className="grid">
           {filteredProducts.map((product) => (
@@ -103,16 +168,16 @@ export const Products = () => {
               <Card className="product-card">
                 <img
                   src={product.imagePreviewUrl ?? ""}
-                  alt={product.productName ?? ""}
+                  alt={product.productName}
                   className="product-image"
                 />
 
-                <h6>{product.productName}</h6>
-                <p className="text-600">{product.productDescription}</p>
+                <h6 className="mt-2">{product.productName}</h6>
 
                 <div className="product-footer">
                   <span className="price">
-                    ₹ {Number(product.salePrice).toLocaleString("en-IN")}
+                    ₹{" "}
+                    {Number(product.salePrice || 0).toLocaleString("en-IN")}
                   </span>
 
                   <Button

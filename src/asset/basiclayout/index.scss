@@ -2654,3 +2654,21 @@
     color: #0d6efd;
     /* primary color */
 }
+
+.minimal-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; // full viewport height
+}
+
+.app-content {
+  flex: 1; // take all remaining space between header and footer
+  overflow-y: auto; // optional: scroll if content is long
+  padding: 1rem; // optional spacing
+}
+
+.home-slider {
+    border: 1px solid #ccc; // light thin border
+    border-radius: 8px;      // subtle rounded corners
+    overflow: hidden;        // clip the image inside the border
+}

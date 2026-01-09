@@ -19,6 +19,7 @@ const LoginPage: React.FC = () => {
   const { showSuccess, showError } = useToast();
   const { token, setToken } = useAuth();
   const location = useLocation();
+  const [errorMsg, setErrorMsg] = useState<String>('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     const validationErrors = validateForm(loginModel);
@@ -46,7 +47,7 @@ const LoginPage: React.FC = () => {
           userImage: userInfo.userImage ? `${apiBaseUrl}${userInfo.userImage}` : '',
           companyName: userInfo.companyName,
           location: userInfo.location,
-          companyLogo: `${apiBaseUrl}${userInfo.path}`,
+          companyLogo: userInfo.path ? `${apiBaseUrl}${userInfo.path}` : '',
           userRole: userInfo.roleName
         };
 
@@ -56,7 +57,9 @@ const LoginPage: React.FC = () => {
         setToken(userInfo.token);
         navigate("/", { replace: true });
       } else {
-        showError(response.data);
+        const msg = response?.data || "Invalid username or password";
+        showError(msg);
+        setErrorMsg(msg);
       }
     } else {
       setErrors(validationErrors);
@@ -111,9 +114,10 @@ const LoginPage: React.FC = () => {
                 id="userName"
                 value={loginModel.userName}
                 onChange={handleChange}
-                label="Email or PhoneNo"
+                label="Email or Username"
                 validate={true}
                 error={errors.userName}
+                placeholder="Email or Username"
               />
             </div>
 
@@ -126,12 +130,13 @@ const LoginPage: React.FC = () => {
                 validate={true}
                 error={errors.password}
                 type="password"
+                placeholder="Password"
               />
             </div>
 
             <div className="text-center mb-3">
-              <a href="#" className="forgotLabel">
-                Forgot Password?
+              <a href="/resetpassword" className="forgotLabel">
+                Reset Password?
               </a>
             </div>
 
@@ -141,6 +146,12 @@ const LoginPage: React.FC = () => {
               onClick={handleSubmit}
               className="loginButton"
             />
+
+            {errorMsg && (
+              <div className="mandatory-error text-center mt-2">
+                {errorMsg}
+              </div>
+            )}
 
             <div className="poweredBy mt-4 text-center">
               <h5>Powered by</h5>

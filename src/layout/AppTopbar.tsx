@@ -17,6 +17,8 @@ import { AppTopbarRef } from "./layoutprops";
 import { Menu } from "primereact/menu";
 import { Avatar } from "primereact/avatar";
 import { storage } from "../services/storageService";
+import defaultcompany from "../asset/img/default-company.png";
+import { Tooltip } from "primereact/tooltip";
 
 const AppTopbar = forwardRef<AppTopbarRef>((_props, ref) => {
   const { layoutState, onMenuToggle, showProfileSidebar } = useContext(LayoutContext);
@@ -38,7 +40,7 @@ const AppTopbar = forwardRef<AppTopbarRef>((_props, ref) => {
   const onLogout = () => {
     setToken("");
     storage.clear();
-    navigate("/login");
+    navigate("/home");
     profileOverlayRef.current?.hide();
   };
 
@@ -54,12 +56,18 @@ const AppTopbar = forwardRef<AppTopbarRef>((_props, ref) => {
 
   return (
     <div className="layout-topbar">
-      <div className="layout-topbar-logo">
+      <div className="layout-topbar-logo" id="logoDiv">
         <img
-          src={user?.companyLogo}
+          src={user?.companyLogo && user.companyLogo !== "" ? user.companyLogo : defaultcompany}
           alt="logo"
         />
       </div>
+
+      <Tooltip
+        target="#logoDiv"
+        content={"Company Logo"}
+        position="bottom"
+      />
 
       <button
         ref={menubuttonRef}
@@ -89,11 +97,17 @@ const AppTopbar = forwardRef<AppTopbarRef>((_props, ref) => {
         })}
       >
         {/* Bell icon */}
-        <button type="button" className="p-link layout-topbar-button">
+        <button type="button" className="p-link layout-topbar-button" id="notifBtn">
           <i className="pi pi-bell p-overlay-badge">
             <Badge value="2"></Badge>
           </i>
         </button>
+
+        <Tooltip
+          target="#notifBtn"
+          content="Notifications"
+          position="bottom"
+        />
 
         {/* Profile pill */}
         <div className="profile-wrapper">

@@ -9,9 +9,11 @@ import DailyExpenseList from "../modules/voucher/DailyExpenseList";
 import DailyBookForm from "../modules/voucher/DailyBookList";
 import { Home } from "../modules/basics/Home";
 import { Products } from "../modules/basics/Products";
-import Services from "../modules/basics/Services";
 import { Contact } from "../modules/basics/Contact";
 import About from "../modules/basics/About";
+import { Signup } from "../modules/basics/Signup";
+import { Services } from "../modules/basics/Services";
+import { ResetPassword } from "../modules/basics/ResetPassword";
 
 const Dashboard = React.lazy(() => import("../modules/dashboard/Dashboard"));
 const ProductList = React.lazy(() => import("../modules/products/ProductList"));
@@ -52,6 +54,8 @@ export default function AppRouter() {
                 <Route path="/product" element={<Products />} />
                 <Route path="/services" element={<Services />} />
                 <Route path="/contact" element={<Contact />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/resetpassword" element={<ResetPassword />} />
             </Route>
 
             {/* Protected ERP Layout */}

@@ -31,7 +31,7 @@
 /* Left panel gradient */
 .leftSideContent {
     flex: 1;
-    background: -webkit-linear-gradient(45deg, #a787c9 1%, #554dc94a 100%) !important;
+    background: -webkit-linear-gradient(45deg, #99c6dc 1%, #554dc94a 100%) !important;
     color: #fff;
     padding: 3rem;
     text-align: center;

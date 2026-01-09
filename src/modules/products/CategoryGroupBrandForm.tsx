@@ -234,10 +234,14 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
           isActive: true
         }));
 
-        await apiService.post("/ProductCategory/bulk", payload);
-        showSuccess("Categories saved");
-        onSave?.(true);
-        return;
+        const response = await apiService.post("/ProductCategory/bulk", payload);
+        if (response && response.status) {
+          showSuccess("Categories saved");
+          onSave?.(true);
+          return;
+        } else {
+          showError(response?.error ?? "Save failed")
+        }
       }
 
       if (type === "GROUP") {
@@ -278,9 +282,14 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
 
         if (!payload.length) return;
 
-        await apiService.post("/ProductGroup/bulk", payload);
-        showSuccess("Groups saved successfully");
-        onSave?.(true);
+        const response = await apiService.post("/ProductGroup/bulk", payload);
+        if (response && response.status) {
+          showSuccess("Groups saved successfully");
+          onSave?.(true);
+          return;
+        } else {
+          showError(response?.error ?? "Save failed")
+        }
       }
 
 
@@ -317,9 +326,14 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
           }))
         );
 
-        await apiService.post("/ProductBrand/bulk", payload);
-        showSuccess("Brands saved");
-        onSave?.(true);
+        const response = await apiService.post("/ProductBrand/bulk", payload);
+        if (response && response.status) {
+          showSuccess("Brands saved successfully");
+          onSave?.(true);
+          return;
+        } else {
+          showError(response?.error ?? "Save failed")
+        }
 
       }
     } catch {

@@ -8,11 +8,13 @@ import { Footer } from "../modules/basics/Footer";
 export default function MinimalLayout() {
   return (
     <>
-      <Header />
-      <main className="app-content">
-        <Outlet />   {/* Home / About / Services */}
-      </main>
-      <Footer />
+      <div className="minimal-layout">
+        <Header />
+        <main className="app-content">
+          <Outlet />
+        </main>
+        <Footer />
+      </div>
     </>
   );
 }
