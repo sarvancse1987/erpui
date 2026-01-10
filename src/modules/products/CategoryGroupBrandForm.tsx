@@ -208,6 +208,48 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
      SAVE
   ======================= */
 
+  const hasDuplicateGroups = (rows: any[]) => {
+    const seen = new Set<string>();
+
+    for (const c of rows) {
+      for (const g of c.groups) {
+        const name = g.name?.trim().toLowerCase();
+        if (!name) continue;
+
+        const key = `${c.categoryId}|${name}`;
+
+        if (seen.has(key)) {
+          return true;
+        }
+
+        seen.add(key);
+      }
+    }
+
+    return false;
+  };
+
+  const hasDuplicateBrands = (groupRows: any[]) => {
+    const seen = new Set<string>();
+
+    for (const c of groupRows) {
+      for (const b of c.brands) {
+        const name = b.name?.trim().toLowerCase();
+        if (!name) continue;
+
+        const key = `${c.categoryId}|${c.groupId}|${name}`;
+
+        if (seen.has(key)) {
+          return true;
+        }
+
+        seen.add(key);
+      }
+    }
+
+    return false;
+  };
+
   const handleSave = async () => {
     try {
       if (type === "CATEGORY") {
@@ -245,28 +287,42 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
       }
 
       if (type === "GROUP") {
-
-        // 1️⃣ VALIDATION (pure, sync)
         const hasError =
           rows.some(r => !r.categoryId || r.categoryId === 0) ||
           rows.some(r =>
             r.groups.some(g => !g.name || g.name.trim().length === 0)
           );
 
-        // 2️⃣ UPDATE ERROR FLAGS (UI only)
+        const hasDuplicate = hasDuplicateGroups(rows);
+
         setRows(prev =>
           prev.map(c => ({
             ...c,
             error: !c.categoryId || c.categoryId === 0,
             groups: c.groups.map(g => ({
               ...g,
-              error: !g.name || g.name.trim().length === 0
+              error:
+                !g.name ||
+                g.name.trim().length === 0 ||
+                prev.some(pc =>
+                  pc.categoryId === c.categoryId &&
+                  pc.groups.some(
+                    pg =>
+                      pg !== g &&
+                      pg.name?.trim().toLowerCase() === g.name?.trim().toLowerCase()
+                  )
+                )
             }))
           }))
         );
 
         if (hasError) {
           showError("Please fix highlighted category / group names");
+          return;
+        }
+
+        if (hasDuplicate) {
+          showError("Duplicate group names found for the same category");
           return;
         }
 
@@ -300,19 +356,37 @@ export const CategoryGroupBrandForm: React.FC<CategoryGroupBrandFormProps> = ({
             c.brands.some(b => !b.name || b.name.trim().length === 0)
           );
 
+        const hasDuplicate = hasDuplicateBrands(groupRows);
+
         setGroupRows(prev =>
           prev.map(c => ({
             ...c,
             error: !c.categoryId || !c.groupId,
             brands: c.brands.map(b => ({
               ...b,
-              error: !b.name || b.name.trim().length === 0
+              error:
+                !b.name ||
+                b.name.trim().length === 0 ||
+                prev.some(pc =>
+                  pc.categoryId === c.categoryId &&
+                  pc.groupId === c.groupId &&
+                  pc.brands.some(
+                    pb =>
+                      pb !== b &&
+                      pb.name?.trim().toLowerCase() === b.name?.trim().toLowerCase()
+                  )
+                )
             }))
           }))
         );
 
         if (hasError) {
           showError("Please select category, group and fill all brand names");
+          return;
+        }
+
+        if (hasDuplicate) {
+          showError("Duplicate brand names found in the same group");
           return;
         }
 

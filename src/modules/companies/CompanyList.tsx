@@ -79,44 +79,66 @@ export default function CompanyList() {
 
     const handleSaveCompanies = async () => {
         const errors: Record<string, string> = {};
+
+        // ================= BASIC VALIDATION =================
         newCompanies.forEach((c, idx) => {
             c.companyId = Number(user?.companyId);
-            if (c.name.trim().length === 0) {
+
+            if (!c.name?.trim()) {
                 errors[`company-${idx}-name`] = "Company name required";
             }
 
-            if (!c.name.trim()) {
-                errors[`company-${idx}-name`] = "Company name required";
+            if (!c.phone?.trim()) {
+                errors[`company-${idx}-phone`] = "Phone required";
             }
-            if (!c.phone?.trim()) errors[`company-${idx}-phone`] = "Phone required";
+
             if (c.email?.trim()) {
-                if (c.email?.trim() != undefined && c.email?.trim() !== "") {
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                    if (!emailRegex.test(c.email.trim())) {
-                        errors[`comapny-${idx}-email`] = "Valid email required";
-                    }
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(c.email.trim())) {
+                    errors[`company-${idx}-email`] = "Valid email required";
                 }
             }
 
-            if (c.countryId === 0) {
-                c.countryId = null;
-            }
-            if (c.stateId === 0) {
-                c.stateId = null;
-            }
-            if (c.districtId === 0) {
-                c.districtId = null;
+            // Normalize IDs
+            if (c.countryId === 0) c.countryId = null;
+            if (c.stateId === 0) c.stateId = null;
+            if (c.districtId === 0) c.districtId = null;
+        });
+
+        // ================= DUPLICATE COMPANY NAME CHECK =================
+        newCompanies.forEach((c, idx) => {
+            const name = c.name?.trim().toLowerCase();
+            if (!name) return;
+
+            const duplicate = newCompanies.some(
+                (o, oidx) =>
+                    oidx !== idx &&
+                    o.name?.trim().toLowerCase() === name
+            );
+
+            if (duplicate) {
+                errors[`company-${idx}-name`] = "Duplicate company name";
             }
         });
 
         setValidationErrors(errors);
-        if (Object.keys(errors).length > 0) return;
 
+        if (Object.keys(errors).length > 0) {
+            showError("Please fix highlighted errors before saving");
+            return;
+        }
+
+        // ================= SAVE =================
         try {
-            await apiService.post("/Company/bulk", newCompanies);
-            await loadCompanies();
-            setNewCompanies([]);
-            showSuccess("Companies saved successfully!");
+            const response = await apiService.post("/Company/bulk", newCompanies);
+
+            if (response?.status) {
+                await loadCompanies();
+                setNewCompanies([]);
+                showSuccess("Saved successfully!");
+            } else {
+                showError(response?.error ?? "Save failed");
+            }
         } catch (err) {
             console.error(err);
             showError("Error saving companies");
@@ -130,10 +152,15 @@ export default function CompanyList() {
 
     const handleUpdateCompany = async (updated: CompanyModel) => {
         try {
-            await apiService.put(`/Company/${updated.id}`, updated);
-            await loadCompanies();
-            showSuccess("Company updated successfully!");
-            setSidebarVisible(false);
+            const response = await apiService.put(`/Company/${updated.id}`, updated);
+            if (response && response.status) {
+                await loadCompanies();
+                showSuccess("Company updated successfully!");
+                setSidebarVisible(false);
+            } else {
+                showError(response.error ?? "Save failed");
+            }
+
         } catch (err) {
             console.error(err);
             showError("Error updating company");
@@ -161,6 +188,12 @@ export default function CompanyList() {
         { field: "districtName", header: "District", width: "140px" },
         { field: "stateName", header: "State", width: "140px" },
         { field: "countryName", header: "Country", width: "140px" },
+        {
+            field: "parentCompanyName",
+            header: "Parent Company",
+            width: "160px",
+            body: (row) => row.parentCompanyId == null ? "Yes" : "Child"
+        },
         { field: "isActive", header: "Active", width: "100px", body: row => row.isActive ? "✅" : "❌", editable: false },
     ];
 
@@ -202,12 +235,13 @@ export default function CompanyList() {
                     </div>
 
                     {newCompanies.length === 0 ? (
-                        <p className="text-gray-500">No new companies. Click “Add New” to create.</p>
+                        <p className="text-gray-500">Click “Add New” to create.</p>
                     ) : (
                         newCompanies.map((c, idx) => (
                             <CompanyForm
                                 key={idx}
                                 company={c}
+                                index={idx}
                                 onSave={(updated) => handleUpdateNewCompany(idx, updated)}
                                 onCancel={() => handleRemoveNewCompany(idx)}
                                 isEditSidebar={false}

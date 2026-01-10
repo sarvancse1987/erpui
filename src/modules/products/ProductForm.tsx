@@ -417,7 +417,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           </div>
 
           <div className="flex-1 min-w-[140px]">
-            <strong>Supplier <span className="mandatory-asterisk">*</span></strong>
+            <strong>Supplier</strong>
             <Dropdown
               className={`w-full mt-1`}
               value={formData.supplierId}
@@ -441,6 +441,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               onChange={(e) => handleChange("isGSTIncludedInPrice", e.checked)}
               tabIndex={13}
               onKeyDown={handleEnterKey}
+            />
+          </div>
+          <div className="flex items-center gap-2 mt-5">
+            <strong>List Product Page</strong>
+            <Checkbox
+              checked={formData.isListOut ?? false}
+              onChange={(e) => handleChange("isListOut", e.checked)}
+              tabIndex={13}
             />
           </div>
         </div>

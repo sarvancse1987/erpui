@@ -13,7 +13,6 @@ import { ProductForm } from "./ProductForm";
 import { Sidebar } from "primereact/sidebar";
 import { useToast } from "../../components/ToastService";
 import { Dropdown } from "primereact/dropdown";
-import { TTypedDatatable } from "../../components/TTypedDatatable";
 import { SupplierModel } from "../../models/supplier/SupplierModel";
 
 export default function ProductList() {
@@ -23,7 +22,6 @@ export default function ProductList() {
   const [units, setUnits] = useState<OptionModel[]>([]);
   const [products, setProducts] = useState<ProductModel[]>([]);
   const [newProducts, setNewProducts] = useState<ProductModel[]>([]);
-  const [suppliers, setSuppliers] = useState<SupplierModel[]>([]);
   const [allsuppliers, setAllsuppliers] = useState<OptionModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -125,28 +123,87 @@ export default function ProductList() {
     setNewProducts((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const hasDuplicateProducts = (products: any[]) => {
+    const seen = new Set<string>();
+
+    for (const p of products) {
+      const name = p.productName?.trim().toLowerCase();
+      if (!name) continue;
+
+      const key = `${p.productCategoryId}|${p.productGroupId}|${p.productBrandId}|${name}`;
+
+      if (seen.has(key)) {
+        return true;
+      }
+
+      seen.add(key);
+    }
+
+    return false;
+  };
+
   const handleSaveProducts = async () => {
     const errors: Record<string, string> = {};
 
     newProducts.forEach((p, idx) => {
-      if (!p.productName.trim()) errors[`product-${idx}-productName`] = "Product Name is required";
-      if (!p.productCategoryId) errors[`product-${idx}-productCategoryId`] = "Category is required";
-      if (!p.productGroupId) errors[`product-${idx}-productGroupId`] = "Group is required";
-      if (!p.productBrandId) errors[`product-${idx}-productBrandId`] = "Brand is required";
-      if (!p.purchasePrice) errors[`product-${idx}-purchasePrice`] = "Purchase Price is required";
-      if (!p.salePrice) errors[`product-${idx}-salePrice`] = "Sale Price is required";
-      if (!p.primaryUnitId) errors[`product-${idx}-primaryUnitId`] = "Unit is required";
-      if (!p.hsnCode.trim()) errors[`product-${idx}-hsnCode`] = "HSN Code is required";
+      if (!p.productName.trim())
+        errors[`product-${idx}-productName`] = "Product Name is required";
+
+      if (!p.productCategoryId)
+        errors[`product-${idx}-productCategoryId`] = "Category is required";
+
+      if (!p.productGroupId)
+        errors[`product-${idx}-productGroupId`] = "Group is required";
+
+      if (!p.productBrandId)
+        errors[`product-${idx}-productBrandId`] = "Brand is required";
+
+      if (!p.purchasePrice)
+        errors[`product-${idx}-purchasePrice`] = "Purchase Price is required";
+
+      if (!p.salePrice)
+        errors[`product-${idx}-salePrice`] = "Sale Price is required";
+
+      if (!p.primaryUnitId)
+        errors[`product-${idx}-primaryUnitId`] = "Unit is required";
+
+      if (!p.hsnCode.trim())
+        errors[`product-${idx}-hsnCode`] = "HSN Code is required";
     });
+
+    // 🔴 DUPLICATE CHECK
+    if (hasDuplicateProducts(newProducts)) {
+      newProducts.forEach((p, idx) => {
+        const name = p.productName?.trim().toLowerCase();
+        if (!name) return;
+
+        const isDuplicate = newProducts.some(
+          (op, oidx) =>
+            oidx !== idx &&
+            op.productCategoryId === p.productCategoryId &&
+            op.productGroupId === p.productGroupId &&
+            op.productBrandId === p.productBrandId &&
+            op.productName?.trim().toLowerCase() === name
+        );
+
+        if (isDuplicate) {
+          errors[`product-${idx}-productName`] =
+            "Duplicate product in same category / group / brand";
+        }
+      });
+    }
 
     setValidationErrors(errors);
 
     if (Object.keys(errors).length > 0) {
+      showError("Please fix highlighted product errors");
       return;
     }
 
+    // ✅ SAVE CONTINUES BELOW
     try {
       const savedProducts = await apiService.post("/Product/bulk", newProducts);
+
       for (let i = 0; i < savedProducts.length; i++) {
         const saved = savedProducts[i];
         const local = newProducts[i];
@@ -158,14 +215,12 @@ export default function ProductList() {
           formData.append("productId", saved.productId.toString());
 
           await apiService.upload("/product/upload/uploadproductimage", formData);
-        } else {
-          // 📷 BASE64 (Webcam)
-          if (local.imagePreviewUrl) {
-            await apiService.post("/product/upload-image", {
-              id: saved.productId,
-              imageBase64: local.imagePreviewUrl,
-            });
-          }
+        } else if (local.imagePreviewUrl) {
+          // 📷 BASE64
+          await apiService.post("/product/upload-image", {
+            id: saved.productId,
+            imageBase64: local.imagePreviewUrl,
+          });
         }
       }
 
@@ -175,7 +230,7 @@ export default function ProductList() {
       showSuccess("Products saved successfully!");
     } catch (err) {
       console.error(err);
-      showError('Error updating product. Please try again.');
+      showError("Error updating product. Please try again.");
     }
   };
 

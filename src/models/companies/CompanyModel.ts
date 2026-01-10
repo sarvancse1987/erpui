@@ -26,4 +26,6 @@ export interface CompanyModel {
     stateName?: string;
     countryName?: string;
     districtName?: string;
+    parentCompanyId?: number;
+    parentCompanyName?: string;
 }

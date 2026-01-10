@@ -22,63 +22,75 @@ export const Signup = () => {
         userEmail: "",
         userPhone: ""
     });
-    const navigate = useNavigate();
-    const [loading, setLoading] = useState(true);
+
     const [submitted, setSubmitted] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     const onChange = (e: any) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
+    // ✅ Email validation function
+    const isValidEmail = (email: string) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
+    // ✅ Form validation
     const isValid = () => {
-        return (
-            form.companyName &&
-            form.companyPhone &&
-            form.companyEmail &&
-            form.firstName &&
-            form.username &&
-            form.password &&
-            form.userEmail
-        );
+        if (
+            !form.companyName ||
+            !form.companyPhone ||
+            !form.companyEmail ||
+            !form.firstName ||
+            !form.username ||
+            !form.password ||
+            !form.userEmail
+        ) {
+            return false;
+        }
+
+        if (!isValidEmail(form.companyEmail) || !isValidEmail(form.userEmail)) {
+            return false;
+        }
+
+        return true;
     };
 
     const signup = async () => {
         setSubmitted(true);
+        setErrorMessage(null);
 
         if (!isValid()) return;
 
         const payload: SignupSeedInputModel = {
             companyName: form.companyName,
             companyAddress: `${form.address || ""} ${form.city || ""}`.trim(),
-
             locationName: "Head Office",
             locationAddress: `${form.address || ""} ${form.city || ""}`.trim(),
             companyEmail: form.companyEmail,
             companyPhone: form.companyPhone,
-
             adminUsername: form.username,
             adminPassword: form.password,
             adminEmail: form.userEmail,
             adminFirstName: form.firstName,
-
             createdBy: "signup"
         };
 
         try {
             setLoading(true);
             const response = await apiService.post("/Users/signup", payload);
+
             if (response && response.status) {
                 navigate("/login");
             } else {
-                if (!response.status) {
-                    setErrorMessage(response.error || "Signup failed");
-                    return;
-                }
+                setErrorMessage(response.error || "Signup failed");
             }
         } catch (err) {
             console.error("Signup failed", err);
-            // TODO: show error toast
+            setErrorMessage("Signup failed due to server error");
         } finally {
             setLoading(false);
         }
@@ -103,7 +115,7 @@ export const Signup = () => {
                                 title={<><i className="pi pi-building mr-2" />Company</>}
                                 className="w-full h-full"
                             >
-
+                                {/* Company Name */}
                                 <label className="font-medium">Company Name *</label>
                                 <InputText
                                     name="companyName"
@@ -118,36 +130,37 @@ export const Signup = () => {
                                     <small className="p-error">Company Name is required</small>
                                 )}
 
+                                {/* Company Email */}
                                 <label className="font-medium mt-3 block">Company Email *</label>
                                 <InputText
                                     name="companyEmail"
                                     value={form.companyEmail}
                                     onChange={onChange}
                                     className={classNames("w-full mb-2", {
-                                        "p-invalid": submitted && !form.companyEmail
+                                        "p-invalid": submitted && (!form.companyEmail || !isValidEmail(form.companyEmail))
                                     })}
                                     placeholder="Company email"
                                 />
                                 {submitted && !form.companyEmail && (
                                     <small className="p-error">Company Email is required</small>
                                 )}
+                                {submitted && form.companyEmail && !isValidEmail(form.companyEmail) && (
+                                    <small className="p-error">Invalid Company Email format</small>
+                                )}
 
+                                {/* Company Phone */}
                                 <label className="font-medium mt-3 block">Company Phone *</label>
-
                                 <InputText
                                     name="companyPhone"
                                     value={form.companyPhone}
                                     onChange={(e) => {
                                         const value = e.target.value;
-
-                                        // Allow only numbers, +, - AND max 15 characters
                                         if (/^[0-9+-]*$/.test(value) && value.length <= 15) {
                                             onChange(e);
                                         }
                                     }}
                                     onPaste={(e) => {
                                         const pasted = e.clipboardData.getData("text");
-
                                         if (!/^[0-9+-]+$/.test(pasted) || pasted.length > 15) {
                                             e.preventDefault();
                                         }
@@ -157,11 +170,9 @@ export const Signup = () => {
                                     })}
                                     placeholder="Company phone"
                                 />
-
                                 {submitted && !form.companyPhone && (
                                     <small className="p-error">Company Phone is required</small>
                                 )}
-
                             </Card>
                         </div>
 
@@ -171,7 +182,7 @@ export const Signup = () => {
                                 title={<><i className="pi pi-user mr-2" />Admin User</>}
                                 className="w-full h-full"
                             >
-
+                                {/* First Name */}
                                 <label className="font-medium">First Name *</label>
                                 <InputText
                                     name="firstName"
@@ -187,7 +198,7 @@ export const Signup = () => {
                                 )}
 
                                 <div className="grid">
-                                    {/* Username - wider */}
+                                    {/* Username */}
                                     <div className="col-12 md:col-6">
                                         <label className="font-medium">Username *</label>
                                         <InputText
@@ -197,14 +208,14 @@ export const Signup = () => {
                                             className={classNames("w-full mb-2", {
                                                 "p-invalid": submitted && !form.username
                                             })}
-                                            placeholder="User name"
+                                            placeholder="Username"
                                         />
                                         {submitted && !form.username && (
                                             <small className="p-error">Username is required</small>
                                         )}
                                     </div>
 
-                                    {/* Password - compact */}
+                                    {/* Password */}
                                     <div className="col-12 md:col-3">
                                         <label className="font-medium">Password *</label>
                                         <Password
@@ -224,19 +235,22 @@ export const Signup = () => {
                                     </div>
                                 </div>
 
-
+                                {/* User Email */}
                                 <label className="font-medium mt-3 block">User Email *</label>
                                 <InputText
                                     name="userEmail"
                                     value={form.userEmail}
                                     onChange={onChange}
                                     className={classNames("w-full mb-2", {
-                                        "p-invalid": submitted && !form.userEmail
+                                        "p-invalid": submitted && (!form.userEmail || !isValidEmail(form.userEmail))
                                     })}
                                     placeholder="User email"
                                 />
                                 {submitted && !form.userEmail && (
                                     <small className="p-error">User Email is required</small>
+                                )}
+                                {submitted && form.userEmail && !isValidEmail(form.userEmail) && (
+                                    <small className="p-error">Invalid User Email format</small>
                                 )}
                             </Card>
                         </div>
@@ -248,14 +262,17 @@ export const Signup = () => {
                                 icon="pi pi-check"
                                 onClick={signup}
                                 className="px-6"
+                                loading={loading}
                             />
                         </div>
+
                         <div className="col-12 flex justify-content-center mt-1">
                             {errorMessage && (
                                 <small className="p-error block mt-2 text-center">
                                     {errorMessage}
                                 </small>
-                            )}</div>
+                            )}
+                        </div>
 
                     </div>
                 </Card>

@@ -144,3 +144,10 @@
         justify-content: center;
     }
 }
+
+.header-logo {
+    cursor: pointer;
+    margin-left: 30px; 
+    display: flex;
+    align-items: center;
+}

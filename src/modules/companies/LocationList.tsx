@@ -68,15 +68,19 @@ export default function LocationList() {
     const handleSaveLocations = async () => {
         const errors: Record<string, string> = {};
 
+        // ================= BASIC VALIDATION =================
         newLocations.forEach((l, idx) => {
-            if (l.companyId == 0) {
+            if (l.companyId === 0) {
                 errors[`location-${idx}-companyId`] = "Company name required";
             }
 
-            if (!l.name.trim()) {
+            if (!l.name?.trim()) {
                 errors[`location-${idx}-name`] = "Location name required";
             }
-            if (!l.phone?.trim()) errors[`location-${idx}-phone`] = "Phone required";
+
+            if (!l.phone?.trim()) {
+                errors[`location-${idx}-phone`] = "Phone required";
+            }
 
             if (l.email?.trim()) {
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -85,24 +89,50 @@ export default function LocationList() {
                 }
             }
 
+            // Normalize IDs
             if (l.countryId === 0) l.countryId = null;
             if (l.stateId === 0) l.stateId = null;
             if (l.districtId === 0) l.districtId = null;
         });
 
-        setValidationErrors(errors);
-        if (Object.keys(errors).length > 0) return;
+        // ================= DUPLICATE NAME CHECK (IN-BATCH) =================
+        newLocations.forEach((l, idx) => {
+            const name = l.name?.trim().toLowerCase();
+            const companyId = l.companyId;
 
+            if (!name || !companyId) return;
+
+            const duplicate = newLocations.some(
+                (o, oidx) =>
+                    oidx !== idx &&
+                    o.companyId === companyId &&
+                    o.name?.trim().toLowerCase() === name
+            );
+
+            if (duplicate) {
+                errors[`location-${idx}-name`] = "Duplicate location name";
+            }
+        });
+
+        setValidationErrors(errors);
+
+        if (Object.keys(errors).length > 0) {
+            showError("Location name already exists");
+            return;
+        }
+
+        // ================= SAVE =================
         try {
             await apiService.post("/Location/bulk", newLocations);
             await loadLocations();
             setNewLocations([]);
             showSuccess("Locations saved successfully!");
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            showError("Error saving locations");
+            showError(err?.response?.data?.message || "Error saving locations");
         }
     };
+
 
     const handleOpenEdit = (loc: LocationModel) => {
         setSelectedLocation({ ...loc });
@@ -185,12 +215,13 @@ export default function LocationList() {
                     </div>
 
                     {newLocations.length === 0 ? (
-                        <p className="text-gray-500">No new locations. Click “Add New” to create.</p>
+                        <p className="text-gray-500">Click “Add New” to create.</p>
                     ) : (
                         newLocations.map((loc, idx) => (
                             <LocationForm
                                 key={idx}
                                 location={loc}
+                                index={idx}
                                 onSave={(updated) => handleUpdateNewLocation(idx, updated)}
                                 onCancel={() => handleRemoveNewLocation(idx)}
                                 isEditSidebar={false}

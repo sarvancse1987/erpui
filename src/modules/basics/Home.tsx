@@ -1,24 +1,29 @@
 import { Button } from "primereact/button";
 import { Card } from "primereact/card";
 import { Carousel } from "primereact/carousel";
+import "../../asset/basiclayout/Home.css";
+
+import growBusiness from "../../asset/img/tech/grow-business.jpg";
+import secured from "../../asset/img/tech/secured.jpg";
+import aiPowered from "../../asset/img/tech/aipowered.jpg";
 
 const sliderItems = [
     {
         title: "Grow Your Business Digitally",
         subtitle: "Modern ERP & Software Solutions",
-        image: "https://primefaces.org/cdn/primereact/images/carousel/erp1.jpg",
+        image: growBusiness,
         gradient: "gradient-blue",
     },
     {
         title: "Secure & Scalable Systems",
         subtitle: "Built for Enterprise Growth",
-        image: "https://primefaces.org/cdn/primereact/images/carousel/erp2.jpg",
+        image: secured,
         gradient: "gradient-purple",
     },
     {
         title: "AI Powered Solutions",
         subtitle: "Smarter Decisions with Technology",
-        image: "https://primefaces.org/cdn/primereact/images/carousel/erp3.jpg",
+        image: aiPowered,
         gradient: "gradient-green",
     },
 ];

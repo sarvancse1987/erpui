@@ -61,22 +61,51 @@ export const RoleForm: React.FC<RoleFormProps> = ({
     };
 
     const saveData = async () => {
-        const hasError = roles.some(
-            r => !r.name || r.name.trim().length === 0
-        );
+        let hasError = false;
 
+        // Normalize names
+        const nameMap: Record<string, number[]> = {};
+
+        roles.forEach((r, index) => {
+            const name = r.name?.trim().toLowerCase();
+
+            if (!name) {
+                hasError = true;
+                return;
+            }
+
+            if (!nameMap[name]) {
+                nameMap[name] = [];
+            }
+            nameMap[name].push(index);
+        });
+
+        // Detect duplicates
+        const duplicateIndexes = new Set<number>();
+        Object.values(nameMap).forEach(indexes => {
+            if (indexes.length > 1) {
+                indexes.forEach(i => duplicateIndexes.add(i));
+                hasError = true;
+            }
+        });
+
+        // Set error flags
         setRoles(prev =>
-            prev.map(r => ({
+            prev.map((r, idx) => ({
                 ...r,
-                error: !r.name || r.name.trim().length === 0
+                error:
+                    !r.name ||
+                    r.name.trim().length === 0 ||
+                    duplicateIndexes.has(idx)
             }))
         );
 
         if (hasError) {
-            showError("Please fill all role names");
+            showError("Role name is required and must be unique");
             return;
         }
 
+        // ✅ API payload
         const payload = roles.map(r => ({
             roleId: r.roleId ?? 0,
             id: r.id ?? 0,
@@ -86,9 +115,11 @@ export const RoleForm: React.FC<RoleFormProps> = ({
         }));
 
         const response = await apiService.post("/Roles/bulk", payload);
-        if (response) {
+        if (response && response.status) {
             showSuccess("Roles saved successfully");
             onSave?.(true);
+        } else {
+            showError(response.error ?? "Roles save failed");
         }
     };
 

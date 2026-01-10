@@ -61,23 +61,42 @@ export const UserTypeForm: React.FC<UserTypeFormProps> = ({
     };
 
     const saveData = async () => {
-        const hasError = roles.some(
-            r => !r.name || r.name.trim().length === 0
-        );
 
-        setRoles(prev =>
-            prev.map(r => ({
-                ...r,
-                error: !r.name || r.name.trim().length === 0
-            }))
-        );
+        const errors = new Set<string>();
+        const seenNames = new Set<string>();
 
-        if (hasError) {
-            showError("Please fill all usertype names");
+        const updatedRoles = roles.map(r => {
+            const name = r.name?.trim().toLowerCase();
+
+            let error = false;
+
+            if (!name) {
+                error = true;
+                errors.add("empty");
+            }
+            else if (seenNames.has(name)) {
+                error = true;
+                errors.add("duplicate");
+            }
+            else {
+                seenNames.add(name);
+            }
+
+            return { ...r, error };
+        });
+
+        setRoles(updatedRoles);
+
+        if (errors.size > 0) {
+            if (errors.has("empty"))
+                showError("Please fill all UserType names");
+            else if (errors.has("duplicate"))
+                showError("UserType names must be unique");
+
             return;
         }
 
-        const payload = roles.map(r => ({
+        const payload = updatedRoles.map(r => ({
             roleId: r.roleId ?? 0,
             id: r.id ?? 0,
             name: r.name.trim(),
@@ -86,11 +105,14 @@ export const UserTypeForm: React.FC<UserTypeFormProps> = ({
         }));
 
         const response = await apiService.post("/UserTypes/bulk", payload);
-        if (response) {
+        if (response && response.status) {
             showSuccess("UserTypes saved successfully");
             onSave?.(true);
+        } else {
+            showError(response.error ?? "UserTypes save failed");
         }
     };
+
 
     return (
         <fieldset className="border border-gray-300 rounded-md p-3 bg-white">

@@ -129,8 +129,8 @@ export const Products = () => {
               >
                 <i
                   className={`pi ${expandedGroups.includes(group.groupId)
-                      ? "pi-chevron-down"
-                      : "pi-chevron-right"
+                    ? "pi-chevron-down"
+                    : "pi-chevron-right"
                     } mr-2`}
                 />
                 {group.groupName}
@@ -164,25 +164,24 @@ export const Products = () => {
       <div className="col-12 md:col-9">
         <div className="grid">
           {filteredProducts.map((product) => (
-            <div key={product.productId} className="col-12 md:col-4">
-              <Card className="product-card">
+            <div key={product.productId} className="col-12 sm:col-6 md:col-2">
+              <Card className="product-card p-2 text-center">
                 <img
                   src={product.imagePreviewUrl ?? ""}
                   alt={product.productName}
-                  className="product-image"
+                  className="product-image-small"
                 />
 
-                <h6 className="mt-2">{product.productName}</h6>
+                <h6 className="mt-1 text-sm">{product.productName}</h6>
 
-                <div className="product-footer">
-                  <span className="price">
-                    ₹{" "}
-                    {Number(product.salePrice || 0).toLocaleString("en-IN")}
+                <div className="product-footer mt-1 flex justify-content-between align-items-center">
+                  <span className="price text-sm">
+                    ₹ {Number(product.salePrice || 0).toLocaleString("en-IN")}
                   </span>
 
                   <Button
                     icon="pi pi-shopping-cart"
-                    className="p-button-sm custom-xs"
+                    className="p-button-sm"
                     onClick={() => addToCart(product)}
                     tooltip="Add to Cart"
                   />
@@ -198,6 +197,7 @@ export const Products = () => {
           )}
         </div>
       </div>
+
     </div>
   );
 };

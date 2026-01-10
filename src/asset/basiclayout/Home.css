@@ -1,0 +1,29 @@
+.home-slider {
+  position: relative;
+  height: 400px; /* adjust height as needed */
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* align content to left */
+  padding-left: 3rem; /* add left spacing */
+}
+
+.slider-overlay {
+  background: rgba(0, 0, 0, 0.4); /* optional dark overlay for readability */
+  padding: 2rem;
+  text-align: left; /* align text left */
+  border-radius: 8px;
+  max-width: 500px; /* optional, limit width */
+}
+
+.slider-overlay h1,
+.slider-overlay p,
+.slider-overlay button {
+  color: #ffffff; /* white text */
+}
+
+.slider-overlay p {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}

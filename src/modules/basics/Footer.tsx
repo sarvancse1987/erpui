@@ -2,7 +2,7 @@
 export const Footer = () => {
   return (
     <footer className="surface-900 text-center p-3">
-      © {new Date().getFullYear()} Your Company. All Rights Reserved.
+      © {new Date().getFullYear()} Tetrosoft. All Rights Reserved.
     </footer>
   );
 };

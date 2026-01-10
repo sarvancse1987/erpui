@@ -66,21 +66,85 @@ export default function UserList() {
         setNewUsers(prev => prev.filter((_, i) => i !== index));
     };
 
+    const hasDuplicateUsernames = (users: any[]) => {
+        const seen = new Set<string>();
+        for (const u of users) {
+            const name = u.username?.trim().toLowerCase();
+            if (!name) continue;
+            if (seen.has(name)) return true;
+            seen.add(name);
+        }
+        return false;
+    };
+
+    const hasDuplicateEmails = (users: any[]) => {
+        const seen = new Set<string>();
+        for (const u of users) {
+            const email = u.email?.trim().toLowerCase();
+            if (!email) continue;
+            if (seen.has(email)) return true;
+            seen.add(email);
+        }
+        return false;
+    };
+
     const handleSaveUsers = async () => {
         const errors: Record<string, string> = {};
+
+        // 1️⃣ First, validate required fields and email format
         newUsers.forEach((u, idx) => {
-            if (!u.username.trim()) errors[`user-${idx}-username`] = "Username required";
-            if (!u.firstName.trim()) errors[`user-${idx}-firstName`] = "First name required";
-            if (!u.email.trim()) errors[`user-${idx}-email`] = "Email required";
+            const username = u.username?.trim();
+            const firstName = u.firstName?.trim();
+            const email = u.email?.trim();
+
+            if (!username) errors[`user-${idx}-username`] = "Username required";
+            if (!firstName) errors[`user-${idx}-firstName`] = "First name required";
+
+            if (!email) {
+                errors[`user-${idx}-email`] = "Email required";
+            } else {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    errors[`user-${idx}-email`] = "Invalid email format";
+                }
+            }
+
             if (!u.roleId) errors[`user-${idx}-roleId`] = "Role required";
             if (!u.userTypeId) errors[`user-${idx}-userTypeId`] = "User type required";
             if (!u.companyId) errors[`user-${idx}-companyId`] = "Company required";
             if (!u.locationId) errors[`user-${idx}-locationId`] = "Location required";
         });
 
-        setValidationErrors(errors);
-        if (Object.keys(errors).length > 0) return;
+        // 2️⃣ Then, check for duplicates within the batch
+        newUsers.forEach((u, idx) => {
+            const username = u.username?.trim().toLowerCase();
+            const email = u.email?.trim().toLowerCase();
 
+            // Duplicate username in batch
+            const duplicateUsername = newUsers.some(
+                (other, otherIdx) => otherIdx !== idx && other.username?.trim().toLowerCase() === username
+            );
+            if (duplicateUsername) {
+                errors[`user-${idx}-username`] = "Duplicate username in batch";
+            }
+
+            // Duplicate email in batch
+            const duplicateEmail = newUsers.some(
+                (other, otherIdx) => otherIdx !== idx && other.email?.trim().toLowerCase() === email
+            );
+            if (duplicateEmail) {
+                errors[`user-${idx}-email`] = "Duplicate email in batch";
+            }
+        });
+
+        // 3️⃣ Stop saving if any errors
+        setValidationErrors(errors);
+        if (Object.keys(errors).length > 0) {
+            showError("Please fix highlighted errors before saving");
+            return;
+        }
+
+        // 4️⃣ Save to API
         try {
             await apiService.post("/Users/bulk", newUsers);
             await loadUsers();
@@ -92,6 +156,7 @@ export default function UserList() {
         }
     };
 
+
     const handleOpenEdit = (user: UserModel) => {
         setSelectedUser({ ...user });
         setSidebarVisible(true);
@@ -99,10 +164,15 @@ export default function UserList() {
 
     const handleUpdateUser = async (updated: UserModel) => {
         try {
-            await apiService.put(`/Users/${updated.id}`, updated);
-            await loadUsers();
-            showSuccess("User updated successfully!");
-            setSidebarVisible(false);
+            const response = await apiService.put(`/Users/${updated.id}`, updated);
+            if (response && response.status) {
+                await loadUsers();
+                showSuccess("User updated successfully!");
+                setSidebarVisible(false);
+            }
+            else {
+                showError(response.error ?? "User update failed");
+            }
         } catch (err) {
             console.error(err);
             showError("Error updating user");
@@ -112,9 +182,14 @@ export default function UserList() {
     const handleDeleteUsers = async (rows: UserModel[]) => {
         try {
             const ids = rows.map(r => r.id);
-            await apiService.post("/Users/bulk-delete", ids);
-            showSuccess("User(s) deleted successfully!");
-            await loadUsers();
+            const response = await apiService.post("/Users/bulk-delete", ids);
+            if (response && response.status) {
+                showSuccess("User(s) deleted successfully!");
+                await loadUsers();
+            } else {
+                showError(response.error ?? "User delete failed");
+                await loadUsers();
+            }
         } catch (err) {
             console.error(err);
             showError("Error deleting users");
@@ -179,6 +254,7 @@ export default function UserList() {
                             <UsersForm
                                 key={idx}
                                 user={u}
+                                index={idx}
                                 onSave={(updated) => handleUpdateNewUser(idx, updated)}
                                 onCancel={() => handleRemoveNewUser(idx)}
                                 isEditSidebar={false}

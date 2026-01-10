@@ -2,6 +2,7 @@
 import { Menubar } from "primereact/menubar";
 import { useNavigate } from "react-router-dom";
 import "../../asset/basiclayout/Header.css";
+import TetrosoftLogo from "../../Images/Client/tetrosoft_logo.png";
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -36,11 +37,18 @@ export const Header = () => {
     </div>
   );
 
+  const startTemplate = (
+    <div className="header-logo cursor-pointer" onClick={() => navigate("/home")}>
+      <img src={TetrosoftLogo} alt="Tetrosoft Logo" height={40} />
+    </div>
+  );
+
   return (
     <div className="app-header shadow-2">
       <Menubar
         model={centerItems}
         className="custom-menubar"
+        start={startTemplate}
         end={endItems}
       />
     </div>

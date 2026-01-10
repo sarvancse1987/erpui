@@ -38,8 +38,8 @@ export const Services = () => {
   return (
     <>
       {/* ===== HERO ===== */}
-      <div className="surface-0 text-center p-6">
-        <h1 className="text-4xl font-bold mb-3">Our Services</h1>
+      <div className="surface-0 text-center p-2">
+        <h1 className="text-4xl font-bold mb-1">Our Services</h1>
         <p className="text-600 text-lg">
           End-to-end digital solutions to power your business growth
         </p>
@@ -61,10 +61,10 @@ export const Services = () => {
       </div>
 
       {/* ===== PROCESS ===== */}
-      <div className="surface-100 p-6">
+      <div className="surface-100 p-2">
   <h2 className="text-center mb-5">How We Work</h2>
 
-  <div className="grid text-center">
+  <div className="grid text-center justify-content-center gap-3">
     {[
       { title: "Requirement Analysis", icon: "pi-search" },
       { title: "Design & Planning", icon: "pi-pencil" },

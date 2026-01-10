@@ -15,6 +15,7 @@ export default function Category() {
     const [inactiveCategories, setInActiveCategories] = useState<CategoryModel[]>([]);
     const { showSuccess, showError } = useToast();
     const [sidebarVisible, setSidebarVisible] = useState(false);
+    const [dataVersion, setDataVersion] = useState(0);
 
     const baseColumns: ColumnMeta<CategoryModel>[] = [
         { field: "categoryId", header: "ID", editable: false, hidden: true },
@@ -36,6 +37,7 @@ export default function Category() {
             setActiveCategories(activeCategories);
             setInActiveCategories(inActiveCategories);
             setCategories(categoriesArray);
+            setDataVersion(v => v + 1);
         } catch (error) {
             console.error("Failed to fetch categories", error);
             setActiveCategories([]);
@@ -54,20 +56,19 @@ export default function Category() {
     ): Promise<void> => {
         try {
             // Save categories via API
-            await apiService.post("/ProductCategory/bulk", updatedCategories);
+            var savedResponse = await apiService.post("/ProductCategory/bulk", updatedCategories);
+            if (savedResponse && savedResponse.status) {
+                const response = await apiService.get("/ProductCategory/hierarchy?includeCategories=true");
+                const latestCategories: CategoryModel[] = response.categories ?? [];
 
-            // Fetch the latest categories
-            const response = await apiService.get("/ProductCategory/hierarchy?includeCategories=true");
-            const latestCategories: CategoryModel[] = response.categories ?? [];
-
-            // Update frontend state
-            setActiveCategories(latestCategories.filter(c => c.isActive));
-            setInActiveCategories(latestCategories.filter(c => !c.isActive));
-            setCategories(latestCategories);
-            if (!isDeleted)
-                showSuccess("Categories saved successfully!");
-            else
-                showSuccess("Categories deleted successfully!");
+                setActiveCategories(latestCategories.filter(c => c.isActive));
+                setInActiveCategories(latestCategories.filter(c => !c.isActive));
+                setCategories(latestCategories);
+                if (!isDeleted)
+                    showSuccess("Categories saved successfully!");
+                else
+                    showSuccess("Categories deleted successfully!");
+            }
         } catch (error) {
             console.error("Failed to save categories", error);
             showError("Error saving categories. Please try again.");
@@ -96,8 +97,8 @@ export default function Category() {
         setSidebarVisible(false);
     }
 
-    const onSave = () => {
-        fetchCategories();
+    const onSave = async () => {
+        await fetchCategories();
         setSidebarVisible(false);
     }
 
@@ -122,6 +123,7 @@ export default function Category() {
                         <span>Active</span>
                     </div>}>
                     <TTypedDatatable<CategoryModel>
+                        key={dataVersion}
                         columns={activeColumns}
                         data={activeCategories.map(c => ({ ...c, isActive: true }))}
                         primaryKey="categoryId"
@@ -144,6 +146,7 @@ export default function Category() {
                             <span>Inactive</span>
                         </div>}>
                         <TTypedDatatable<CategoryModel>
+                            key={inactiveCategories.length}
                             columns={inactiveColumns}
                             data={inactiveCategories}
                             primaryKey="categoryId"

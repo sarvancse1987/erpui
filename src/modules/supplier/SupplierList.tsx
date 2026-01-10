@@ -73,27 +73,41 @@ export default function SupplierList() {
     const handleSaveSuppliers = async () => {
         const errors: Record<string, string> = {};
 
+        const seen = new Set<string>();
+
         newSuppliers.forEach((s, idx) => {
-            if (!s.supplierName.trim()) errors[`supplier-${idx}-supplierName`] = "Supplier name required";
-            if (!s.phone.trim()) errors[`supplier-${idx}-phone`] = "Phone required";
-            if (!s.contactPerson.trim()) errors[`supplier-${idx}-contactPerson`] = "Contact person required";
+            const name = s.supplierName?.trim();
+            const phone = s.phone?.trim();
+
+            if (!name) {
+                errors[`supplier-${idx}-supplierName`] = "Supplier name required";
+            }
+            if (!phone) {
+                errors[`supplier-${idx}-phone`] = "Phone required";
+            }
+            if (!s.contactPerson?.trim()) {
+                errors[`supplier-${idx}-contactPerson`] = "Contact person required";
+            }
+
             if (s.email?.trim()) {
-                if (s.email?.trim() != undefined && s.email?.trim() !== "") {
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                    if (!emailRegex.test(s.email.trim())) {
-                        errors[`supplier-${idx}-email`] = "Valid email required";
-                    }
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(s.email.trim())) {
+                    errors[`supplier-${idx}-email`] = "Valid email required";
                 }
             }
 
-            if (s.countryId === 0) {
-                s.countryId = null;
-            }
-            if (s.stateId === 0) {
-                s.stateId = null;
-            }
-            if (s.districtId === 0) {
-                s.districtId = null;
+            if (s.countryId === 0) s.countryId = null;
+            if (s.stateId === 0) s.stateId = null;
+            if (s.districtId === 0) s.districtId = null;
+
+            if (name && phone) {
+                const key = `${name.toLowerCase()}|${phone}`;
+                if (seen.has(key)) {
+                    errors[`supplier-${idx}-supplierName`] = "Duplicate supplier";
+                    errors[`supplier-${idx}-phone`] = "Duplicate supplier";
+                } else {
+                    seen.add(key);
+                }
             }
         });
 
@@ -101,10 +115,14 @@ export default function SupplierList() {
         if (Object.keys(errors).length > 0) return;
 
         try {
-            await apiService.post("/Supplier/bulk", newSuppliers);
-            await loadSuppliers();
-            setNewSuppliers([]);
-            showSuccess("Suppliers saved successfully!");
+            const response = await apiService.post("/Supplier/bulk", newSuppliers);
+            if (response && response.status) {
+                await loadSuppliers();
+                setNewSuppliers([]);
+                showSuccess("Suppliers saved successfully!");
+            } else {
+                showError(response.error ?? "Suppleir save failed!");
+            }
         } catch (err) {
             console.error(err);
             showError("Error saving suppliers");
@@ -118,10 +136,14 @@ export default function SupplierList() {
 
     const handleUpdateSupplier = async (updated: SupplierModel) => {
         try {
-            await apiService.put(`/Supplier/${updated.supplierId}`, updated);
-            await loadSuppliers();
-            showSuccess("Supplier updated successfully!");
-            setSidebarVisible(false);
+            const response = await apiService.put(`/Supplier/${updated.supplierId}`, updated);
+            if (response && response.status) {
+                await loadSuppliers();
+                showSuccess("Supplier updated successfully!");
+                setSidebarVisible(false);
+            } else {
+                showError(response.error ?? "Suppleir update failed!");
+            }
         } catch (err) {
             console.error(err);
             showError("Error updating supplier");
@@ -146,16 +168,15 @@ export default function SupplierList() {
 
     const handleDeleteSuppliers = async (rows: SupplierModel[]) => {
         try {
-            // Extract IDs only
             const ids = rows.map(r => r.supplierId);
 
-            // Call API (bulk delete)
-            await apiService.post("/Supplier/bulk-delete", ids);
-
-            showSuccess("Supplier(s) deleted successfully!");
-
-            // Reload table
-            await loadSuppliers();
+            const response = await apiService.post("/Supplier/bulk-delete", ids);
+            if (response && response.status) {
+                showSuccess("Supplier(s) deleted successfully!");
+                await loadSuppliers();
+            } else {
+                showError(response.error ?? "Suppleir delete failed!");
+            }
         } catch (err) {
             console.error(err);
             showError("Error deleting suppliers");
@@ -183,6 +204,7 @@ export default function SupplierList() {
                         onDelete={handleDeleteSuppliers}
                         isNew={false}
                         isSave={false}
+                        sortableColumns={['supplierName', 'phone', 'city']}
                     />
                 </TabPanel>
 
@@ -198,7 +220,7 @@ export default function SupplierList() {
                     </div>
 
                     {newSuppliers.length === 0 ? (
-                        <p className="text-gray-500">No new suppliers. Click “Add New” to create.</p>
+                        <p className="text-gray-500">Click “Add New” to create.</p>
                     ) : (
                         newSuppliers.map((s, idx) => (
                             <SupplierForm

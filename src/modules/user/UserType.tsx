@@ -24,7 +24,6 @@ export default function UserType() {
         { field: "isActive", header: "Active", editable: true, type: "checkbox" },
     ];
 
-    // Columns for active tab (hide isActive)
     const activeColumns = baseColumns.filter(col => col.field !== "isActive");
     const inactiveColumns = baseColumns;
 
@@ -53,28 +52,28 @@ export default function UserType() {
         isDelete: boolean
     ): Promise<void> => {
         try {
-            // Save categories via API
-            await apiService.post("/UserTypes/bulk", updatedRoles);
+            const responsetypes = await apiService.post("/UserTypes/bulk", updatedRoles);
+            if (responsetypes && responsetypes.status) {
 
-            // Fetch the latest categories
-            const response = await apiService.get("/UserTypes");
-            const latestRoles: UserTypeModel[] = response ?? [];
+                const response = await apiService.get("/UserTypes");
+                const latestRoles: UserTypeModel[] = response ?? [];
 
-            // Update frontend state
-            setActiveRoles(latestRoles.filter(c => c.isActive));
-            setInActiveRoles(latestRoles.filter(c => !c.isActive));
-            setRoles(latestRoles);
-            if (!isDelete)
-                showSuccess("User type saved successfully!");
-            else
-                showSuccess("User type deleted successfully!");
+                setActiveRoles(latestRoles.filter(c => c.isActive));
+                setInActiveRoles(latestRoles.filter(c => !c.isActive));
+                setRoles(latestRoles);
+                if (!isDelete)
+                    showSuccess("User type saved successfully!");
+                else
+                    showSuccess("User type deleted successfully!");
+            } else {
+                showError(responsetypes.error ?? "User type deleted successfully!");
+            }
         } catch (error) {
             console.error("Failed to save role", error);
             showError("Error saving UserTypes. Please try again.");
         }
     };
 
-    // ✅ Make handlers async and await save
     const onActiveSave = async (updated: UserTypeModel[]) => {
         const updatedWithActive = updated.map(c => ({ ...c, isActive: true }));
         await saveRoles(updatedWithActive, true, false);

@@ -253,7 +253,7 @@ export default function DailyExpenseList() {
                     </div>
 
                     {newExpense.length === 0 ? (
-                        <p className="text-gray-500">No new expense. Click “Add” to create.</p>
+                        <p className="text-gray-500">Click “Add” to create.</p>
                     ) : (
                         newExpense.map((c, idx) => (
                             <DailyExpenseForm

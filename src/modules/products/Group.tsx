@@ -110,7 +110,6 @@ export default function GroupPage() {
     );
 
     const rowExpansionTemplate = (category: CategoryModel, activeState: boolean) => {
-        // Filter groups for this category and active state
         const categoryGroups = groups.filter(
             (g) => g.categoryId === category.categoryId && g.isActive === activeState
         );
@@ -119,7 +118,7 @@ export default function GroupPage() {
             const groupsWithCategory = updatedGroups.map((g) => ({
                 ...g,
                 categoryId: category.categoryId,
-                isActive: activeState, // retain tab’s active/inactive context
+                isActive: activeState,
             }));
 
             try {
@@ -127,11 +126,9 @@ export default function GroupPage() {
                 const savedGroups = response?.data ?? groupsWithCategory;
 
                 setGroups((prev) => {
-                    // remove replaced items
                     const updatedIds = new Set(savedGroups.map((g: any) => g.groupId));
                     const others = prev.filter((g: any) => !updatedIds.has(g.groupId));
 
-                    // merge new/updated ones
                     return [...others, ...savedGroups];
                 });
 
@@ -207,17 +204,14 @@ export default function GroupPage() {
 
     const getCategoriesWithGroupNames = (activeState: boolean) => {
         return categories
-            // ✅ Category must be ACTIVE always
             .filter(cat => cat.isActive)
             .map(cat => {
-                // ✅ Pick ONLY matching groups
                 const matchedGroups = groups.filter(
                     g =>
                         g.categoryId === cat.categoryId &&
                         g.isActive === activeState
                 );
 
-                // ❌ No groups → exclude category
                 if (matchedGroups.length === 0) {
                     return null;
                 }
@@ -230,7 +224,6 @@ export default function GroupPage() {
                         .join(", ")
                 };
             })
-            // ✅ Remove nulls (keep objects only)
             .filter((cat): cat is any => cat !== null);
     };
 
@@ -309,7 +302,6 @@ export default function GroupPage() {
 
     const getCategoriesWithGroupNamesInACtive = (activeState: boolean) => {
         return categories
-            // ✅ Category must be ACTIVE always
             .filter(cat => cat.isActive)
             .map(cat => {
                 const matchedGroups = groups.filter(g =>
@@ -317,7 +309,6 @@ export default function GroupPage() {
                     g.isActive === activeState
                 );
 
-                // ❌ If checking inactive tab and no inactive groups → skip category
                 if (!activeState && matchedGroups.length === 0) {
                     return null;
                 }
@@ -327,7 +318,7 @@ export default function GroupPage() {
                     groupNames: matchedGroups.map(g => g.groupName).join(" ")
                 };
             })
-            .filter(Boolean); // ✅ remove nulls
+            .filter(Boolean);
     };
 
     const inactiveCategories = getCategoriesWithGroupNamesInACtive(false);

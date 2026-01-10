@@ -8,7 +8,6 @@ import apiService from "../../services/apiService";
 import { ColumnMeta } from "../../models/component/ColumnMeta";
 import { TTypeDatatable } from "../../components/TTypeDatatable";
 import { CustomerModel } from "../../models/customer/CustomerModel";
-import { Tooltip } from "primereact/tooltip";
 import { customerNameTemplate } from "../../common/common";
 
 export default function CustomerList() {
@@ -69,15 +68,42 @@ export default function CustomerList() {
 
     const handleSaveCustomers = async () => {
         const errors: Record<string, string> = {};
+        const seen = new Set<string>();
 
         newCustomers.forEach((c, idx) => {
-            if (!c.customerName.trim())
+            if (!c.customerName?.trim()) {
                 errors[`customer-${idx}-customerName`] = "Customer name required";
+            }
 
             if (c.email?.trim()) {
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!emailRegex.test(c.email.trim())) {
                     errors[`customer-${idx}-email`] = "Valid email required";
+                }
+            }
+
+            const nameKey = c.customerName?.trim().toLowerCase() ?? "";
+            const phoneKey = c.phone?.trim() || "__NO_PHONE__";
+            const addressKey = c.address?.trim().toLowerCase() || "__NO_ADDRESS__";
+
+            if (nameKey) {
+                const key = `${nameKey}|${phoneKey}|${addressKey}`;
+
+                if (seen.has(key)) {
+                    errors[`customer-${idx}-customerName`] =
+                        "Duplicate customer name";
+
+                    if (c.phone?.trim()) {
+                        errors[`customer-${idx}-phone`] =
+                            "Duplicate customer phone";
+                    }
+
+                    if (c.address?.trim()) {
+                        errors[`customer-${idx}-address`] =
+                            "Duplicate customer address";
+                    }
+                } else {
+                    seen.add(key);
                 }
             }
 
@@ -90,10 +116,14 @@ export default function CustomerList() {
         if (Object.keys(errors).length > 0) return;
 
         try {
-            await apiService.post("/Customer/bulk", newCustomers);
-            await loadCustomers();
-            setNewCustomers([]);
-            showSuccess("Customers saved successfully!");
+            const response = await apiService.post("/Customer/bulk", newCustomers);
+            if (response && response.status) {
+                await loadCustomers();
+                setNewCustomers([]);
+                showSuccess("Customers saved successfully!");
+            } else {
+                showError(response.error ?? "Customers save failed!");
+            }
         } catch (err) {
             console.error(err);
             showError("Error saving customers");
@@ -107,10 +137,14 @@ export default function CustomerList() {
 
     const handleUpdateCustomer = async (updated: CustomerModel) => {
         try {
-            await apiService.put(`/Customer/${updated.customerId}`, updated);
-            await loadCustomers();
-            showSuccess("Customer updated successfully!");
-            setSidebarVisible(false);
+            const response = await apiService.put(`/Customer/${updated.customerId}`, updated);
+            if (response && response.status) {
+                await loadCustomers();
+                showSuccess("Customer updated successfully!");
+                setSidebarVisible(false);
+            } else {
+                showError(response.error ?? "Customers save failed!");
+            }
         } catch (err) {
             console.error(err);
             showError("Error updating customer");
@@ -120,9 +154,13 @@ export default function CustomerList() {
     const handleDeleteCustomers = async (rows: CustomerModel[]) => {
         try {
             const ids = rows.map((r) => r.customerId);
-            await apiService.post("/Customer/bulk-delete", ids);
-            showSuccess("Customer(s) deleted successfully!");
-            await loadCustomers();
+            const response = await apiService.post("/Customer/bulk-delete", ids);
+            if (response && response.status) {
+                showSuccess("Customer(s) deleted successfully!");
+                await loadCustomers();
+            } else {
+                showError(response.error ?? "Customers delete failed!");
+            }
         } catch (err) {
             console.error(err);
             showError("Error deleting customers");
@@ -138,8 +176,9 @@ export default function CustomerList() {
         { field: "phone", header: "Phone", width: "140px" },
         { field: "email", header: "Email", width: "170px" },
         { field: "gstNumber", header: "GST", width: "130px" },
+        { field: "address", header: "Address", width: "150px" },
         { field: "city", header: "City", width: "110px" },
-        { field: "districtName", header: "District", width: "150px" },
+        { field: "districtName", header: "District", width: "120px" },
     ];
 
     if (loading) return <p>Loading customers...</p>;
@@ -164,6 +203,7 @@ export default function CustomerList() {
                         onDelete={handleDeleteCustomers}
                         isNew={false}
                         isSave={false}
+                        sortableColumns={['customerName', 'phone', 'city']}
                     />
                 </TabPanel>
 
