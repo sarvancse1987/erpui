@@ -4,19 +4,22 @@ import { Chart } from "primereact/chart";
 import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
 import { useNavigate } from "react-router-dom";
-import apiService from "../../services/apiService";
 import SpeechRecognition, {
     useSpeechRecognition,
 } from "react-speech-recognition";
-
 import { useVoiceCommands } from "../speecherp/useVoiceCommands"; // <-- correct path
+import apiService from "../../services/apiService";
+import Last12MonthsBarChart from "./Last12MonthsBarChart";
+import MostSoldProductsBarChart from "./MostSoldProductsBarChart";
+import MostBoughtCustomersBarChart from "./TopCustomersBarChart";
+import TopCustomersBarChart from "./TopCustomersBarChart";
 /* ================= TYPES ================= */
 
 interface KpiCardProps {
     title: string;
     value: string | number | null | undefined;
     icon: string;
-    color: "blue" | "green" | "orange" | "teal" | "red";
+    color: "blue" | "green" | "orange" | "teal" | "red" | "purple" | "cyan";
 }
 
 /* ================= DASHBOARD ================= */
@@ -25,7 +28,7 @@ export default function Dashboard() {
     const navigate = useNavigate();
     const toast = useRef<Toast>(null);
 
-    const [dashboardSummary, setDashboardSummary] = useState<any>(null);
+    const [dashboardSummary, setDashboardSummary] = useState<any>({});
     const [salesSummary, setSalesSummary] = useState<any[]>([]);
 
     /* ================= VOICE COMMANDS ================= */
@@ -73,13 +76,44 @@ export default function Dashboard() {
 
     /* ================= CHART ================= */
 
+
+    /* ================= DUMMY DATA ================= */
+
+    // const [dashboardSummary] = useState({
+    //     activeProductsCount: 125,
+    //     totalSalesAmount: 458900,
+    //     last30DaysSalesAmount: 124500,
+    //     totalStockItems: 560,
+    //     customerBalanceAmount: 98000,
+    // });
+
+    // const [salesSummary] = useState([
+    //     { monthName: "Jan", totalSalesAmount: 85000 },
+    //     { monthName: "Feb", totalSalesAmount: 92000 },
+    //     { monthName: "Mar", totalSalesAmount: 110000 },
+    //     { monthName: "Apr", totalSalesAmount: 78000 },
+    //     { monthName: "May", totalSalesAmount: 94000 },
+    // ]);
+
+
+
+    const [salesKpi] = useState({
+        totalBills: 312,
+        totalSales: 458900,
+        totalGST: 82450,
+        cash: 185000,
+        upi: 273900,
+    });
+
+    /* ================= CHART ================= */
+
     const chartData = useMemo(
         () => ({
             labels: salesSummary.map(x => x.monthName),
             datasets: [
                 {
                     label: "Sales ₹",
-                    data: salesSummary.map(x => x.totalSalesAmount ?? 0),
+                    data: salesSummary.map(x => x.totalSalesAmount),
                     borderColor: "#2563EB",
                     backgroundColor: "rgba(37,99,235,0.15)",
                     fill: true,
@@ -109,7 +143,7 @@ export default function Dashboard() {
 
             {/* HEADER */}
             <div className="flex justify-content-between align-items-center mb-4">
-                <h2 className="text-2xl font-semibold">Dashboard</h2>
+                <h2 className="text-2xl font-semibold"></h2>
 
                 <div className="flex align-items-center gap-2">
                     <Button
@@ -137,19 +171,91 @@ export default function Dashboard() {
 
             {/* KPI CARDS */}
             <div className="grid mb-4">
-                <KpiCard title="Total Products" value={dashboardSummary?.activeProductsCount} icon="pi pi-box" color="blue" />
-                <KpiCard title="Total Sales" value={formatINR(dashboardSummary?.totalSalesAmount)} icon="pi pi-wallet" color="green" />
-                <KpiCard title="Monthly Sales" value={formatINR(dashboardSummary?.last30DaysSalesAmount)} icon="pi pi-clock" color="orange" />
-                <KpiCard title="Stock Items" value={dashboardSummary?.totalStockItems} icon="pi pi-database" color="teal" />
-                <KpiCard title="Customer Balance" value={formatINR(dashboardSummary?.customerBalanceAmount)} icon="pi pi-wallet" color="red" />
+                <KpiCard title="Total Products" value={dashboardSummary.totalProducts} icon="pi pi-box" color="blue" />
+                <KpiCard title="Total Bills" value={formatINR(dashboardSummary.totalBills)} icon="pi pi-list" color="purple" />
+                <KpiCard title="Total Sales" value={formatINR(dashboardSummary.totalSales)} icon="pi pi-wallet" color="green" />
+                <KpiCard title="Total Gst" value={formatINR(dashboardSummary.totalGST)} icon="pi pi-tag" color="cyan" />
+                {/* <KpiCard title="Monthly Sales" value={formatINR(dashboardSummary.last30DaysSalesAmount)} icon="pi pi-clock" color="orange" /> */}
+                <KpiCard title="Stock Items" value={dashboardSummary.stockItems} icon="pi pi-database" color="teal" />
+                <KpiCard title="Customer Balance" value={formatINR(dashboardSummary.customerBalance)} icon="pi pi-wallet" color="red" />
             </div>
-
-            {/* CHART */}
-            <Card title="Sales Overview">
-                <div style={{ height: 200 }}>
-                    <Chart type="line" data={chartData} options={chartOptions} />
+            <Card
+                title="Sales Overview"
+                className="mb-4 p-3 shadow-2 border-round"
+            >
+                <div style={{ height: '220px' }}>
+                    <Last12MonthsBarChart />
                 </div>
             </Card>
+
+            {/* PAYMENT SPLIT + KPI */}
+            <div className="grid mt-3">
+
+                {/* PAYMENT SPLIT */}
+                <div className="col-12 md:col-6">
+                    <Card title="Payment Split" className="p-3 shadow-1 border-round">
+                        <div
+                            style={{
+                                height: '260px',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                            }}
+                        >
+                            <Chart
+                                type="doughnut"
+                                data={{
+                                    labels: ["Cash", "UPI", "Credit"],
+                                    datasets: [
+                                        {
+                                            data: [
+                                                dashboardSummary?.cash ?? 0,
+                                                dashboardSummary?.upi ?? 0,
+                                                dashboardSummary?.customerBalance ?? 0
+                                            ],
+                                            backgroundColor: ["#22C55E", "#3B82F6", "#F59E0B"],
+                                            hoverBackgroundColor: ["#16A34A", "#2563EB", "#D97706"],
+                                        },
+                                    ],
+                                }}
+                                options={{
+                                    cutout: "65%",
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: {
+                                            position: "bottom",
+                                            labels: { padding: 15 }
+                                        },
+                                    },
+                                }}
+                                style={{ width: '100%', height: '100%' }}
+                            />
+                        </div>
+                    </Card>
+                </div>
+
+                {/* SALES KPI */}
+                <div className="col-12 md:col-6">
+                    <Card title="Most Sold Products" className="p-3 shadow-1 border-round h-full">
+                        <div style={{ height: "260px" }}>
+                            <MostSoldProductsBarChart />
+                        </div>
+                    </Card>
+                </div>
+
+            </div>
+
+            <div className="col-12 md:col-6">
+                <Card
+                    title="Top Customers by Purchase"
+                    className="p-3 shadow-1 border-round"
+                >
+                    <div style={{ height: 280 }}>
+                        <TopCustomersBarChart />
+                    </div>
+                </Card>
+            </div>
+
         </div>
     );
 }
@@ -167,7 +273,7 @@ const borderColorMap: Record<string, string> = {
 const KpiCard: React.FC<KpiCardProps> = ({ title, value, icon, color }) => (
     <div className="col-12 md:col-2">
         <Card style={{ borderLeft: `5px solid ${borderColorMap[color]}` }}>
-            <div className="flex justify-content-between">
+            <div className="flex justify-content-between align-items-center">
                 <div>
                     <div className="text-sm">{title}</div>
                     <div className="text-xl font-bold">{value}</div>

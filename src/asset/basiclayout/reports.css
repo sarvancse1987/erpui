@@ -1,0 +1,21 @@
+.erp-tabs .p-tabview-nav {
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.erp-tabs .p-tabview-nav li .p-tabview-nav-link {
+    padding: 0.75rem 1.25rem;
+    font-weight: 500;
+}
+
+.erp-tabs .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+    border-bottom: 3px solid #2563eb;
+    color: #2563eb;
+}
+
+.erp-report-card {
+    border-radius: 8px;
+    box-shadow: none;
+    border: 1px solid #e5e7eb;
+    margin-top: 1rem;
+}

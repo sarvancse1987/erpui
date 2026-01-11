@@ -14,6 +14,7 @@ import About from "../modules/basics/About";
 import { Signup } from "../modules/basics/Signup";
 import { Services } from "../modules/basics/Services";
 import { ResetPassword } from "../modules/basics/ResetPassword";
+import { ReportSummary } from "../modules/report/ReportSummary";
 
 const Dashboard = React.lazy(() => import("../modules/dashboard/Dashboard"));
 const ProductList = React.lazy(() => import("../modules/products/ProductList"));
@@ -139,6 +140,10 @@ export default function AppRouter() {
 
                 <Route path="quotations">
                     <Route index element={<QuotationList />} />
+                </Route>
+
+                 <Route path="reports">
+                    <Route index element={<ReportSummary />} />
                 </Route>
 
             </Route>

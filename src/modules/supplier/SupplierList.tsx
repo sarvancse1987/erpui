@@ -203,6 +203,7 @@ export default function SupplierList() {
                         isDelete={true}
                         onDelete={handleDeleteSuppliers}
                         isNew={false}
+                        isEdit={true}
                         isSave={false}
                         sortableColumns={['supplierName', 'phone', 'city']}
                     />

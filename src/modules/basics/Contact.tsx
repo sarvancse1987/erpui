@@ -4,36 +4,62 @@ import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
 import { useState } from "react";
 import "../../asset/basiclayout/Product.css";
+import { InputMask } from "primereact/inputmask";
+import apiService from "../../services/apiService";
+import { useToast } from "../../components/ToastService";
+
+interface ContactForm {
+  name: string;
+  phone: string;
+  message: string;
+}
 
 export const Contact = () => {
-  const [form, setForm] = useState({ name: "", email: "", message: "" });
-  const [errors, setErrors] = useState({ name: "", email: "", message: "" });
+  const [form, setForm] = useState<ContactForm>({
+    name: "",
+    phone: "",
+    message: "",
+  });
+
+  const [errors, setErrors] = useState<ContactForm>({
+    name: "",
+    phone: "",
+    message: "",
+  });
+
+  const { showSuccess, showError } = useToast();
 
   const onChange = (e: any) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" })); // Clear error on change
+    if (e) {
+      const { name, value } = e.target;
+      setForm(prev => ({ ...prev, [name]: value }));
+      setErrors(prev => ({ ...prev, [name]: "" }));
+    }
   };
 
-  const validateEmail = (email: string) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
+  const normalizePhone = (phone: string): string => {
+    return phone.replace(/\D/g, "").replace(/^91/, "");
+  };
+
+  const validatePhone = (phone: string): boolean => {
+    const cleaned = normalizePhone(phone);
+    return /^[6-9]\d{9}$/.test(cleaned);
   };
 
   const validateForm = () => {
     let valid = true;
-    let newErrors = { name: "", email: "", message: "" };
+    let newErrors: ContactForm = { name: "", phone: "", message: "" };
 
     if (!form.name.trim()) {
       newErrors.name = "Name is required";
       valid = false;
     }
 
-    if (!form.email.trim()) {
-      newErrors.email = "Email is required";
+    if (!form.phone.trim()) {
+      newErrors.phone = "Phone number is required";
       valid = false;
-    } else if (!validateEmail(form.email)) {
-      newErrors.email = "Email is not valid";
+    } else if (!validatePhone(form.phone)) {
+      newErrors.phone = "Enter valid 10-digit phone number";
       valid = false;
     }
 
@@ -46,12 +72,17 @@ export const Contact = () => {
     return valid;
   };
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     if (!validateForm()) return;
 
-    console.log("Contact form submitted", form);
-    alert("Message sent successfully!");
-    setForm({ name: "", email: "", message: "" });
+    var savedResponse = await apiService.post("/Users/SaveEnquiry", form);
+    if (savedResponse && savedResponse.status) {
+      showSuccess("Saved successfully!");
+
+      setForm({ name: "", phone: "", message: "" });
+    } else {
+      showError("Enquiry save failed");
+    }
   };
 
   const offices = [
@@ -91,17 +122,19 @@ export const Contact = () => {
             {errors.name && <small className="p-error">{errors.name}</small>}
           </div>
 
-          <div className="field mb-2 w-full">
-            <label htmlFor="email">Email</label>
-            <InputText
-              id="email"
-              name="email"
-              value={form.email}
-              onChange={onChange}
-              className={`w-full ${errors.email ? "p-invalid" : ""}`}
-              placeholder="Email"
+          <div className="field mb-2">
+            <label htmlFor="phone">Phone</label>
+            <InputMask
+              mask="+99-9999999999"
+              value={form.phone}
+              onChange={(e) => onChange(e)}
+              placeholder="+91-9999999999"
+              className={`w-full ${errors.phone ? "p-invalid" : ""}`}
+              id="phone"
+              name="phone"
             />
-            {errors.email && <small className="p-error">{errors.email}</small>}
+
+            {errors.phone && <small className="p-error">{errors.phone}</small>}
           </div>
 
           <div className="field mb-2 w-full">

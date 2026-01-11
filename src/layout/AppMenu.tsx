@@ -292,6 +292,30 @@ const AppMenu: React.FC = () => {
     });
   }
 
+  if (storage.hasModule("Reports")) {
+    model.push({
+      label: "Reports",
+      icon: "pi pi-fw pi-chart-bar",
+      items: [
+        {
+          label: "Summary",
+          icon: "pi pi-fw pi-home",
+          to: "/reports",
+        },
+        {
+          label: "Sales Reports",
+          icon: "pi pi-fw pi-chart-line",
+          to: "/reports/sales",
+        },
+        {
+          label: "Inventory Reports",
+          icon: "pi pi-fw pi-database",
+          to: "/reports/inventory",
+        },
+      ],
+    });
+  }
+
   return (
     <MenuProvider>
       <ul className="layout-menu">
