@@ -20,6 +20,7 @@ export interface TTypedDatatableProps<T extends Record<string, any>> {
     onAdjustmentsChange?: (adjustments: {
         freightAmount?: number;
         roundOff: number;
+        brokerageAmount?: number;
     }) => void;
     sortableColumns?: (keyof T)[];
     savedAdjustments?: Record<number, number | undefined>;

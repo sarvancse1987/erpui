@@ -287,13 +287,11 @@ export default function SaleList() {
 
         const paymentName = row.paymentTypeName?.toLowerCase();
 
-        // --- BALANCE LOGIC ---
         let balance =
           paymentName === "credit"
-            ? row.grandTotal // full due
+            ? row.grandTotal
             : row.grandTotal - paid;
 
-        // Format currency
         const format = (v: number) =>
           new Intl.NumberFormat("en-IN", {
             style: "currency",
@@ -302,11 +300,10 @@ export default function SaleList() {
 
         let severity: "success" | "warning" | "danger";
 
-        // --- SEVERITY LOGIC ---
         if (balance === 0) {
-          severity = "success"; // settled
+          severity = "success";
         } else if (balance < 0) {
-          severity = "danger"; // overpaid
+          severity = "danger";
           return (
             <Tag
               value={format(-balance)}
@@ -317,8 +314,6 @@ export default function SaleList() {
           );
         } else {
           severity = paymentName === "credit" ? "danger" : "warning";
-          // Credit due -> always red (danger)
-          // Partial due -> yellow (warning)
         }
 
         return (
@@ -342,14 +337,12 @@ export default function SaleList() {
         let displayValue: string;
 
         if (balance === 0) {
-          severity = "success"; // fully settled
+          severity = "success";
           displayValue = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(balance);
         } else if (balance < 0) {
-          // We need to pay buyer → red
           severity = "warning";
           displayValue = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(-balance);
         } else {
-          // Buyer needs to pay us → green
           severity = "danger";
           displayValue = `${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(balance)}`;
         }
@@ -387,7 +380,7 @@ export default function SaleList() {
               className="pi pi-copy cursor-pointer text-blue-600 hover:text-blue-800"
               title="Copy Product Name"
               onClick={(e) => {
-                e.stopPropagation(); // ✅ prevent row click/edit
+                e.stopPropagation();
                 navigator.clipboard.writeText(row.customerName ?? "");
               }}
             />
@@ -760,6 +753,7 @@ export default function SaleList() {
               isDelete={true}
               onDelete={handleDeleteSale}
               isNew={false}
+              isEdit={true}
               isSave={false}
               page="sale"
               showDateFilter={true}
@@ -796,7 +790,8 @@ export default function SaleList() {
               sale={selectedSale}
               onSaveSuccess={() => {
                 updateAllData();
-                //setIsSidebarOpen(false);
+                setIsSidebarOpen(false);
+                //setActiveIndex(0);
               }}
               onCancel={closeEditSidebar}
             />

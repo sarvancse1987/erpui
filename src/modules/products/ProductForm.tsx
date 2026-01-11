@@ -45,7 +45,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   const uploadRef = useRef<FileUpload>(null);
   const [webcamKey, setWebcamKey] = useState(0);
   const imageObjectUrlRef = useRef<string | null>(null);
-  const [isDatabase, setIsDatabase] = useState<boolean>(false);
 
   useEffect(() => {
     if (formData.productCategoryId) {
@@ -71,9 +70,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     if (!product.productGroupId) setFilteredBrands([]);
 
     setLocalValidationErrors({});
-    if (product.imagePreviewUrl) {
-      setIsDatabase(true);
-    }
   }, [product]);
 
   useEffect(() => {
@@ -184,7 +180,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     const file = e.files[0];
     if (!file) return;
 
-    setIsDatabase(false);
     // Revoke old URL if exists
     if (imageObjectUrlRef.current) {
       URL.revokeObjectURL(imageObjectUrlRef.current);
@@ -207,6 +202,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   };
 
   const apiBaseUrl = process.env.REACT_APP_SERVICE_API_BASE_URL?.replace("/api", "") || "";
+
+  const isBase64Image = (input: string): boolean => {
+    return input.startsWith("data:image/");
+  };
 
   return (
     <form onSubmit={handleSubmit}>
@@ -487,7 +486,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     <div className="relative w-full h-full">
 
                       <img
-                        src={isDatabase == true ? apiBaseUrl + formData.imagePreviewUrl : formData.imagePreviewUrl}
+                        src={!isBase64Image(formData.imagePreviewUrl) ? apiBaseUrl + formData.imagePreviewUrl : formData.imagePreviewUrl}
                         alt="preview"
                         className="w-full h-full rounded-lg object-cover border"
                       />
@@ -504,7 +503,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                             imagePreviewUrl: null,
                             imageFile: null,
                           };
-                          setIsDatabase(false);
                           setFormData(clearedProduct);
                           onSave(clearedProduct);       // ✅ ONE update only
                           setWebcamKey(prev => prev + 1);
@@ -519,7 +517,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               <CustomWebcam
                 key={webcamKey}
                 onCapture={(img) => {
-                  setIsDatabase(false);
                   handleChange("imagePreviewUrl", img);
                 }}
               />

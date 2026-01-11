@@ -11,14 +11,13 @@ import { LayoutContext } from "./context/layoutcontext";
 import { OverlayPanel } from "primereact/overlaypanel";
 import { useAuth } from "../auth/AuthProvider";
 import { Badge } from "primereact/badge";
-import appLogo from "../Images/jobsnap_logo.png";
-// import appLogo from "../Images/erp.png";
 import { AppTopbarRef } from "./layoutprops";
 import { Menu } from "primereact/menu";
 import { Avatar } from "primereact/avatar";
 import { storage } from "../services/storageService";
 import defaultcompany from "../asset/img/default-company.png";
 import { Tooltip } from "primereact/tooltip";
+import { removeCookie } from "../common/common";
 
 const AppTopbar = forwardRef<AppTopbarRef>((_props, ref) => {
   const { layoutState, onMenuToggle, showProfileSidebar } = useContext(LayoutContext);
@@ -39,8 +38,14 @@ const AppTopbar = forwardRef<AppTopbarRef>((_props, ref) => {
 
   const onLogout = () => {
     setToken("");
+    removeCookie("authToken")
+    localStorage.removeItem("user");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userModule");
+    localStorage.removeItem("userModuleAction");
     storage.clear();
     navigate("/home");
+
     profileOverlayRef.current?.hide();
   };
 

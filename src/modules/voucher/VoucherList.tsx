@@ -284,6 +284,7 @@ export default function VoucherList() {
                             isDelete={true}
                             onDelete={handleOnDelete}
                             isNew={false}
+                            isEdit={true}
                             isSave={false}
                             page="voucher"
                             showDateFilter={true}

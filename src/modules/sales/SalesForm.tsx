@@ -383,6 +383,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
       if (formData.paymentTypeId == PaymentType.Credit || formData.paymentTypeId == PaymentType.Cheque) {
         formData.cash = 0;
         formData.upi = 0;
+        formData.balanceAmount = formData.grandTotal;
       }
       else if (formData.paymentTypeId == PaymentType.UPI) {
         formData.upi = formData.grandTotal;
@@ -493,6 +494,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         ...prev,
         freightAmount: adjustments.freightAmount,
         roundOff: adjustments.roundOff,
+        //brokerageAmount: adjustments.brokerageAmount,
         grandTotal: parseFloat(grandTotal.toFixed(2)),
         cash: parseFloat(grandTotal.toFixed(2)),
       };

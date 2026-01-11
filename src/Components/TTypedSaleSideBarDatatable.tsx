@@ -591,6 +591,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
                     const finalAdjustmentResult = {
                       freightAmount: updatedAdjustments[1] || 0,
                       roundOff: (updatedAdjustments[2] || 0) - (updatedAdjustments[3] || 0),
+                      //brokerageAmount: (updatedAdjustments[4] || 0)
                     };
 
                     onAdjustmentsChange?.(finalAdjustmentResult);
@@ -633,6 +634,7 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
                           onAdjustmentsChange?.({
                             freightAmount: updated[1] || 0,
                             roundOff: (updated[2] || 0) - (updated[3] || 0),
+                            //brokerageAmount: (updated[4] || 0),
                           });
                         }}
                       />

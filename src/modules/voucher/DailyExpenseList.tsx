@@ -234,6 +234,7 @@ export default function DailyExpenseList() {
                         isDelete={true}
                         onDelete={handleOnDelete}
                         isNew={false}
+                        isEdit={true}
                         isSave={false}
                         page="dailyexpense"
                         showDateFilter={true}

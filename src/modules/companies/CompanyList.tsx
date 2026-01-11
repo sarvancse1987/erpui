@@ -218,6 +218,7 @@ export default function CompanyList() {
                         isDelete={true}
                         onDelete={handleDeleteCompanies}
                         isNew={false}
+                        isEdit={true}
                         isSave={false}
                         sortableColumns={['name', 'phone', 'city']}
                     />

@@ -133,6 +133,7 @@ export default function DailyBookList() {
                         isDelete={true}
                         //onDelete={handleOnDelete}
                         isNew={false}
+                        isEdit={true}
                         isSave={false}
                         page="companyledger"
                         showDateFilter={true}

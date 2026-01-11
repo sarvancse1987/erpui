@@ -198,6 +198,7 @@ export default function LocationList() {
                         isDelete={true}
                         onDelete={handleDeleteLocations}
                         isNew={false}
+                        isEdit={true}
                         isSave={false}
                     />
                 </TabPanel>

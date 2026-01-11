@@ -679,6 +679,7 @@ export default function PurchaseList() {
                             isDelete={true}
                             onDelete={handleDeletePurchase}
                             isNew={false}
+                            isEdit={true}
                             isSave={false}
                             sortableColumns={["grandTotal", "purchaseDate"]}
                             page="purchase"

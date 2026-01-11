@@ -26,6 +26,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
   data,
   primaryKey,
   isNew,
+  isEdit,
   isSave,
   isDelete,
   onEdit,
@@ -547,7 +548,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
         <div className="flex items-center gap-1 flex-wrap">
           <PurchaseFooterBox label="Total Sale" value={formatINR(saleTotals.grandTotal)} />
           <PurchaseFooterBox label="Paid Amt" value={formatINR(saleTotals.paidAmount)} bg="#22c55e" />
-          <PurchaseFooterBox label="Balance Amt" value={formatINR(saleTotals.runningAmount)} bg="#be5744ff" />
+          <PurchaseFooterBox label="Balance Amt" value={formatINR(saleTotals.balanceAmount)} bg="#be5744ff" />
         </div>
       </div>
     ) : page === "customerledge" ? (
@@ -827,8 +828,8 @@ export function TTypeDatatable<T extends Record<string, any>>({
               sortable={sortableColumns?.includes(col.field)}
             />
           ))}
-
-        <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} frozen={true} alignFrozen="right" />
+        {isEdit && (
+          <Column body={actionBodyTemplate} header="Actions" style={{ width: "100px" }} frozen={true} alignFrozen="right" />)}
       </DataTable>
     </div >
   );

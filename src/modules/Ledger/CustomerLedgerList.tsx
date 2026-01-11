@@ -222,6 +222,7 @@ export default function CustomerLedgerList() {
                     isNew={false}
                     isSave={false}
                     isDelete={false}
+                    isEdit={false}
                     showDateFilter={true}
                     showDdlFilter={true}
                     page="customerledge"

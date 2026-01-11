@@ -300,6 +300,7 @@ export default function QuotationList() {
               isDelete={true}
               onDelete={handleDelete}
               isNew={false}
+              isEdit={true}
               isSave={false}
               page="quotation"
               showDateFilter={true}

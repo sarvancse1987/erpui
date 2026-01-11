@@ -231,6 +231,7 @@ export default function UserList() {
                         isDelete={true}
                         onDelete={handleDeleteUsers}
                         isNew={false}
+                        isEdit={true}
                         isSave={false}
                         sortableColumns={['username', 'firstName', 'companyName']}
                     />

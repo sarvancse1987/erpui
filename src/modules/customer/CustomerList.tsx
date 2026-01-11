@@ -202,6 +202,7 @@ export default function CustomerList() {
                         isDelete={true}
                         onDelete={handleDeleteCustomers}
                         isNew={false}
+                        isEdit={true}
                         isSave={false}
                         sortableColumns={['customerName', 'phone', 'city']}
                     />

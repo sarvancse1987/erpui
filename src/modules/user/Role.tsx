@@ -142,6 +142,7 @@ export default function Role() {
                         primaryKey="id"
                         onSave={onInactiveSave}
                         isNew={true}
+                        isEdit={true}
                         isSave={true}
                         isDelete={true}
                     />

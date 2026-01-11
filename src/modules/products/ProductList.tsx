@@ -489,6 +489,7 @@ export default function ProductList() {
                   primaryKey="productId"
                   onEdit={(row: ProductModel) => handleOpenEdit(row)}
                   isNew={false}
+                  isEdit={true}
                   isSave={false}
                   isDelete={true}
                   onDelete={onActiveDelete}

@@ -140,6 +140,7 @@ export default function UserType() {
                         primaryKey="id"
                         onSave={onInactiveSave}
                         isNew={true}
+                        isEdit={true}
                         isSave={true}
                         isDelete={true}
                     />

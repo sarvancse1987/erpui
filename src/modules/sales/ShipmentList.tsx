@@ -145,6 +145,7 @@ export default function ShipmentList() {
                     isDelete={true}
                     onDelete={handleDelete}
                     isNew={false}
+                    isEdit={true}
                     isSave={false}
                     page="shipment"
                     showDateFilter={true}
