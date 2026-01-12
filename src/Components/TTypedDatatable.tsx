@@ -436,7 +436,7 @@ export function TTypedDatatable<T extends Record<string, any>>({
   return (
     <div className="card p-2 h-[calc(100vh-100px)] overflow-auto">
 
-      <div className="flex justify-between items-center mb-1">
+      <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
         <div className="flex gap-2">
           {isNew && <Button label="Add" icon="pi pi-plus" outlined onClick={addRowNew} size="small" className="p-button-info custom-xs" />}
           {isEdit && selectedRows.length > 1 && <Button label="Edit" icon="pi pi-pencil" outlined onClick={onEditNew} size="small" className="p-button-info custom-xs" />}

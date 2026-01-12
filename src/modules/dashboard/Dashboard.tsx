@@ -171,14 +171,30 @@ export default function Dashboard() {
 
             {/* KPI CARDS */}
             <div className="grid mb-4">
+                {/* ROW 1: Products & Stock */}
                 <KpiCard title="Total Products" value={dashboardSummary.totalProducts} icon="pi pi-box" color="blue" />
+                <KpiCard title="Stock Items" value={dashboardSummary.stockItems} icon="pi pi-database" color="teal" />
+                <KpiCard title="Total Inventory Value" value={formatINR(dashboardSummary.totalInventoryValue)} icon="pi pi-box" color="green" />
+
+                {/* ROW 2: Sales */}
                 <KpiCard title="Total Bills" value={formatINR(dashboardSummary.totalBills)} icon="pi pi-list" color="purple" />
                 <KpiCard title="Total Sales" value={formatINR(dashboardSummary.totalSales)} icon="pi pi-wallet" color="green" />
                 <KpiCard title="Total Gst" value={formatINR(dashboardSummary.totalGST)} icon="pi pi-tag" color="cyan" />
-                {/* <KpiCard title="Monthly Sales" value={formatINR(dashboardSummary.last30DaysSalesAmount)} icon="pi pi-clock" color="orange" /> */}
-                <KpiCard title="Stock Items" value={dashboardSummary.stockItems} icon="pi pi-database" color="teal" />
+                <KpiCard title="Total Sales Today" value={formatINR(dashboardSummary.totalSalesToday)} icon="pi pi-calendar" color="orange" />
+                <KpiCard title="Total Purchases Today" value={formatINR(dashboardSummary.totalPurchasesToday)} icon="pi pi-shopping-cart" color="purple" />
+
+                {/* ROW 3: Customers & Suppliers */}
+                <KpiCard title="Total Customers" value={dashboardSummary.totalCustomers} icon="pi pi-users" color="blue" />
+                <KpiCard title="Total Suppliers" value={dashboardSummary.totalSuppliers} icon="pi pi-briefcase" color="teal" />
                 <KpiCard title="Customer Balance" value={formatINR(dashboardSummary.customerBalance)} icon="pi pi-wallet" color="red" />
+                <KpiCard title="Outstanding Customer Balance" value={formatINR(dashboardSummary.outstandingCustomerBalance)} icon="pi pi-wallet" color="red" />
+
+                {/* ROW 4: Cash & Payments */}
+                <KpiCard title="Cash" value={formatINR(dashboardSummary.cash)} icon="pi pi-money-bill" color="green" />
+                <KpiCard title="UPI" value={formatINR(dashboardSummary.upi)} icon="pi pi-credit-card" color="cyan" />
+                <KpiCard title="Cash In Hand" value={formatINR(dashboardSummary.cashInHand)} icon="pi pi-wallet" color="orange" />
             </div>
+
             <Card
                 title="Sales Overview"
                 className="mb-4 p-3 shadow-2 border-round"
@@ -268,6 +284,8 @@ const borderColorMap: Record<string, string> = {
     orange: "#F97316",
     teal: "#14B8A6",
     red: "#EF4444",
+    purple: "#8B5CF6",
+    cyan: "#06B6D4",
 };
 
 const KpiCard: React.FC<KpiCardProps> = ({ title, value, icon, color }) => (
