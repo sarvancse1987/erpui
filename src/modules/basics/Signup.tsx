@@ -7,6 +7,7 @@ import { classNames } from "primereact/utils";
 import apiService from "../../services/apiService";
 import { SignupSeedInputModel } from "../../models/authentication/SignupSeedInputModel";
 import { useNavigate } from "react-router-dom";
+import { InputMask } from "primereact/inputmask";
 
 export const Signup = () => {
     const [form, setForm] = useState({
@@ -24,6 +25,7 @@ export const Signup = () => {
     });
 
     const [submitted, setSubmitted] = useState(false);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -62,6 +64,8 @@ export const Signup = () => {
     const signup = async () => {
         setSubmitted(true);
         setErrorMessage(null);
+        setSuccessMessage(null);
+
 
         if (!isValid()) return;
 
@@ -84,7 +88,26 @@ export const Signup = () => {
             const response = await apiService.post("/Users/signup", payload);
 
             if (response && response.status) {
-                navigate("/login");
+                setSuccessMessage(
+                    "Signup successful! Please check your email for login details and then log in."
+                );
+
+                setErrorMessage(null);
+                setSubmitted(false);
+
+                setForm({
+                    companyName: "",
+                    companyPhone: "",
+                    companyEmail: "",
+                    address: "",
+                    city: "",
+                    firstName: "",
+                    lastName: "",
+                    username: "",
+                    password: "",
+                    userEmail: "",
+                    userPhone: ""
+                });
             } else {
                 setErrorMessage(response.error || "Signup failed");
             }
@@ -116,7 +139,7 @@ export const Signup = () => {
                                 className="w-full h-full"
                             >
                                 {/* Company Name */}
-                                <label className="font-medium">Company Name *</label>
+                                <label className="font-medium">Company Name <span className="mandatory-asterisk">*</span></label>
                                 <InputText
                                     name="companyName"
                                     value={form.companyName}
@@ -125,13 +148,14 @@ export const Signup = () => {
                                         "p-invalid": submitted && !form.companyName
                                     })}
                                     placeholder="Company name"
+                                    tabIndex={1}
                                 />
                                 {submitted && !form.companyName && (
                                     <small className="p-error">Company Name is required</small>
                                 )}
 
                                 {/* Company Email */}
-                                <label className="font-medium mt-3 block">Company Email *</label>
+                                <label className="font-medium mt-3 block">Company Email <span className="mandatory-asterisk">*</span></label>
                                 <InputText
                                     name="companyEmail"
                                     value={form.companyEmail}
@@ -140,6 +164,7 @@ export const Signup = () => {
                                         "p-invalid": submitted && (!form.companyEmail || !isValidEmail(form.companyEmail))
                                     })}
                                     placeholder="Company email"
+                                    tabIndex={2}
                                 />
                                 {submitted && !form.companyEmail && (
                                     <small className="p-error">Company Email is required</small>
@@ -149,26 +174,16 @@ export const Signup = () => {
                                 )}
 
                                 {/* Company Phone */}
-                                <label className="font-medium mt-3 block">Company Phone *</label>
-                                <InputText
+                                <label className="font-medium mt-3 block">Company Phone <span className="mandatory-asterisk">*</span></label>
+                                <InputMask
                                     name="companyPhone"
+                                    id="companyPhone"
+                                    mask="+99-9999999999"
                                     value={form.companyPhone}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        if (/^[0-9+-]*$/.test(value) && value.length <= 15) {
-                                            onChange(e);
-                                        }
-                                    }}
-                                    onPaste={(e) => {
-                                        const pasted = e.clipboardData.getData("text");
-                                        if (!/^[0-9+-]+$/.test(pasted) || pasted.length > 15) {
-                                            e.preventDefault();
-                                        }
-                                    }}
-                                    className={classNames("w-full mb-2", {
-                                        "p-invalid": submitted && !form.companyPhone
-                                    })}
-                                    placeholder="Company phone"
+                                    onChange={onChange}
+                                    placeholder="+91-9999999999"
+                                    className="w-full mt-1"
+                                    tabIndex={3}
                                 />
                                 {submitted && !form.companyPhone && (
                                     <small className="p-error">Company Phone is required</small>
@@ -183,24 +198,25 @@ export const Signup = () => {
                                 className="w-full h-full"
                             >
                                 {/* First Name */}
-                                <label className="font-medium">First Name *</label>
+                                <label className="font-medium">First Name <span className="mandatory-asterisk">*</span></label>
                                 <InputText
                                     name="firstName"
                                     value={form.firstName}
                                     onChange={onChange}
-                                    className={classNames("w-full mb-4", {
+                                    className={classNames("w-full mb-2", {
                                         "p-invalid": submitted && !form.firstName
                                     })}
                                     placeholder="First name"
+                                    tabIndex={4}
                                 />
                                 {submitted && !form.firstName && (
                                     <small className="p-error">First Name is required</small>
                                 )}
 
-                                <div className="grid">
+                                <div className="grid mt-2">
                                     {/* Username */}
                                     <div className="col-12 md:col-6">
-                                        <label className="font-medium">Username *</label>
+                                        <label className="font-medium">Username <span className="mandatory-asterisk">*</span></label>
                                         <InputText
                                             name="username"
                                             value={form.username}
@@ -209,6 +225,7 @@ export const Signup = () => {
                                                 "p-invalid": submitted && !form.username
                                             })}
                                             placeholder="Username"
+                                            tabIndex={5}
                                         />
                                         {submitted && !form.username && (
                                             <small className="p-error">Username is required</small>
@@ -217,7 +234,7 @@ export const Signup = () => {
 
                                     {/* Password */}
                                     <div className="col-12 md:col-3">
-                                        <label className="font-medium">Password *</label>
+                                        <label className="font-medium">Password <span className="mandatory-asterisk">*</span></label>
                                         <Password
                                             name="password"
                                             value={form.password}
@@ -228,6 +245,7 @@ export const Signup = () => {
                                                 "p-invalid": submitted && !form.password
                                             })}
                                             placeholder="Password"
+                                            tabIndex={6}
                                         />
                                         {submitted && !form.password && (
                                             <small className="p-error">Password is required</small>
@@ -236,7 +254,7 @@ export const Signup = () => {
                                 </div>
 
                                 {/* User Email */}
-                                <label className="font-medium mt-3 block">User Email *</label>
+                                <label className="font-medium mt-3 block">User Email <span className="mandatory-asterisk">*</span></label>
                                 <InputText
                                     name="userEmail"
                                     value={form.userEmail}
@@ -245,6 +263,7 @@ export const Signup = () => {
                                         "p-invalid": submitted && (!form.userEmail || !isValidEmail(form.userEmail))
                                     })}
                                     placeholder="User email"
+                                    tabIndex={7}
                                 />
                                 {submitted && !form.userEmail && (
                                     <small className="p-error">User Email is required</small>
@@ -265,6 +284,14 @@ export const Signup = () => {
                                 loading={loading}
                             />
                         </div>
+
+                        {successMessage && (
+                            <div className="col-12 flex justify-content-center mt-2">
+                                <small className="p-success font-medium text-green">
+                                    {successMessage}
+                                </small>
+                            </div>
+                        )}
 
                         <div className="col-12 flex justify-content-center mt-1">
                             {errorMessage && (

@@ -4,129 +4,205 @@ import { InputText } from "primereact/inputtext";
 import { Password } from "primereact/password";
 import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
-import { Checkbox } from "primereact/checkbox";
+import { RadioButton } from "primereact/radiobutton";
+import { InputMask } from "primereact/inputmask";
 
 export const ResetPassword = () => {
-  const [emailOrPhone, setEmailOrPhone] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [puzzleAnswer, setPuzzleAnswer] = useState("");
   const toast = useRef<Toast>(null);
 
-  // Example puzzle
-  const puzzle = {
-    question: "What is 3 + 5?",
-    answer: "8",
-  };
+  const [method, setMethod] = useState<"email" | "phone">("email");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
 
-  const handleSubmit = () => {
-    if (!emailOrPhone || !password || !confirmPassword || !puzzleAnswer) {
-      toast.current?.show({
-        severity: "warn",
-        summary: "Validation Error",
-        detail: "All fields are required",
-      });
-      return;
-    }
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-    if (password !== confirmPassword) {
-      toast.current?.show({
-        severity: "error",
-        summary: "Password Mismatch",
-        detail: "Password and Confirm Password do not match",
-      });
-      return;
-    }
+  const [submitted, setSubmitted] = useState(false);
 
-    if (puzzleAnswer !== puzzle.answer) {
-      toast.current?.show({
-        severity: "error",
-        summary: "Puzzle Incorrect",
-        detail: "Please solve the puzzle correctly",
-      });
-      return;
-    }
+  /* ---------------- SEND OTP ---------------- */
+  const sendOtp = async () => {
+    setSubmitted(true);
 
-    // Call API to update password
-    console.log({
-      emailOrPhone,
-      password,
-    });
+    if (method === "email" && !email) return;
+    if (method === "phone" && !phone) return;
+
+    // 👉 API CALL
+    // await api.post("/auth/send-otp", { email, phone });
+
+    setOtpSent(true);
+    setSubmitted(false);
 
     toast.current?.show({
       severity: "success",
       summary: "Success",
-      detail: "Password reset successfully!",
+      detail: "OTP sent successfully"
+    });
+  };
+
+  /* ---------------- RESET PASSWORD ---------------- */
+  const resetPassword = async () => {
+    setSubmitted(true);
+
+    if (!otp || !password || !confirmPassword) return;
+    if (password !== confirmPassword) return;
+
+    // 👉 API CALL
+    /*
+    await api.post("/auth/reset-password", {
+      email,
+      phone,
+      otp,
+      password
+    });
+    */
+
+    toast.current?.show({
+      severity: "success",
+      summary: "Success",
+      detail: "Password reset successfully"
     });
 
-    // Reset fields
-    setEmailOrPhone("");
+    // Clear
+    setEmail("");
+    setPhone("");
+    setOtp("");
     setPassword("");
     setConfirmPassword("");
-    setPuzzleAnswer("");
+    setOtpSent(false);
+    setSubmitted(false);
   };
 
   return (
-    <div className="flex justify-content-center align-items-center vh-100 p-2">
+    <div className="flex justify-content-center align-items-center vh-100 p-3">
       <Toast ref={toast} />
-      <Card title="Reset Password" className="w-full md:w-5">
-        {/* Email or Phone */}
-        <div className="field mb-3">
-          <label htmlFor="emailOrPhone">Email or Phone Number</label>
-          <InputText
-            id="emailOrPhone"
-            value={emailOrPhone}
-            onChange={(e) => setEmailOrPhone(e.target.value)}
-            placeholder="Enter your email or phone"
-            className="w-full"
-          />
+
+      <Card title="Reset Password" className="w-full md:w-4">
+        {/* METHOD */}
+        <div className="flex gap-4 mb-4">
+          <div className="flex align-items-center">
+            <RadioButton
+              inputId="email"
+              checked={method === "email"}
+              onChange={() => setMethod("email")}
+            />
+            <label htmlFor="email" className="ml-2">Email</label>
+          </div>
+
+          <div className="flex align-items-center">
+            <RadioButton
+              inputId="phone"
+              checked={method === "phone"}
+              onChange={() => setMethod("phone")}
+            />
+            <label htmlFor="phone" className="ml-2">Phone</label>
+          </div>
         </div>
 
-        {/* New Password */}
-        <div className="field mb-3">
-          <label htmlFor="password">New Password</label>
-          <Password
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            toggleMask
-            feedback={true}
-            placeholder="Enter new password"
-            className="w-full"
-          />
-        </div>
+        {/* EMAIL / PHONE */}
+        {method === "email" ? (
+          <div className="field mb-3">
+            <label>Email *</label>
+            <InputText
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={`w-full ${submitted && !email ? "p-invalid" : ""}`}
+              placeholder="Enter registered email"
+            />
+            {submitted && !email && (
+              <small className="p-error">Email is required</small>
+            )}
+          </div>
+        ) : (
+          <div className="field mb-3">
+            <label>Phone *</label>
+            <InputMask
+              mask="+99-9999999999"
+              value={phone}
+              onChange={(e) => setPhone(e.value || "")}
+              className={`w-full ${submitted && !phone ? "p-invalid" : ""}`}
+              placeholder="+91-9999999999"
+            />
+            {submitted && !phone && (
+              <small className="p-error">Phone number is required</small>
+            )}
+          </div>
+        )}
 
-        {/* Confirm Password */}
-        <div className="field mb-3">
-          <label htmlFor="confirmPassword">Confirm Password</label>
-          <Password
-            id="confirmPassword"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            toggleMask
-            placeholder="Re-enter password"
-            className="w-full"
+        {/* SEND OTP */}
+        {!otpSent && (
+          <Button
+            label="Send OTP"
+            icon="pi pi-send"
+            className="w-full mb-3"
+            onClick={sendOtp}
           />
-        </div>
+        )}
 
-        {/* Simple Puzzle */}
-        <div className="field mb-3">
-          <label htmlFor="puzzle">Puzzle: {puzzle.question}</label>
-          <InputText
-            id="puzzle"
-            value={puzzleAnswer}
-            onChange={(e) => setPuzzleAnswer(e.target.value)}
-            placeholder="Your answer"
-            className="w-full"
-          />
-        </div>
+        {/* OTP + PASSWORD */}
+        {otpSent && (
+          <>
+            <div className="field mb-3">
+              <label>OTP *</label>
+              <InputText
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className={`w-full ${submitted && !otp ? "p-invalid" : ""}`}
+              />
+              {submitted && !otp && (
+                <small className="p-error">OTP is required</small>
+              )}
+            </div>
 
-        <Button
-          label="Reset Password"
-          icon="pi pi-check"
-          className="w-full"
-          onClick={handleSubmit}
-        />
+            <div className="field mb-3">
+              <label>New Password *</label>
+              <Password
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                toggleMask
+                feedback={false}
+                inputClassName="w-full p-inputtext"
+                className={`w-full ${submitted && !password ? "p-invalid" : ""}`}
+              />
+              {submitted && !password && (
+                <small className="p-error">Password is required</small>
+              )}
+            </div>
+
+            <div className="field mb-3">
+              <label>Confirm Password *</label>
+              <Password
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                toggleMask
+                feedback={false}
+                inputClassName="w-full p-inputtext"
+                className={`w-full ${
+                  submitted &&
+                  (!confirmPassword || password !== confirmPassword)
+                    ? "p-invalid"
+                    : ""
+                }`}
+              />
+              {submitted && !confirmPassword && (
+                <small className="p-error">Confirm password is required</small>
+              )}
+              {submitted &&
+                confirmPassword &&
+                password !== confirmPassword && (
+                  <small className="p-error">Passwords do not match</small>
+                )}
+            </div>
+
+            <Button
+              label="Reset Password"
+              icon="pi pi-check"
+              className="w-full"
+              onClick={resetPassword}
+            />
+          </>
+        )}
       </Card>
     </div>
   );
