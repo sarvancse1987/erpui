@@ -518,7 +518,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
           <PurchaseFooterBox
             label="Paid Amt"
             value={formatINR(totals.paidAmount)}
-            bg="#22c55e"
+            bg="#4dab76"
           />
 
           {/* Balance Amount */}
@@ -532,7 +532,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
           <PurchaseFooterBox
             label="GST Amt"
             value={formatINR(totals.gstAmount)}
-            bg="#dbb434ff"
+            bg="#ff9c00"
           />
 
           {/* Grand Total */}
@@ -547,7 +547,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
       <div className="custom-footer flex justify-between items-center gap-1 flex-wrap px-2 py-1">
         <div className="flex items-center gap-1 flex-wrap">
           <PurchaseFooterBox label="Total Sale" value={formatINR(saleTotals.grandTotal)} />
-          <PurchaseFooterBox label="Paid Amt" value={formatINR(saleTotals.paidAmount)} bg="#22c55e" />
+          <PurchaseFooterBox label="Paid Amt" value={formatINR(saleTotals.paidAmount)} bg="#4dab76" />
           <PurchaseFooterBox label="Balance Amt" value={formatINR(saleTotals.balanceAmount)} bg="#be5744ff" />
         </div>
       </div>
@@ -555,7 +555,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
       <div className="custom-footer flex justify-between items-center gap-1 flex-wrap px-2 py-1">
         <div className="flex items-center gap-1 flex-wrap">
           <PurchaseFooterBox label="Total Sale" value={formatINR(ledgerTotals.totalSale)} />
-          <PurchaseFooterBox label="Paid Amt" value={formatINR(ledgerTotals.totalReceived)} bg="#22c55e" />
+          <PurchaseFooterBox label="Paid Amt" value={formatINR(ledgerTotals.totalReceived)} bg="#4dab76" />
           <PurchaseFooterBox label="Balance Amt" value={formatINR(ledgerTotals.balanceAmount)} bg="#be5744ff" />
         </div>
       </div>
@@ -796,7 +796,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
             : "FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
         }
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-        footer={tableFooter}
+        footer={tableData.length > 0 && tableFooter}
       >
         <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} frozen />
 

@@ -15,7 +15,6 @@ const SalesSummary = () => {
       const res = await apiService.get(`/Sale/saledetails`);
       const mapped = res.sale.map((p: any) => ({
         ...p,
-        saleItems: res.saleItems.filter((i: any) => i.saleId === p.saleId),
         shipment: res.shipment.find((i: any) => i.saleId === p.saleId),
       }));
       setSales(mapped ?? []);

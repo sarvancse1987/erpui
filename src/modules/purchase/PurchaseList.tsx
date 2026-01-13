@@ -578,7 +578,7 @@ export default function PurchaseList() {
                 <div
                     className="flex items-center justify-center py-2 px-2 text-sm font-semibold"
                     style={{
-                        background: "#f1c40f",
+                        background: "#ff9c00",
                         color: "black",
                         borderRadius: "0px",
                         minWidth: "90px",

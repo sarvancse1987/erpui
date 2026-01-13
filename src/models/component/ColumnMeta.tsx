@@ -21,4 +21,5 @@ export interface ColumnMeta<T> {
     }) => React.ReactNode;
     placeholder?: string;
     exportValue?: (rowData: any) => string | number;
+    bodyClassName?: string;
 }

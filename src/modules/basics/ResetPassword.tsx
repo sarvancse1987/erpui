@@ -23,13 +23,20 @@ export const ResetPassword = () => {
 
   const [submitted, setSubmitted] = useState(false);
 
+  const isValidEmail = (value: string) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(value);
+  };
+
   /* ---------------- SEND OTP ---------------- */
   const sendOtp = async () => {
     setSubmitted(true);
-    setOtpLoading(true);
-    if (method === "email" && !email) return;
+    if (method === "email") {
+      if (!email || !isValidEmail(email)) return;
+    }
     if (method === "phone" && !phone) return;
 
+    setOtpLoading(true);
     const response = await apiService.post("/users/send-otp", { email, phone });
     if (response && response.status) {
       setOtpSent(true);
@@ -39,7 +46,7 @@ export const ResetPassword = () => {
       toast.current?.show({
         severity: "success",
         summary: "Success",
-        detail: "OTP sent successfully"
+        detail: response.message || "OTP sent successfully"
       });
     } else {
       setOtpLoading(false);
@@ -123,6 +130,7 @@ export const ResetPassword = () => {
             {submitted && !email && (
               <small className="p-error">Email is required</small>
             )}
+            {submitted && email && !isValidEmail(email) && <small className="p-error">Invalid email format</small>}
           </div>
         ) : (
           <div className="field mb-3">

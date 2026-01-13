@@ -408,20 +408,22 @@ export function TReportTypeDatatable<T extends Record<string, any>>({
       <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
 
         <div className="flex gap-2 mb-3">
-          <Button
+          {tableData.length > 0 && (<><Button
             label="Export Excel"
             icon="pi pi-file-excel"
             className="p-button-success p-button-sm custom-xs"
             onClick={exportToExcel}
             size="small"
           />
-          <Button
-            label="Export PDF"
-            icon="pi pi-file-pdf"
-            className="p-button-danger p-button-sm custom-xs"
-            onClick={exportToPdf}
-            size="small"
-          />
+            <Button
+              label="Export PDF"
+              icon="pi pi-file-pdf"
+              className="p-button-danger p-button-sm custom-xs"
+              onClick={exportToPdf}
+              size="small"
+            />
+          </>
+          )}
         </div>
 
         <div className="flex gap-2">
@@ -573,7 +575,7 @@ export function TReportTypeDatatable<T extends Record<string, any>>({
             : "FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
         }
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-        footer={tableFooter}
+        footer={tableData.length > 0 && tableFooter}
       >
         <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} frozen />
 

@@ -673,7 +673,7 @@ export default function SaleList() {
         <div
           className="flex items-center justify-center py-2 px-2 text-sm font-semibold"
           style={{
-            background: "#3b82f6",
+            background: "#3498db",
             color: "white",
             borderRadius: "0px",
             minWidth: "90px",

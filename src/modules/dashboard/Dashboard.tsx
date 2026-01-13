@@ -187,7 +187,7 @@ export default function Dashboard() {
                 <KpiCard title="Total Customers" value={dashboardSummary.totalCustomers} icon="pi pi-users" color="blue" />
                 <KpiCard title="Total Suppliers" value={dashboardSummary.totalSuppliers} icon="pi pi-briefcase" color="teal" />
                 <KpiCard title="Customer Balance" value={formatINR(dashboardSummary.customerBalance)} icon="pi pi-wallet" color="red" />
-                <KpiCard title="Outstanding Customer Balance" value={formatINR(dashboardSummary.outstandingCustomerBalance)} icon="pi pi-wallet" color="red" />
+                {/* <KpiCard title="Outstanding Customer Balance" value={formatINR(dashboardSummary.outstandingCustomerBalance)} icon="pi pi-wallet" color="red" /> */}
 
                 {/* ROW 4: Cash & Payments */}
                 <KpiCard title="Cash" value={formatINR(dashboardSummary.cash)} icon="pi pi-money-bill" color="green" />

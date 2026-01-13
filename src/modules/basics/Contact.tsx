@@ -15,6 +15,7 @@ interface ContactForm {
 }
 
 export const Contact = () => {
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [form, setForm] = useState<ContactForm>({
     name: "",
     phone: "",
@@ -73,11 +74,14 @@ export const Contact = () => {
   };
 
   const onSubmit = async () => {
+    setSuccessMessage(null);
     if (!validateForm()) return;
 
     var savedResponse = await apiService.post("/Users/SaveEnquiry", form);
     if (savedResponse && savedResponse.status) {
-      showSuccess("Saved successfully!");
+      setSuccessMessage(
+        "Thanks for reaching out! We’ll be in touch with you soon."
+      );
 
       setForm({ name: "", phone: "", message: "" });
     } else {
@@ -110,7 +114,7 @@ export const Contact = () => {
       <div className="col-12 md:col-6 flex justify-content-center">
         <Card title="Get in Touch" className="p-3 card-compact w-full max-w-sm">
           <div className="field mb-2 w-full">
-            <label htmlFor="name">Name</label>
+            <label htmlFor="name">Name<span className="star">*</span></label>
             <InputText
               id="name"
               name="name"
@@ -123,7 +127,7 @@ export const Contact = () => {
           </div>
 
           <div className="field mb-2">
-            <label htmlFor="phone">Phone</label>
+            <label htmlFor="phone">Phone<span className="star">*</span></label>
             <InputMask
               mask="+99-9999999999"
               value={form.phone}
@@ -138,7 +142,7 @@ export const Contact = () => {
           </div>
 
           <div className="field mb-2 w-full">
-            <label htmlFor="message">Message</label>
+            <label htmlFor="message">Message<span className="star">*</span></label>
             <InputTextarea
               id="message"
               name="message"
@@ -154,6 +158,12 @@ export const Contact = () => {
           <div className="flex justify-content-center mt-2">
             <Button label="Send" onClick={onSubmit} icon="pi pi-send" className="p-button-sm" />
           </div>
+
+          {successMessage && (
+            <small className="block text-green text-center mt-2">
+              {successMessage}
+            </small>
+          )}
         </Card>
       </div>
 

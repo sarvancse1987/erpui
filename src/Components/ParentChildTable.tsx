@@ -221,7 +221,7 @@ export function ParentChildTable<
                     <PurchaseFooterBox
                         label="Paid Amt"
                         value={formatINR(totals.paidAmount)}
-                        bg="#22c55e"
+                        bg="#4dab76"
                     />
 
                     {/* Balance Amount */}
@@ -235,7 +235,7 @@ export function ParentChildTable<
                     <PurchaseFooterBox
                         label="GST Amt"
                         value={formatINR(totals.gstAmount)}
-                        bg="#d3db34ff"
+                        bg="#ff9c00"
                     />
 
                     {/* Grand Total */}

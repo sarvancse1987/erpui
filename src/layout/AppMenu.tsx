@@ -301,17 +301,7 @@ const AppMenu: React.FC = () => {
           label: "Summary",
           icon: "pi pi-fw pi-home",
           to: "/reports",
-        },
-        {
-          label: "Sales Reports",
-          icon: "pi pi-fw pi-chart-line",
-          to: "/reports/sales",
-        },
-        {
-          label: "Inventory Reports",
-          icon: "pi pi-fw pi-database",
-          to: "/reports/inventory",
-        },
+        }
       ],
     });
   }
