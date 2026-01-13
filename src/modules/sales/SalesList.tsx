@@ -13,6 +13,7 @@ import { ParentChildTable } from "../../components/ParentChildTable";
 import { SalesForm } from "./SalesForm";
 import { Button } from "primereact/button";
 import { customerNameTemplate } from "../../common/common";
+import { PrintTieredMenu } from "./PrintTieredMenu";
 
 export default function SaleList() {
   const [sales, setSales] = useState<SaleModel[]>([]);
@@ -350,21 +351,27 @@ export default function SaleList() {
         return <Tag value={displayValue} severity={severity} className="amount-tag" style={{ width: "90px" }} />;
       },
     },
+    // {
+    //   field: "print",
+    //   header: "Print",
+    //   width: "27px",
+    //   body: (row: SaleModel) => (
+    //     <Button
+    //       icon="pi pi-print"
+    //       className="p-button-sm p-button-text p-button-info"
+    //       tooltip="Print Bill"
+    //       tooltipOptions={{ position: 'top' }}
+    //       style={{ width: "25px", height: "25px", padding: "0" }}
+    //       onClick={() => handlePrint(row)}
+    //     />
+    //   ),
+    // },
     {
-      field: "print",
-      header: "Print",
-      width: "27px",
-      body: (row: SaleModel) => (
-        <Button
-          icon="pi pi-print"
-          className="p-button-sm p-button-text p-button-info"
-          tooltip="Print Bill"
-          tooltipOptions={{ position: 'top' }}
-          style={{ width: "25px", height: "25px", padding: "0" }}
-          onClick={() => handlePrint(row)}
-        />
-      ),
-    },
+      field: 'print',
+      header: 'Print',
+      width: '40px',
+      body: (row: SaleModel) => <PrintTieredMenu row={row} />
+    }
   ];
 
   const parentColumns = [
