@@ -6,6 +6,7 @@ import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
 import { RadioButton } from "primereact/radiobutton";
 import { InputMask } from "primereact/inputmask";
+import apiService from "../../services/apiService";
 
 export const ResetPassword = () => {
   const toast = useRef<Toast>(null);
@@ -14,6 +15,7 @@ export const ResetPassword = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
 
   const [password, setPassword] = useState("");
@@ -24,21 +26,29 @@ export const ResetPassword = () => {
   /* ---------------- SEND OTP ---------------- */
   const sendOtp = async () => {
     setSubmitted(true);
-
+    setOtpLoading(true);
     if (method === "email" && !email) return;
     if (method === "phone" && !phone) return;
 
-    // 👉 API CALL
-    // await api.post("/auth/send-otp", { email, phone });
+    const response = await apiService.post("/users/send-otp", { email, phone });
+    if (response && response.status) {
+      setOtpSent(true);
+      setSubmitted(false);
+      setOtpLoading(false);
 
-    setOtpSent(true);
-    setSubmitted(false);
-
-    toast.current?.show({
-      severity: "success",
-      summary: "Success",
-      detail: "OTP sent successfully"
-    });
+      toast.current?.show({
+        severity: "success",
+        summary: "Success",
+        detail: "OTP sent successfully"
+      });
+    } else {
+      setOtpLoading(false);
+      toast.current?.show({
+        severity: "error",
+        summary: "Error",
+        detail: response.error ?? "OTP sent failed"
+      });
+    }
   };
 
   /* ---------------- RESET PASSWORD ---------------- */
@@ -48,30 +58,30 @@ export const ResetPassword = () => {
     if (!otp || !password || !confirmPassword) return;
     if (password !== confirmPassword) return;
 
-    // 👉 API CALL
-    /*
-    await api.post("/auth/reset-password", {
-      email,
-      phone,
-      otp,
-      password
-    });
-    */
+    const response = await apiService.post("/users/confirm-reset-password", { email, phone, otp, confirmPassword });
+    if (response && response.status) {
 
-    toast.current?.show({
-      severity: "success",
-      summary: "Success",
-      detail: "Password reset successfully"
-    });
+      toast.current?.show({
+        severity: "success",
+        summary: "Success",
+        detail: "Password reset successfully"
+      });
 
-    // Clear
-    setEmail("");
-    setPhone("");
-    setOtp("");
-    setPassword("");
-    setConfirmPassword("");
-    setOtpSent(false);
-    setSubmitted(false);
+      // Clear
+      setEmail("");
+      setPhone("");
+      setOtp("");
+      setPassword("");
+      setConfirmPassword("");
+      setOtpSent(false);
+      setSubmitted(false);
+    } else {
+      toast.current?.show({
+        severity: "error",
+        summary: "Error",
+        detail: response.error ?? "Password reset failed"
+      });
+    }
   };
 
   return (
@@ -103,7 +113,7 @@ export const ResetPassword = () => {
         {/* EMAIL / PHONE */}
         {method === "email" ? (
           <div className="field mb-3">
-            <label>Email *</label>
+            <label>Email <span className="star">*</span></label>
             <InputText
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -116,7 +126,7 @@ export const ResetPassword = () => {
           </div>
         ) : (
           <div className="field mb-3">
-            <label>Phone *</label>
+            <label>Phone <span className="star">*</span></label>
             <InputMask
               mask="+99-9999999999"
               value={phone}
@@ -137,6 +147,8 @@ export const ResetPassword = () => {
             icon="pi pi-send"
             className="w-full mb-3"
             onClick={sendOtp}
+            loading={otpLoading}
+            loadingIcon="pi pi-spin pi-spinner"
           />
         )}
 
@@ -144,7 +156,7 @@ export const ResetPassword = () => {
         {otpSent && (
           <>
             <div className="field mb-3">
-              <label>OTP *</label>
+              <label>OTP <span className="star">*</span></label>
               <InputText
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
@@ -156,7 +168,7 @@ export const ResetPassword = () => {
             </div>
 
             <div className="field mb-3">
-              <label>New Password *</label>
+              <label>New Password <span className="star">*</span></label>
               <Password
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -171,19 +183,18 @@ export const ResetPassword = () => {
             </div>
 
             <div className="field mb-3">
-              <label>Confirm Password *</label>
+              <label>Confirm Password <span className="star">*</span></label>
               <Password
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 toggleMask
                 feedback={false}
                 inputClassName="w-full p-inputtext"
-                className={`w-full ${
-                  submitted &&
+                className={`w-full ${submitted &&
                   (!confirmPassword || password !== confirmPassword)
-                    ? "p-invalid"
-                    : ""
-                }`}
+                  ? "p-invalid"
+                  : ""
+                  }`}
               />
               {submitted && !confirmPassword && (
                 <small className="p-error">Confirm password is required</small>
