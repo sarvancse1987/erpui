@@ -395,7 +395,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
       }
       else {
         const response = await apiService.post("/Sale", payload);
-        if (response) {
+        if (response && response.status) {
           setSaleId(response.saleId);
 
           const updatedItems = formData.saleItems.map(item => {
@@ -421,6 +421,8 @@ export const SalesForm: React.FC<SalesFormProps> = ({
           setValidationErrors({});
           if (onSaveSuccess) onSaveSuccess();
           showSuccess("Sales saved successfully!");
+        } else {
+          showError(response.error ?? "Sale update failed");
         }
       }
     } catch (err) {
@@ -434,12 +436,23 @@ export const SalesForm: React.FC<SalesFormProps> = ({
       return;
     }
 
+    if (formData.freightAmount && formData.freightAmount > 0) {
+      if (formData.shipment == undefined || (formData.shipment && formData.shipment.address?.length == 0)) {
+        showError("Add Shipment details or remove freight amount");
+        return;
+      }
+    }
+
     try {
-      await apiService.put(`/Sale/${formData.saleId}`, formData);
-      await loadUpdatedInventory();
-      setValidationErrors({});
-      if (onSaveSuccess) onSaveSuccess();
-      showSuccess("Sale updated successfully!");
+      const response = await apiService.put(`/Sale/${formData.saleId}`, formData);
+      if (response && response.status) {
+        await loadUpdatedInventory();
+        setValidationErrors({});
+        if (onSaveSuccess) onSaveSuccess();
+        showSuccess("Sale updated successfully!");
+      } else {
+        showError(response.error ?? "Sale update failed");
+      }
     } catch (err) {
       console.error(err);
       showError("Error updating sale!");

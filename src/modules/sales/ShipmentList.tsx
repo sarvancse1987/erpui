@@ -10,12 +10,20 @@ import { formatINR } from "../../common/common";
 import { ShipmentListModel } from "../../models/shipment/ShipmentListModel";
 import { ColumnMeta } from "../../models/component/ColumnMeta";
 import { TTypeDatatable } from "../../components/TTypeDatatable";
+import { Sidebar } from "primereact/sidebar";
+import SaleShipmentForm from "../shipment/ShipmentForm";
+import { ShipmentModel } from "../../models/shipment/ShipmentModel";
+import { useToast } from "../../components/ToastService";
 
 export default function ShipmentList() {
     const [shipmentTypeId, setShipmentTypeId] = useState<number | null>(null);
     const [shipmentTypes, setShipmentTypes] = useState<any[]>([]);
     const [shipments, setShipments] = useState<ShipmentListModel[]>([]);
     const [loading, setLoading] = useState(false);
+    const [showShipment, setShowShipment] = useState(false);
+    const [shipmentModel, setShipmentModel] = useState<ShipmentModel | null>(null);
+    const [isEditShipmentList, setIsEditShipmentList] = useState<boolean>(false);
+    const { showSuccess, showError } = useToast();
 
     useEffect(() => {
         loadShipments();
@@ -75,24 +83,6 @@ export default function ShipmentList() {
 
     /* ---------- COLUMN TEMPLATES ---------- */
 
-    const dateTemplate = (row: ShipmentListModel) =>
-        new Date(row.shipmentDate).toLocaleDateString();
-
-    const statusTemplate = (row: ShipmentListModel) => (
-        <Tag
-            value={row.isActive ? "Active" : "Inactive"}
-            severity={row.isActive ? "success" : "danger"}
-        />
-    );
-
-    const amountTemplate = (row: ShipmentListModel) => (
-        <Tag
-            value={formatINR(row.grandTotal)}
-            severity="info"
-            style={{ width: "100px", textAlign: "center" }}
-        />
-    );
-
     const columns: ColumnMeta<any>[] = [
         { field: "shipmentId", header: "ID", width: "80px", editable: false, hidden: true },
         { field: "shipmentDate", header: "Date", width: "150px" },
@@ -101,16 +91,62 @@ export default function ShipmentList() {
         { field: "vehicleNo", header: "Vehicle No", width: "140px" },
         { field: "driver", header: "Driver", width: "140px" },
         { field: "distance", header: "Distance", width: "140px" },
-        { field: "grandTotal", header: "Amount", width: "140px" },
+        {
+            field: "grandTotal", header: "Amount", width: "140px", body: (row) =>
+                <Tag
+                    value={new Intl.NumberFormat("en-IN", {
+                        style: "currency",
+                        currency: "INR"
+                    }).format(row.grandTotal)}
+                    className="amount-tag"
+                    style={{
+                        backgroundColor: "#3498db",
+                        color: "white",
+                        fontWeight: "500",
+                        fontSize: "0.85rem",
+                        padding: "0.25rem 0.5rem",
+                        borderRadius: "0.25rem",
+                        display: "inline-block",
+                        textAlign: "center",
+                        width: "90px"
+                    }}
+                />
+        },
     ];
 
-    const handleOpenEdit = () => {
-
+    const handleOpenEdit = (shipmentInfo: any) => {
+        setShipmentModel(shipmentInfo);
+        setShowShipment(true);
+        setIsEditShipmentList(true);
     }
 
-    const handleDelete = () => {
+    const handleDelete = async (rows: ShipmentListModel[]) => {
+        try {
+            const ids = rows.map((r) => r.shipmentId);
+            const response = await apiService.post("/Shipment/bulk-delete", ids);
+            if (response && response.status) {
+                showSuccess("Shipment(s) deleted successfully!");
+                await loadShipments();
+            } else {
+                showError(response.error ?? "Shipment delete failed!");
+            }
+        } catch (err) {
+            console.error(err);
+            showError("Error deleting Shipment");
+        }
+    };
 
+    const handleShipmentSuccess = (shipmentInfo: any) => {
+        setShowShipment(false);
+        setShipmentModel(shipmentInfo);
     }
+
+    const onCancelShipmentSideBar = () => {
+        setShowShipment(false);
+        if (isEditShipmentList) {
+            loadShipments();
+        }
+    };
 
     return (
         <div className="p-2 h-[calc(100vh-100px)] overflow-auto">
@@ -149,7 +185,25 @@ export default function ShipmentList() {
                     isSave={false}
                     page="shipment"
                     showDateFilter={true}
+                    showDdlFilter={true}
                 />
+
+                <Sidebar
+                    visible={showShipment}
+                    position="right"
+                    style={{ width: "850px" }}
+                    onHide={() => setShowShipment(false)}
+                    header="Add Shipment"
+                >
+                    <SaleShipmentForm
+                        isEditSidebar={true}
+                        onSave={handleShipmentSuccess}
+                        onCancel={onCancelShipmentSideBar}
+                        shipmentInfo={shipmentModel}
+                        isEditShipmentList={isEditShipmentList}
+                    />
+                </Sidebar>
+
             </fieldset>
         </div>
     );

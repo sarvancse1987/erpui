@@ -472,6 +472,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
     if (page === "voucher") return row.customerId;
     if (page === "dailyexpense") return row.expenseCategoryId;
     if (page === "customerledge") return row.customerId;
+    if (page === "shipment") return row.driver;
     return null;
   };
 

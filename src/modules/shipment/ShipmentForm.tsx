@@ -4,25 +4,28 @@ import { Calendar } from "primereact/calendar";
 import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
 import { ShipmentModel } from "../../models/shipment/ShipmentModel";
-import { InputTextarea } from "primereact/inputtextarea";
 import apiService from "../../services/apiService";
 import { ShipmentTypeModel } from "../../models/shipment/ShipmentTypeModel";
 import { InputNumber } from "primereact/inputnumber";
 import { AutoComplete } from "primereact/autocomplete";
+import { useToast } from "../../components/ToastService";
 
 export interface SalesShipmentFormProps {
     isEditSidebar: boolean;
     onSave: (data: ShipmentModel) => void;
     onCancel: () => void;
     shipmentInfo?: ShipmentModel | null;
+    isEditShipmentList?: boolean;
 }
 
 const SaleShipmentForm: React.FC<SalesShipmentFormProps> = ({
     isEditSidebar = false,
     onSave,
     onCancel,
-    shipmentInfo
+    shipmentInfo,
+    isEditShipmentList
 }) => {
+    const { showSuccess, showError } = useToast();
 
     const parseDate = (value: string | Date | null): Date | null => {
         if (!value) return null;
@@ -94,12 +97,16 @@ const SaleShipmentForm: React.FC<SalesShipmentFormProps> = ({
         loadAllData();
     }, []);
 
+    useEffect(() => {
+        loadAllData();
+    }, [isEditShipmentList]);
+
 
     const handleChange = (field: keyof ShipmentModel, value: any) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
-    const handleSaveForm = () => {
+    const handleSaveForm = async () => {
         let v: any = {};
 
         if (!formData.shipmentDate) v.shipmentDate = "Choose shipment date";
@@ -108,8 +115,18 @@ const SaleShipmentForm: React.FC<SalesShipmentFormProps> = ({
 
         setValidationErrors(v);
 
-        if (Object.keys(v).length === 0) {
+        if (Object.keys(v).length === 0 && !isEditShipmentList) {
             onSave?.(formData);
+        }
+
+        if (isEditShipmentList) {
+            const response = await apiService.put(`/Shipment/${formData.shipmentId}`, formData);
+            if (response && response.status) {
+                showSuccess("Shipment info updated successfully");
+                 if (onCancel) onCancel();
+            } else {
+                showError(response?.error ?? "Shipment info save failed")
+            }
         }
     };
 

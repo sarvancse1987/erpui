@@ -75,12 +75,13 @@ export default function SaleList() {
     try {
       const ids = rows.map(r => r.customerId);
 
-      await apiService.post("/sale/bulk-delete", ids);
-
-      showSuccess("Sale(s) deleted successfully!");
-
-      // Reload table
-      //await loadSuppliers();
+      const response = await apiService.post("/sale/bulk-delete", ids);
+      if (response && response.status) {
+        loadAllData();
+        showSuccess("Sale(s) deleted successfully!");
+      } else {
+        showError(response.error ?? "Sale update failed");
+      }
     } catch (err) {
       console.error(err);
       showError("Error deleting suppliers");
