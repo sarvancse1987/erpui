@@ -3,7 +3,6 @@ import { SaleModel } from "../../models/sale/SaleModel";
 import { ColumnMeta } from "../../models/component/ColumnMeta";
 import { customerNameTemplate } from "../../common/common";
 import { Tag } from "primereact/tag";
-import { Button } from "primereact/button";
 import apiService from "../../services/apiService";
 import { TReportTypeDatatable } from "../../components/TReportTypeDatatable";
 

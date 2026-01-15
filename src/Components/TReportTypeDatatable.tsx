@@ -17,6 +17,8 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable"; // Import as a function
 
+type ReportPage = "sale" | "customerledger";
+
 export function TReportTypeDatatable<T extends Record<string, any>>({
   columns,
   data,
@@ -332,46 +334,57 @@ export function TReportTypeDatatable<T extends Record<string, any>>({
     return "Select";
   };
 
-  //   const exportToExcel = () => {
-  //   if (!tableData || tableData.length === 0) return;
-
-  //   const dataForExcel = tableData.map((row) => {
-  //     const obj: any = {};
-  //     columns.forEach((col) => {
-  //       if (!col.hidden) {
-  //         obj[col.header] = col.body ? col.body(row) : row[col.field as string];
-  //       }
-  //     });
-  //     return obj;
-  //   });
-
-  //   const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
-  //   const workbook = XLSX.utils.book_new();
-  //   XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
-  //   XLSX.writeFile(workbook, `Report_${new Date().toISOString().split("T")[0]}.xlsx`);
-  // };
-
   const exportToExcel = () => {
-    const exportData = tableData.map(sale => ({
-      "Customer": sale.customerName ?? "",
-      "Sale Ref No": sale.saleRefNo ?? "",
-      "Sale Date": sale.saleOnDate ?? "",
-      "Sale Type": sale.paymentTypeName ?? "",
-      "Total": sale.grandTotal ?? 0,
-      "Paid Amt": (sale.cash ?? 0) + (sale.upi ?? 0),
-      "Bal Amt": sale.grandTotal - ((sale.cash ?? 0) + (sale.upi ?? 0)),
-      "Run Amt": sale.runningBalance ?? 0,
-      "Print": "" // or leave blank
-    }));
+    let exportData: any[] = [];
+    const pageName = (page ?? "Report").charAt(0).toUpperCase() + (page ?? "Report").slice(1);
+
+    switch (page) {
+      /* ================= SALES SUMMARY ================= */
+      case "sale":
+        exportData = tableData.map((sale: any) => ({
+          Customer: sale.customerName ?? "",
+          "Sale Ref No": sale.saleRefNo ?? "",
+          "Sale Date": sale.saleOnDate ?? "",
+          "Sale Type": sale.paymentTypeName ?? "",
+          Total: sale.grandTotal ?? 0,
+          "Paid Amt": (sale.cash ?? 0) + (sale.upi ?? 0),
+          "Bal Amt": sale.grandTotal - ((sale.cash ?? 0) + (sale.upi ?? 0)),
+          "Run Amt": sale.runningBalance ?? 0,
+        }));
+        break;
+
+      /* ================= CUSTOMER LEDGER ================= */
+      case "customerledger":
+        exportData = tableData.map((row: any) => ({
+          Customer: row.customerName ?? "",
+          Date: row.lastUpdated ?? "",
+          Time: row.lastUpdatedTime ?? "",
+          Type: row.ledgerType ?? "",
+          "Opening Bal": row.openingBalance ?? 0,
+          Credit: row.credit ?? 0,
+          Debit: row.debit ?? 0,
+          "Closing Bal": row.closingBalance ?? 0,
+        }));
+        break;
+
+      default:
+        return;
+    }
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "SalesSummary");
-    XLSX.writeFile(workbook, `SalesSummary_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    XLSX.utils.book_append_sheet(workbook, worksheet, page.toUpperCase());
+
+    XLSX.writeFile(
+      workbook,
+      `${pageName}_${new Date().toISOString().slice(0, 10)}.xlsx`
+    );
   };
 
   const exportToPdf = () => {
     if (!tableData || tableData.length === 0) return;
+
+    const pageName = (page ?? "Report").charAt(0).toUpperCase() + (page ?? "Report").slice(1);
 
     const doc = new jsPDF();
     const tableColumn = columns.filter(c => !c.hidden).map(c => c.header);
@@ -384,7 +397,7 @@ export function TReportTypeDatatable<T extends Record<string, any>>({
       )
     );
 
-    doc.text("Report", 14, 15);
+    doc.text(`${pageName}_Report`, 14, 15);
 
     autoTable(doc, {
       head: [tableColumn],
@@ -400,7 +413,7 @@ export function TReportTypeDatatable<T extends Record<string, any>>({
       }, {} as Record<number, any>)
     });
 
-    doc.save(`Report_${new Date().toISOString().split("T")[0]}.pdf`);
+    doc.save(`${pageName}_Report_${new Date().toISOString().split("T")[0]}.pdf`);
   };
 
   return (
@@ -412,7 +425,7 @@ export function TReportTypeDatatable<T extends Record<string, any>>({
             label="Export Excel"
             icon="pi pi-file-excel"
             className="p-button-success p-button-sm custom-xs"
-            onClick={exportToExcel}
+            onClick={() => exportToExcel()}
             size="small"
           />
             <Button

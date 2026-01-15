@@ -494,6 +494,8 @@ export default function ProductList() {
                   isDelete={true}
                   onDelete={onActiveDelete}
                   sortableColumns={['productName', 'categoryName', 'groupName', 'brandName', 'purchasePrice', 'salePrice', 'supplierName']}
+                  showDdlFilter={true}
+                  page="product"
                 />
               </div>
             )}

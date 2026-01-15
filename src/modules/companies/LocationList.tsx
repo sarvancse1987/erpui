@@ -200,6 +200,8 @@ export default function LocationList() {
                         isNew={false}
                         isEdit={true}
                         isSave={false}
+                        showDdlFilter={true}
+                        page="location"
                     />
                 </TabPanel>
 

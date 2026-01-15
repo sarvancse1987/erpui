@@ -799,7 +799,8 @@ export default function SaleList() {
               onSaveSuccess={() => {
                 updateAllData();
                 setIsSidebarOpen(false);
-                //setActiveIndex(0);
+                setActiveIndex(0);
+                loadAllData();
               }}
               onCancel={closeEditSidebar}
             />

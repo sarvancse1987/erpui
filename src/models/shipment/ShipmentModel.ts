@@ -10,4 +10,5 @@ export interface ShipmentModel {
 
     remarks: string;
     saledId: number;
+    freightAmount: number;
 }

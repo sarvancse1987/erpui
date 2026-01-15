@@ -5,6 +5,7 @@ import { Checkbox } from "primereact/checkbox";
 import { Button } from "primereact/button";
 import apiService from "../../services/apiService";
 import { useToast } from "../../components/ToastService";
+import { storage } from "../../services/storageService";
 
 interface PermissionRow {
   moduleId: number;
@@ -31,6 +32,7 @@ export default function RoleMapping() {
   const [loading, setLoading] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [originalData, setOriginalData] = useState<PermissionRow[]>([]);
+  const user = storage.getUser();
 
   const loadData = async () => {
     setLoading(true);
@@ -46,14 +48,17 @@ export default function RoleMapping() {
       const actions = res.actions; // action + user-permission rows
 
       // 1️⃣ Extract unique users
-      const userMap = new Map<number, User>();
-      actions.forEach((row: any) => {
-        if (row.id && !userMap.has(row.id)) {
-          userMap.set(row.id, { id: row.id, username: row.username });
-        }
-      });
-      const apiUsers: User[] = Array.from(userMap.values());
-      setUsers(apiUsers);
+      // const userMap = new Map<number, User>();
+      // actions.forEach((row: any) => {
+      //   if (row.id && !userMap.has(row.id)) {
+      //     userMap.set(row.id, { id: row.id, username: row.username });
+      //   }
+      // });
+      // const apiUsers: User[] = Array.from(userMap.values());
+      //setUsers(apiUsers);
+      const response = await apiService.get(`/Users/getallusers/${Number(user?.companyId)}`);
+      setUsers(response.users ?? []);
+
 
       // 2️⃣ Group actions by actionId (each action has multiple rows for each user)
       const actionMap = new Map<number, any[]>();
@@ -230,12 +235,12 @@ export default function RoleMapping() {
                         prev.map((r) =>
                           r.moduleId === row.moduleId
                             ? {
-                                ...r,
-                                userPermissions: users.reduce((acc, u) => {
-                                  acc[u.id] = checked;
-                                  return acc;
-                                }, {} as Record<number, boolean>),
-                              }
+                              ...r,
+                              userPermissions: users.reduce((acc, u) => {
+                                acc[u.id] = checked;
+                                return acc;
+                              }, {} as Record<number, boolean>),
+                            }
                             : r
                         )
                       );

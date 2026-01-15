@@ -8,6 +8,6 @@ export interface ShipmentListModel {
     vehicleNo: string;
     driver: string;
     address: string;
-    grandTotal: number;
+    freightAmount: number;
     isActive: boolean;
 }

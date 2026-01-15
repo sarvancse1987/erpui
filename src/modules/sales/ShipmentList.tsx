@@ -1,12 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
 import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
 import { Tag } from "primereact/tag";
 import apiService from "../../services/apiService";
-import PurchaseFooterBox from "../purchase/PurchaseFooterBox";
-import { formatINR } from "../../common/common";
 import { ShipmentListModel } from "../../models/shipment/ShipmentListModel";
 import { ColumnMeta } from "../../models/component/ColumnMeta";
 import { TTypeDatatable } from "../../components/TTypeDatatable";
@@ -56,31 +52,6 @@ export default function ShipmentList() {
         setLoading(false);
     };
 
-    /* ---------- FOOTER TOTALS ---------- */
-    const totalShipments = shipments.length;
-    const totalDistance = shipments.reduce((s, x) => s + (x.distance ?? 0), 0);
-    const totalValue = shipments.reduce((s, x) => s + (x.grandTotal ?? 0), 0);
-
-    const footerTemplate = () => (
-        <div className="flex justify-content-end gap-4 py-1 pr-3">
-            <PurchaseFooterBox
-                label="Shipments"
-                value={totalShipments.toString()}
-                bg="#0ea5e9"
-            />
-            <PurchaseFooterBox
-                label="Total Distance"
-                value={`${totalDistance.toFixed(2)} KM`}
-                bg="#22c55e"
-            />
-            <PurchaseFooterBox
-                label="Shipment Value"
-                value={formatINR(totalValue)}
-                bg="#1e40af"
-            />
-        </div>
-    );
-
     /* ---------- COLUMN TEMPLATES ---------- */
 
     const columns: ColumnMeta<any>[] = [
@@ -92,12 +63,12 @@ export default function ShipmentList() {
         { field: "driver", header: "Driver", width: "140px" },
         { field: "distance", header: "Distance", width: "140px" },
         {
-            field: "grandTotal", header: "Amount", width: "140px", body: (row) =>
+            field: "freightAmount", header: "Amount", width: "140px", body: (row) =>
                 <Tag
                     value={new Intl.NumberFormat("en-IN", {
                         style: "currency",
                         currency: "INR"
-                    }).format(row.grandTotal)}
+                    }).format(row.freightAmount)}
                     className="amount-tag"
                     style={{
                         backgroundColor: "#3498db",
@@ -180,7 +151,7 @@ export default function ShipmentList() {
                     onEdit={handleOpenEdit}
                     isDelete={true}
                     onDelete={handleDelete}
-                    isNew={false}
+                    isNew={true}
                     isEdit={true}
                     isSave={false}
                     page="shipment"

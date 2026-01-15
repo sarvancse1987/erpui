@@ -146,10 +146,15 @@ export default function UserList() {
 
         // 4️⃣ Save to API
         try {
-            await apiService.post("/Users/bulk", newUsers);
-            await loadUsers();
-            setNewUsers([]);
-            showSuccess("Users saved successfully!");
+            const response = await apiService.post("/Users/bulk", newUsers);
+            if (response && response.status) {
+                await loadUsers();
+                setNewUsers([]);
+                showSuccess("Users saved successfully!");
+            }
+            else {
+                showError(response.error ?? "User update failed");
+            }
         } catch (err) {
             console.error(err);
             showError("Error saving users");
@@ -234,6 +239,8 @@ export default function UserList() {
                         isEdit={true}
                         isSave={false}
                         sortableColumns={['username', 'firstName', 'companyName']}
+                        showDdlFilter={true}
+                        page="user"
                     />
                 </TabPanel>
 

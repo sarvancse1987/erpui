@@ -394,6 +394,13 @@ export const SalesForm: React.FC<SalesFormProps> = ({
         await handleUpdateForm();
       }
       else {
+        if (formData.freightAmount && formData.freightAmount > 0) {
+          if (formData.shipment == undefined || (formData.shipment && formData.shipment.address?.length == 0)) {
+            showError("Add Shipment details or remove freight amount");
+            return;
+          }
+        }
+
         const response = await apiService.post("/Sale", payload);
         if (response && response.status) {
           setSaleId(response.saleId);
@@ -444,7 +451,18 @@ export const SalesForm: React.FC<SalesFormProps> = ({
     }
 
     try {
-      const response = await apiService.put(`/Sale/${formData.saleId}`, formData);
+      const payload = {
+        ...formData,
+        shipment: formData.shipment
+          ? {
+            ...formData.shipment,
+            shipmentDate: formData.shipment.shipmentDate
+              ? new Date(formData.shipment.shipmentDate).toISOString()
+              : null
+          }
+          : null
+      };
+      const response = await apiService.put(`/Sale/${formData.saleId}`, payload);
       if (response && response.status) {
         await loadUpdatedInventory();
         setValidationErrors({});

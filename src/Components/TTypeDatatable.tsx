@@ -29,6 +29,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
   isEdit,
   isSave,
   isDelete,
+  onAdd,
   onEdit,
   onDelete,
   sortableColumns = [],
@@ -82,23 +83,6 @@ export function TTypeDatatable<T extends Record<string, any>>({
     );
     return (maxId + 1).toString();
   };
-
-  // const addRow = () => {
-  //   if (Object.keys(editingRows).length > 0) return;
-
-  //   const newRow = {} as T;
-  //   columns.forEach((col) => {
-  //     if (col.type === "checkbox") (newRow[col.field] as any) = false;
-  //     else (newRow[col.field] as any) = "";
-  //   });
-  //   (newRow[primaryKey] as any) = getNextPrimaryKey();
-
-  //   const newData = [...tableData, newRow];
-  //   setTableData(newData);
-
-  //   const newKey = newRow[primaryKey] as string;
-  //   setEditingRows({ [newKey]: true });
-  // };
 
   const addRow = () => {
     if (Object.keys(editingRows).length > 0) return;
@@ -444,7 +428,6 @@ export function TTypeDatatable<T extends Record<string, any>>({
     );
   }, [tableData]);
 
-
   const ledgerTotals = useMemo(() => {
     return tableData.reduce(
       (acc, row: any) => {
@@ -465,6 +448,21 @@ export function TTypeDatatable<T extends Record<string, any>>({
     );
   }, [tableData]);
 
+  const shipmentTotals = useMemo(() => {
+    return tableData.reduce(
+      (acc, row: any) => {
+        const debit = row.freightAmount ?? 0;
+
+        acc.totalShipment += debit;
+
+        return acc;
+      },
+      {
+        totalShipment: 0
+      }
+    );
+  }, [tableData]);
+
   const getDdlFilterField = (row: any) => {
     if (page === "purchase") return row.supplierId;
     if (page === "sale") return row.customerId;
@@ -473,6 +471,9 @@ export function TTypeDatatable<T extends Record<string, any>>({
     if (page === "dailyexpense") return row.expenseCategoryId;
     if (page === "customerledge") return row.customerId;
     if (page === "shipment") return row.driver;
+    if (page === "product") return row.productBrandId;
+    if (page === "user") return row.roleId;
+    if (page === "location") return row.companyId;
     return null;
   };
 
@@ -483,7 +484,25 @@ export function TTypeDatatable<T extends Record<string, any>>({
     if (page === "voucher") return row.customerName;
     if (page === "dailyexpense") return row.expenseCategoryName;
     if (page === "customerledge") return row.customerName;
+    if (page === "product") return row.brandName;
+    if (page === "user") return row.roleName;
+    if (page === "location") return row.companyName;
+    if (page === "shipment") return row.driver;
     return "";
+  };
+
+  const getDdlPlaceholder = () => {
+    if (page === "purchase") return "Select Supplier";
+    if (page === "sale") return "Select Customer";
+    if (page === "quotation") return "Select Customer";
+    if (page === "voucher") return "Select Customer";
+    if (page === "dailyexpense") return "Select Expense Category";
+    if (page === "customerledge") return "Select Customer";
+    if (page === "product") return "Select Brand";
+    if (page === "user") return "Select Role";
+    if (page === "location") return "Select Company";
+    if (page === "shipment") return "Select Driver";
+    return "Select";
   };
 
   const ddlOptions = useMemo(() => {
@@ -560,6 +579,17 @@ export function TTypeDatatable<T extends Record<string, any>>({
           <PurchaseFooterBox label="Balance Amt" value={formatINR(ledgerTotals.balanceAmount)} bg="#be5744ff" />
         </div>
       </div>
+    ) : page === "shipment" ? (
+      <div className="custom-footer flex justify-between items-center gap-1 flex-wrap px-2 py-1">
+        <div className="flex items-center gap-1 flex-wrap">
+
+          <PurchaseFooterBox
+            label="Shipment Total"
+            value={formatINR(shipmentTotals.totalShipment)}
+          />
+
+        </div>
+      </div>
     ) : null;
 
   const parseDDMMYYYY = (dateStr: string): Date | null => {
@@ -624,17 +654,6 @@ export function TTypeDatatable<T extends Record<string, any>>({
       setIsDateFiltered(false);
     }
   }
-
-  const getDdlPlaceholder = () => {
-    if (page === "purchase") return "Select Supplier";
-    if (page === "sale") return "Select Customer";
-    if (page === "quotation") return "Select Customer";
-    if (page === "shipment") return "Select Transporter";
-    if (page === "voucher") return "Select Customer";
-    if (page === "dailyexpense") return "Select Expense Category";
-    if (page === "customerledge") return "Select Customer";
-    return "Select";
-  };
 
   return (
     <div className="card p-3 h-[calc(100vh-100px)]">
@@ -745,6 +764,23 @@ export function TTypeDatatable<T extends Record<string, any>>({
 
         {!showDateFilter && (
           <div className="ml-auto">
+            {showDdlFilter && (
+              <MultiSelect
+                value={ddlFilterValues}
+                options={ddlOptions}
+                optionLabel="label"
+                optionValue="value"
+                placeholder={getDdlPlaceholder()}
+                className="w-20rem"
+                display="chip"
+                filter
+                showClear
+                onChange={(e) => {
+                  setDdlFilterValues(e.value);
+                  handleDdlSubmit(e.value);
+                }}
+              />
+            )}
             <span className="p-input-icon-left relative w-64 ml-2">
               <IconField iconPosition="left">
                 <InputIcon className="pi pi-search" />

@@ -70,36 +70,36 @@ export default function VoucherList() {
                     }}
                 />
         },
-        {
-            field: "closingBalance",
-            header: "Closing Bal",
-            width: "90px",
-            body: (row) => {
-                const balance = row.closingBalance ?? 0;
-                const isGreen = balance <= 0;
+        // {
+        //     field: "closingBalance",
+        //     header: "Closing Bal",
+        //     width: "90px",
+        //     body: (row) => {
+        //         const balance = row.closingBalance ?? 0;
+        //         const isGreen = balance <= 0;
 
-                return (
-                    <Tag
-                        value={new Intl.NumberFormat("en-IN", {
-                            style: "currency",
-                            currency: "INR"
-                        }).format(balance)}
-                        className="amount-tag"
-                        style={{
-                            backgroundColor: isGreen ? "#22c55e" : "#ef4444",
-                            color: "white",
-                            fontWeight: "500",
-                            fontSize: "0.85rem",
-                            padding: "0.25rem 0.5rem",
-                            borderRadius: "0.25rem",
-                            display: "inline-block",
-                            textAlign: "center",
-                            width: "90px"
-                        }}
-                    />
-                );
-            }
-        },
+        //         return (
+        //             <Tag
+        //                 value={new Intl.NumberFormat("en-IN", {
+        //                     style: "currency",
+        //                     currency: "INR"
+        //                 }).format(balance)}
+        //                 className="amount-tag"
+        //                 style={{
+        //                     backgroundColor: isGreen ? "#22c55e" : "#ef4444",
+        //                     color: "white",
+        //                     fontWeight: "500",
+        //                     fontSize: "0.85rem",
+        //                     padding: "0.25rem 0.5rem",
+        //                     borderRadius: "0.25rem",
+        //                     display: "inline-block",
+        //                     textAlign: "center",
+        //                     width: "90px"
+        //                 }}
+        //             />
+        //         );
+        //     }
+        // },
         { field: "phone", header: "Phone", width: "160px", frozen: true },
         { field: "address", header: "Address", width: "160px", frozen: true },
     ];

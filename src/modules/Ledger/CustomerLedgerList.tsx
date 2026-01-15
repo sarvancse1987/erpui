@@ -1,13 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
-import { Dropdown } from "primereact/dropdown";
-import { Button } from "primereact/button";
 import apiService from "../../services/apiService";
 import { Tag } from "primereact/tag";
 import PurchaseFooterBox from "../purchase/PurchaseFooterBox";
 import { formatINR } from "../../common/common";
-import { MultiSelect } from "primereact/multiselect";
 import { ColumnMeta } from "../../models/component/ColumnMeta";
 import { TTypeDatatable } from "../../components/TTypeDatatable";
 
@@ -53,36 +48,6 @@ export default function CustomerLedgerList() {
         setLoading(false);
     };
 
-    const totalDebit = ledger.reduce((sum, x) => sum + x.debit + x.credit, 0);
-    const totalCredit = ledger.reduce((sum, x) => sum + x.credit, 0);
-    const closing = ledger.reduce((sum, x) => sum + x.debit, 0);
-
-    // Footer Template
-    const footerTemplate = () => (
-        <div className="flex justify-content-end align-items-center gap-4 py-1 pr-3"
-            style={{ lineHeight: "1", minHeight: "30px" }}>
-
-            <PurchaseFooterBox
-                label="Total Sale"
-                value={formatINR(totalDebit)}
-                bg="#0ea5e9"
-            />
-
-            <PurchaseFooterBox
-                label="Total Received"
-                value={formatINR(totalCredit)}
-                bg="#22c55e"
-            />
-
-            <PurchaseFooterBox
-                label="Total Balance"
-                value={formatINR(closing)}
-                bg="#ef4444"
-            />
-
-        </div>
-    );
-
     const openingBalanceTemplate = (row: any) => {
         const value = row.openingBalance ?? 0;
 
@@ -120,13 +85,18 @@ export default function CustomerLedgerList() {
     };
 
     const balanceTemplate = (row: any) => {
-        if (!row.closingBalance) return null;
+        if (row.closingBalance === null || row.closingBalance === undefined) {
+            return null;
+        }
+
+        const isZero = row.closingBalance === 0;
 
         return (
             <Tag
                 value={row.closingBalance.toFixed(2)}
-                severity="danger"
-                style={{ width: "90px", textAlign: "center" }}
+                severity={isZero ? "success" : "danger"}
+                style={{ width: "90px", textAlign: "center", backgroundColor: isZero ? "#22c55e" : "#ef4444" }}
+                
             />
         );
     };
@@ -152,6 +122,14 @@ export default function CustomerLedgerList() {
         );
     };
 
+    const sourcetypeTemplate = (row: any) => (
+        <Tag
+            value={row.sourceType}
+            severity="success"
+            style={{ width: "70px", textAlign: "center" }}
+        />
+    );
+
     const ledgerColumns: ColumnMeta<any>[] = [
         {
             field: "customerName",
@@ -169,10 +147,17 @@ export default function CustomerLedgerList() {
             editable: false,
         },
         {
+            field: "sourceType",
+            header: "Source Type",
+            width: "120px",
+            body: sourcetypeTemplate,
+            exportValue: (row) => row.sourceType,
+        },
+        {
             field: "ledgerType",
             header: "Type",
             editable: false,
-            body: typeTemplate, // your custom function
+            body: typeTemplate,
         },
         {
             field: "openingBalance",
@@ -182,7 +167,7 @@ export default function CustomerLedgerList() {
         },
         {
             field: "openingBalance",
-            header: "Total",
+            header: "Received Amt",
             editable: false,
             body: totalTemplate,
         },

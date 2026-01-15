@@ -341,7 +341,7 @@ code {
   --datatable-height: 300px;
 }
 
-:not(.rolemapping) > .p-datatable-wrapper {
+:not(.rolemapping)>.p-datatable-wrapper {
   max-height: var(--datatable-height);
   overflow-y: auto;
 }
@@ -381,19 +381,40 @@ code {
 
 /* Applies to the whole page */
 body::-webkit-scrollbar {
-    width: 6px; /* width of vertical scrollbar */
-    height: 6px; /* height of horizontal scrollbar */
+  width: 6px;
+  /* width of vertical scrollbar */
+  height: 6px;
+  /* height of horizontal scrollbar */
 }
 
 body::-webkit-scrollbar-thumb {
-    background-color: rgba(0,0,0,0.5); /* scrollbar color */
-    border-radius: 3px; /* rounded corners */
+  background-color: rgba(0, 0, 0, 0.5);
+  /* scrollbar color */
+  border-radius: 3px;
+  /* rounded corners */
 }
 
 body::-webkit-scrollbar-track {
-    background-color: rgba(0,0,0,0.1); /* track color */
+  background-color: rgba(0, 0, 0, 0.1);
+  /* track color */
 }
 
-.star{
+.star {
   color: rgb(243, 90, 63);
+}
+
+.pdf-loader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+
+  background: rgba(255, 255, 255, 0.6);
+  /* optional dim effect */
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

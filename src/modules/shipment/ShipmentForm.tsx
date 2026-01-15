@@ -50,7 +50,8 @@ const SaleShipmentForm: React.FC<SalesShipmentFormProps> = ({
         driver: "",
         remarks: "",
         saledId: 0,
-        distance: null
+        distance: null,
+        freightAmount: 0
     });
     const [shipmentTypes, setShipmentTypes] = useState<any[]>([]);
     const [validationErrors, setValidationErrors] = useState<any>({});
@@ -123,7 +124,7 @@ const SaleShipmentForm: React.FC<SalesShipmentFormProps> = ({
             const response = await apiService.put(`/Shipment/${formData.shipmentId}`, formData);
             if (response && response.status) {
                 showSuccess("Shipment info updated successfully");
-                 if (onCancel) onCancel();
+                if (onCancel) onCancel();
             } else {
                 showError(response?.error ?? "Shipment info save failed")
             }
@@ -240,6 +241,43 @@ const SaleShipmentForm: React.FC<SalesShipmentFormProps> = ({
                 <div className="flex flex-wrap gap-3 p-1">
 
                     {/* Address */}
+
+                    <div className="min-w-[50px] flex-1">
+                        <strong className="text-sm">Distance</strong>
+                        <InputNumber
+                            value={formData.distance}
+                            onChange={(e) => handleChange("distance", e.value)}
+                            placeholder="Distance"
+                            className="w-full mt-1 text-sm"
+                            tabIndex={6}
+                            onKeyDown={handleEnterKey}
+                        />
+                    </div>
+
+                    {/* Driver Name */}
+                    <div className="min-w-[150px] flex-1">
+                        <strong className="text-sm">Driver Name</strong>
+                        <InputText
+                            value={formData.driver}
+                            onChange={(e) => handleChange("driver", e.target.value)}
+                            className="w-full mt-1 text-sm" placeholder="Driver name"
+                            tabIndex={5}
+                            onKeyDown={handleEnterKey}
+                        />
+                    </div>
+
+                    <div className="min-w-[100px] flex-1">
+                        <strong className="text-sm">Amount</strong>
+                        <InputNumber
+                            value={formData.freightAmount}
+                            onChange={(e) => handleChange("freightAmount", e.value)}
+                            placeholder="Freight Amount"
+                            className="w-full mt-1 text-sm"
+                            tabIndex={6}
+                            onKeyDown={handleEnterKey}
+                        />
+                    </div>
+
                     <div className="flex-[2] min-w-[800px]">
                         <strong className="text-sm">
                             Address <span className="mandatory-asterisk">*</span>
@@ -264,29 +302,6 @@ const SaleShipmentForm: React.FC<SalesShipmentFormProps> = ({
                         )}
                     </div>
 
-                    {/* Driver Name */}
-                    <div className="min-w-[150px] flex-1">
-                        <strong className="text-sm">Driver Name</strong>
-                        <InputText
-                            value={formData.driver}
-                            onChange={(e) => handleChange("driver", e.target.value)}
-                            className="w-full mt-1 text-sm" placeholder="Driver name"
-                            tabIndex={5}
-                            onKeyDown={handleEnterKey}
-                        />
-                    </div>
-
-                    <div className="min-w-[100px] flex-1">
-                        <strong className="text-sm">Distance</strong>
-                        <InputNumber
-                            value={formData.distance}
-                            onChange={(e) => handleChange("distance", e.value)}
-                            placeholder="Distance"
-                            className="w-full mt-1 text-sm"
-                            tabIndex={6}
-                            onKeyDown={handleEnterKey}
-                        />
-                    </div>
                 </div>
 
                 {isEditSidebar && (
