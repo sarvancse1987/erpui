@@ -3,20 +3,11 @@ import apiService from "../../services/apiService";
 import { Tag } from "primereact/tag";
 import { ColumnMeta } from "../../models/component/ColumnMeta";
 import { TReportTypeDatatable } from "../../components/TReportTypeDatatable";
-
-interface CustomerLedgerModel {
-  customerLedgerId: number;
-  customerId: number;
-  customerName: string;
-  sourceType: string;
-  ledgerType: "Dr" | "Cr";
-  openingBalance: number;
-  credit: number;
-  debit: number;
-  closingBalance: number;
-  lastUpdated: string;
-  lastUpdatedTime: string;
-}
+import { CustomerLedgerModel } from "../../models/CustomerLedgerModel";
+import LedgerKPI from "./LedgerKPI";
+import LedgerTypePie from "./LedgerTypePie";
+import SourceTypePie from "./SourceTypePie";
+import CustomerBalanceBar from "./CustomerBalanceBar";
 
 export default function CustomerLedger() {
   const [ledger, setLedger] = useState<CustomerLedgerModel[]>([]);
@@ -143,17 +134,46 @@ export default function CustomerLedger() {
   ];
 
   return (
-    <TReportTypeDatatable<CustomerLedgerModel>
-      data={ledger}
-      columns={columns}
-      primaryKey="customerLedgerId"
-      isNew={false}
-      isSave={false}
-      isDelete={false}
-      isEdit={false}
-      showDateFilter={true}
-      showDdlFilter={true}
-      page="customerledger"
-    />
+    <>
+      {/* KPI Cards */}
+      <LedgerKPI
+        data={{
+          totalCustomers: ledger.length,
+          totalCredit: ledger.reduce((a, c) => a + (c.credit ?? 0), 0),
+          totalDebit: ledger.reduce((a, c) => a + (c.debit ?? 0), 0),
+          totalClosing: ledger.reduce((a, c) => a + (c.closingBalance ?? 0), 0),
+        }}
+      />
+
+      {/* Charts */}
+      <div className="grid mb-4">
+        <div className="col-12 md:col-6">
+          <LedgerTypePie ledger={ledger} />
+        </div>
+        <div className="col-12 md:col-6">
+          <SourceTypePie ledger={ledger} />
+        </div>
+      </div>
+
+      <div className="grid mb-4">
+        <div className="col-12">
+          <CustomerBalanceBar ledger={ledger} />
+        </div>
+      </div>
+
+      {/* Existing Datatable */}
+      <TReportTypeDatatable<CustomerLedgerModel>
+        data={ledger}
+        columns={columns}
+        primaryKey="customerLedgerId"
+        isNew={false}
+        isSave={false}
+        isDelete={false}
+        isEdit={false}
+        showDateFilter={true}
+        showDdlFilter={true}
+        page="customerledger"
+      />
+    </>
   );
 }

@@ -178,12 +178,16 @@ export default function DailyExpenseList() {
         if (Object.keys(errors).length > 0) return;
 
         try {
-            await apiService.post("/DailyExpense/bulk", newExpense);
-            showSuccess("Daily expense's saved successfully!");
-            setActiveIndex(0);
+            const response = await apiService.post("/DailyExpense/bulk", newExpense);
+            if (response && response.status) {
+                showSuccess("Daily expense's saved successfully!");
+                setActiveIndex(0);
+            } else {
+                showError("Daily expense save failed");
+            }
         } catch (err) {
             console.error(err);
-            showError("Error saving daily expense");
+            showError("Daily expense save failed");
         }
     }
 

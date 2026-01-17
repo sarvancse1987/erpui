@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from "react";
 import apiService from "../../services/apiService";
 import { Tag } from "primereact/tag";
-import PurchaseFooterBox from "../purchase/PurchaseFooterBox";
-import { formatINR } from "../../common/common";
 import { ColumnMeta } from "../../models/component/ColumnMeta";
-import { TTypeDatatable } from "../../components/TTypeDatatable";
+import { TTypeFooterDatatable } from "../../components/TTypeFooterDatatable";
 
 export default function CustomerLedgerList() {
     const [customerId, setCustomerId] = useState<number | null>(null);
     const [customers, setCustomers] = useState<any[]>([]);
     const [ledger, setLedger] = useState<any[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [ledgerFooter, setLedgerFooter] = useState<any>(null);
 
     // Load customers
     useEffect(() => {
@@ -23,13 +21,14 @@ export default function CustomerLedgerList() {
     }, [customerId]);
 
     const loadLedger = async () => {
-        setLoading(true);
         const url = customerId
             ? `CustomerLedger/ledgerdetails/${customerId}`
             : `CustomerLedger/ledgerdetails`;
 
         const res = await apiService.get(url);
         setLedger(res.data);
+
+        setLedgerFooter(res.ledgerFooterResult ?? null);
 
         const customers = Array.from(res.data.values())
             .reduce((map: Map<number, any>, c: any) => {
@@ -44,8 +43,6 @@ export default function CustomerLedgerList() {
             .values();
 
         setCustomers(Array.from(customers));
-
-        setLoading(false);
     };
 
     const openingBalanceTemplate = (row: any) => {
@@ -96,7 +93,7 @@ export default function CustomerLedgerList() {
                 value={row.closingBalance.toFixed(2)}
                 severity={isZero ? "success" : "danger"}
                 style={{ width: "90px", textAlign: "center", backgroundColor: isZero ? "#22c55e" : "#ef4444" }}
-                
+
             />
         );
     };
@@ -200,7 +197,7 @@ export default function CustomerLedgerList() {
                     Customer Ledger Summary
                 </legend>
 
-                <TTypeDatatable
+                <TTypeFooterDatatable
                     data={ledger}
                     columns={ledgerColumns}
                     primaryKey="customerLedgerId"
@@ -211,7 +208,9 @@ export default function CustomerLedgerList() {
                     showDateFilter={true}
                     showDdlFilter={true}
                     page="customerledge"
+                    footerValue={ledgerFooter}
                 />
+
             </fieldset>
         </div>
     );

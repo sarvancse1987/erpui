@@ -5,6 +5,9 @@ import { customerNameTemplate } from "../../common/common";
 import { Tag } from "primereact/tag";
 import apiService from "../../services/apiService";
 import { TReportTypeDatatable } from "../../components/TReportTypeDatatable";
+import KPICards from "./KPICards";
+import MonthlySalesChart from "./MonthlySalesChart";
+import PaymentTypePieChart from "./PaymentTypePieChart";
 
 const SalesSummary = () => {
   const [sales, setSales] = useState<SaleModel[]>([]);
@@ -108,6 +111,70 @@ const SalesSummary = () => {
 
   return (
     <>
+      {/* KPI Cards */}
+      <KPICards
+        data={{
+          totalSales: sales.reduce((a, c) => a + (c.grandTotal ?? 0), 0),
+          totalPaid: sales.reduce((a, c) => a + ((c.cash ?? 0) + (c.upi ?? 0)), 0),
+          totalBalance: sales.reduce(
+            (a, c) =>
+              a +
+              ((c.paymentTypeName?.toLowerCase() === "credit"
+                ? c.grandTotal
+                : c.grandTotal - ((c.cash ?? 0) + (c.upi ?? 0))) ?? 0),
+            0
+          ),
+        }}
+      />
+
+      <div className="grid mb-4">
+        <div className="col-12 md:col-6">
+          <MonthlySalesChart
+            data={sales
+  .reduce((acc: any, curr: SaleModel) => {
+    if (!curr.saleOnDate) return acc;
+    const saleDate = new Date(curr.saleOnDate);
+    if (isNaN(saleDate.getTime())) return acc;
+
+    const month = saleDate.toLocaleString("en-US", { month: "short" });
+    const found = acc.find((x: any) => x.month === month);
+
+    if (found) found.total += curr.grandTotal ?? 0;
+    else acc.push({ month, total: curr.grandTotal ?? 0 });
+
+    return acc;
+  }, [])
+  .sort((a: any, b: any) => {
+    const monthA = new Date(`1 ${a.month} 2026`).getMonth();
+    const monthB = new Date(`1 ${b.month} 2026`).getMonth();
+    return monthA - monthB;
+  })
+}
+          />
+
+        </div>
+
+        <div className="col-12 md:col-6">
+          <PaymentTypePieChart
+            data={[
+              {
+                type: "Cash",
+                amount: sales.reduce((a, c) => a + (c.paymentTypeName?.toLowerCase() === "cash" ? (c.cash ?? 0) : 0), 0),
+              },
+              {
+                type: "UPI",
+                amount: sales.reduce((a, c) => a + (c.paymentTypeName?.toLowerCase() === "upi" ? (c.upi ?? 0) : 0), 0),
+              },
+              {
+                type: "Credit",
+                amount: sales.reduce((a, c) => a + (c.paymentTypeName?.toLowerCase() === "credit" ? c.grandTotal ?? 0 : 0), 0),
+              },
+            ]}
+          />
+        </div>
+      </div>
+
+      {/* Existing Datatable */}
       <TReportTypeDatatable<SaleModel>
         data={sales}
         columns={columns}

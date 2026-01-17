@@ -21,7 +21,7 @@ import PurchaseFooterBox from "../modules/purchase/PurchaseFooterBox";
 import { MultiSelect } from "primereact/multiselect";
 import { Tooltip } from "primereact/tooltip";
 
-export function TTypeDatatable<T extends Record<string, any>>({
+export function TTypeFooterDatatable<T extends Record<string, any>>({
   columns,
   data,
   primaryKey,
@@ -35,7 +35,8 @@ export function TTypeDatatable<T extends Record<string, any>>({
   sortableColumns = [],
   page,
   showDateFilter = false,
-  showDdlFilter = false
+  showDdlFilter = false,
+  footerValue
 }: TTypeDatatableProps<T>) {
   const [tableData, setTableData] = useState<T[]>(Array.isArray(data) ? data : []);
   const [editingRows, setEditingRows] = useState<{ [key: string]: boolean }>({});
@@ -428,31 +429,13 @@ export function TTypeDatatable<T extends Record<string, any>>({
     );
   }, [tableData]);
 
-  const ledgerTotals = useMemo(() => {
-    return tableData.reduce(
-      (acc, row: any) => {
-        const debit = row.debit ?? 0;
-        const credit = row.credit ?? 0;
-
-        acc.totalSale += debit + credit;
-        acc.totalReceived += credit;
-        acc.balanceAmount += debit;
-
-        return acc;
-      },
-      {
-        totalSale: 0,
-        totalReceived: 0,
-        balanceAmount: 0,
-      }
-    );
-  }, [tableData]);
-
   const shipmentTotals = useMemo(() => {
     return tableData.reduce(
       (acc, row: any) => {
         const debit = row.freightAmount ?? 0;
+
         acc.totalShipment += debit;
+
         return acc;
       },
       {
@@ -460,51 +443,6 @@ export function TTypeDatatable<T extends Record<string, any>>({
       }
     );
   }, [tableData]);
-
-  const VoucherTotals = useMemo(() => {
-    return tableData.reduce(
-      (acc, row: any) => {
-        const debit = row.totalCredit ?? 0;
-        acc.totalCredit += debit;
-        return acc;
-      },
-      {
-        totalCredit: 0
-      }
-    );
-  }, [tableData]);
-
-  const dailyExpenseTotals = useMemo(() => {
-    return tableData.reduce(
-      (acc, row: any) => {
-        const debit = row.amount ?? 0;
-        acc.expenseAmount += debit;
-        return acc;
-      },
-      {
-        expenseAmount: 0
-      }
-    );
-  }, [tableData]);
-
-  const companyLedgerTotals = useMemo(() => {
-    return tableData.reduce(
-      (acc, row: any) => {
-        const debit = row.debit ?? 0;
-        const credit = row.credit ?? 0;
-
-        acc.totalDebit += debit;
-        acc.totalCredit += credit;
-
-        return acc;
-      },
-      {
-        totalDebit: 0,
-        totalCredit: 0,
-      }
-    );
-  }, [tableData]);
-
 
   const getDdlFilterField = (row: any) => {
     if (page === "purchase") return row.supplierId;
@@ -517,7 +455,6 @@ export function TTypeDatatable<T extends Record<string, any>>({
     if (page === "product") return row.productBrandId;
     if (page === "user") return row.roleId;
     if (page === "location") return row.companyId;
-    if (page === "companyledger") return row.companyLedgerCategoryId;
     return null;
   };
 
@@ -532,7 +469,6 @@ export function TTypeDatatable<T extends Record<string, any>>({
     if (page === "user") return row.roleName;
     if (page === "location") return row.companyName;
     if (page === "shipment") return row.driver;
-    if (page === "companyledger") return row.companyLedgerCategoryName;
     return "";
   };
 
@@ -547,7 +483,6 @@ export function TTypeDatatable<T extends Record<string, any>>({
     if (page === "user") return "Select Role";
     if (page === "location") return "Select Company";
     if (page === "shipment") return "Select Driver";
-    if (page === "companyledger") return "Select Expense Type";
     return "Select";
   };
 
@@ -620,38 +555,23 @@ export function TTypeDatatable<T extends Record<string, any>>({
     ) : page === "customerledge" ? (
       <div className="custom-footer flex justify-between items-center gap-1 flex-wrap px-2 py-1">
         <div className="flex items-center gap-1 flex-wrap">
-          <PurchaseFooterBox label="Total Sale" value={formatINR(ledgerTotals.totalSale)} />
-          <PurchaseFooterBox label="Paid Amt" value={formatINR(ledgerTotals.totalReceived)} bg="#4dab76" />
-          <PurchaseFooterBox label="Balance Amt" value={formatINR(ledgerTotals.balanceAmount)} bg="#be5744ff" />
+          <PurchaseFooterBox label="Total Sale" value={formatINR(footerValue?.totalSale)} />
+          <PurchaseFooterBox label="Paid Amt" value={formatINR(footerValue?.totalReceived)} bg="#4dab76" />
+          <PurchaseFooterBox label="Balance Amt" value={formatINR(footerValue?.balanceAmount)} bg="#be5744ff" />
         </div>
       </div>
     ) : page === "shipment" ? (
       <div className="custom-footer flex justify-between items-center gap-1 flex-wrap px-2 py-1">
         <div className="flex items-center gap-1 flex-wrap">
-          <PurchaseFooterBox label="Shipment Total" value={formatINR(shipmentTotals.totalShipment)} />
+
+          <PurchaseFooterBox
+            label="Shipment Total"
+            value={formatINR(shipmentTotals.totalShipment)}
+          />
+
         </div>
       </div>
-    ) : page === "voucher" ? (
-      <div className="custom-footer flex justify-between items-center gap-1 flex-wrap px-2 py-1">
-        <div className="flex items-center gap-1 flex-wrap">
-          <PurchaseFooterBox label="Voucher Total" value={formatINR(VoucherTotals.totalCredit)} />
-        </div>
-      </div>
-    )
-      : page === "dailyexpense" ? (
-        <div className="custom-footer flex justify-between items-center gap-1 flex-wrap px-2 py-1">
-          <div className="flex items-center gap-1 flex-wrap">
-            <PurchaseFooterBox label="Expenses Total" value={formatINR(dailyExpenseTotals.expenseAmount)} />
-          </div>
-        </div>
-      )
-        : page === "companyledger" ? (
-          <div className="custom-footer flex justify-between items-center gap-1 flex-wrap px-2 py-1">
-            <div className="flex items-center gap-1 flex-wrap">
-              <PurchaseFooterBox label="Credit Total" value={formatINR(companyLedgerTotals.totalCredit)} />
-              <PurchaseFooterBox label="Debit Total" value={formatINR(companyLedgerTotals.totalDebit)} />
-            </div>
-          </div>) : null;
+    ) : null;
 
   const parseDDMMYYYY = (dateStr: string): Date | null => {
     const [dd, mm, yyyy] = dateStr.split('-').map(Number);
@@ -717,8 +637,8 @@ export function TTypeDatatable<T extends Record<string, any>>({
   }
 
   return (
-    <div className="card p-2 h-[calc(100vh-100px)]">
-      <div className="flex flex-wrap justify-between items-center gap-2 mb-1">
+    <div className="card p-3 h-[calc(100vh-100px)]">
+      <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
         <div className="flex gap-2">
           {isNew && (
             <Button label="Add" icon="pi pi-plus" outlined onClick={addRow} size="small" className="p-button-info custom-xs" />
@@ -895,6 +815,7 @@ export function TTypeDatatable<T extends Record<string, any>>({
         }
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
         footer={tableData.length > 0 && tableFooter}
+        isDataSelectable={(e) => e.data.isSelectable === true}
       >
         <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} frozen />
 

@@ -52,4 +52,5 @@ export interface TTypeDatatableProps<T extends Record<string, any>> {
     page?: string;
     showDateFilter?: boolean;
     showDdlFilter?: boolean;
+    footerValue?: any;
 }
