@@ -1,8 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
 import * as signalR from "@microsoft/signalr";
-import { ChatMessage } from "../../models/ChatMessage";
-import "../../asset/basiclayout/erp-chatbot.css";
 import { storage } from "../../services/storageService";
+import "../../asset/basiclayout/erp-chatbot.css";
+
+export interface ChatMessage {
+  id: string;
+  sender: "user" | "agent" | "bot";
+  message: string;
+  image?: string;
+  video?: string;
+  fileUrl?: string;
+  fileName?: string;
+  sessionId?: number;
+}
 
 export const ERPChatbot: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -22,20 +32,21 @@ export const ERPChatbot: React.FC = () => {
   useEffect(() => {
     const hubConnection = new signalR.HubConnectionBuilder()
       .withUrl("http://localhost:19448/chathub?role=user", {
-        withCredentials: true
+        withCredentials: true,
       })
       .withAutomaticReconnect()
       .build();
 
     hubConnection.on("ReceiveMessage", (res: any) => {
-      // Save real session ID from server
+      // Save session ID from server
       if (!sessionIdRef.current && res.sessionId) {
         sessionIdRef.current = res.sessionId;
         console.log("Session established:", res.sessionId);
       }
 
+      // Correct sender logic: user = LEFT, agent = RIGHT
       const senderType: "user" | "agent" | "bot" =
-        res.isBot ? "bot" : res.userId === userId ? "user" : "agent";
+        res.sender || (res.userId === userId ? "user" : "agent");
 
       const newMsg: ChatMessage = {
         id: crypto.randomUUID(),
@@ -44,7 +55,7 @@ export const ERPChatbot: React.FC = () => {
         image: res.imageUrl,
         video: res.videoUrl,
         fileUrl: res.fileUrl,
-        fileName: res.fileName
+        fileName: res.fileName,
       };
 
       setMessages(prev => [...prev, newMsg]);
@@ -71,22 +82,15 @@ export const ERPChatbot: React.FC = () => {
     if (!input.trim() && !file) return;
     if (!connectionRef.current) return;
 
-    const optimisticMsg: ChatMessage = {
-      id: crypto.randomUUID(),
-      sender: "user",
-      message: input || file?.name || "",
-      fileName: file?.name
-    };
-
-    setMessages(prev => [...prev, optimisticMsg]);
-    setInput("");
+    const messageText = input || file?.name || "";
+    setInput(""); // clear input
 
     try {
       await connectionRef.current.invoke(
         "SendMessage",
         userId,
         userName,
-        input || ""
+        messageText
       );
     } catch (err) {
       console.error("❌ Send failed", err);
@@ -95,10 +99,7 @@ export const ERPChatbot: React.FC = () => {
 
   return (
     <>
-      <button
-        className="erp-chatbot-fab"
-        onClick={() => setOpen(!open)}
-      >
+      <button className="erp-chatbot-fab" onClick={() => setOpen(!open)}>
         💬
       </button>
 
@@ -106,41 +107,20 @@ export const ERPChatbot: React.FC = () => {
         <div className="erp-chatbot-window">
           <div className="erp-chatbot-header">
             <span>ERP Assistant</span>
-            <button
-              className="erp-chatbot-close"
-              onClick={() => setOpen(false)}
-            >
+            <button className="erp-chatbot-close" onClick={() => setOpen(false)}>
               ✖
             </button>
           </div>
 
           <div className="erp-chatbot-messages">
             {messages.map(msg => (
-              <div
-                key={msg.id}
-                className={`erp-chatbot-row ${msg.sender}`}
-              >
+              <div key={msg.id} className={`erp-chatbot-row ${msg.sender}`}>
                 <div className={`erp-chatbot-bubble ${msg.sender}`}>
                   {msg.message && <div>{msg.message}</div>}
-                  {msg.image && (
-                    <img
-                      src={msg.image}
-                      className="erp-chatbot-image"
-                    />
-                  )}
-                  {msg.video && (
-                    <video
-                      src={msg.video}
-                      controls
-                      className="erp-chatbot-video"
-                    />
-                  )}
+                  {msg.image && <img src={msg.image} className="erp-chatbot-image" alt="chat-img" />}
+                  {msg.video && <video src={msg.video} controls className="erp-chatbot-video" />}
                   {msg.fileUrl && (
-                    <a
-                      href={msg.fileUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                    <a href={msg.fileUrl} target="_blank" rel="noreferrer">
                       📎 {msg.fileName}
                     </a>
                   )}
@@ -161,17 +141,10 @@ export const ERPChatbot: React.FC = () => {
               type="file"
               hidden
               ref={fileRef}
-              onChange={e =>
-                e.target.files?.[0] &&
-                sendMessage(e.target.files[0])
-              }
+              onChange={e => e.target.files?.[0] && sendMessage(e.target.files[0])}
             />
-            <button onClick={() => fileRef.current?.click()}>
-              📎
-            </button>
-            <button onClick={() => sendMessage()}>
-              Send
-            </button>
+            <button onClick={() => fileRef.current?.click()}>📎</button>
+            <button onClick={() => sendMessage()}>Send</button>
           </div>
         </div>
       )}
