@@ -306,6 +306,22 @@ const AppMenu: React.FC = () => {
     });
   }
 
+    // ================= PURCHASE =================
+  if (storage.hasModule("Support")) {
+    model.push({
+      label: "Support",
+      icon: "pi pi-fw pi-shopping-cart",
+      to: "/support",
+      items: [
+        {
+          label: "Support",
+          icon: "pi pi-fw pi-shopping-cart",
+          to: "/support",
+        },
+      ],
+    });
+  }
+
   return (
     <MenuProvider>
       <ul className="layout-menu">
