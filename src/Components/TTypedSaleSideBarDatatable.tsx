@@ -43,7 +43,8 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
   savedAdjustments,
   onShipment,
   shipmentInfo,
-  page
+  page,
+  isAddNew
 }: TTypedDatatableProps<T> & {
   products?: ProductModel[]
 }) {
@@ -157,6 +158,12 @@ export function TTypedSaleSideBarDatatable<T extends Record<string, any>>({
     setSidebarRowKey(rowKey);
     setProductSidebarVisible(true);
   };
+
+  useEffect(() => {
+    if (page == "sale" && isAddNew == true) {
+      addRow();
+    }
+  }, [isAddNew]);
 
   const validateRow = (rowData: T) => {
     const rowErrors: { [key: string]: string } = {};

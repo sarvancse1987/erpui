@@ -14,6 +14,7 @@ import { SalesForm } from "./SalesForm";
 import { Button } from "primereact/button";
 import { customerNameTemplate } from "../../common/common";
 import { PrintTieredMenu } from "./PrintTieredMenu";
+import { useSearchParams } from "react-router-dom";
 
 export default function SaleList() {
   const [sales, setSales] = useState<SaleModel[]>([]);
@@ -23,6 +24,7 @@ export default function SaleList() {
   const [viewType, setViewType] = useState<"simple" | "detailed">("simple");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [searchParams] = useSearchParams();
 
   const loadAllData = async () => {
     setLoading(true);
@@ -58,6 +60,12 @@ export default function SaleList() {
   useEffect(() => {
     loadAllData();
   }, []);
+
+  useEffect(() => {
+    if (searchParams.has("add")) {
+      setActiveIndex(1);
+    }
+  }, [searchParams]);
 
   const handleParentEdit = (row: SaleModel) => {
     if (row != null) {

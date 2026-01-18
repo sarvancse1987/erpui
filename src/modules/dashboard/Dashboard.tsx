@@ -158,7 +158,7 @@ export default function Dashboard() {
                         label="Add Sale"
                         icon="pi pi-plus"
                         className="p-button-info"
-                        onClick={() => navigate("/sales")}
+                        onClick={() => navigate("/sales?add")}
                     />
                 </div>
             </div>

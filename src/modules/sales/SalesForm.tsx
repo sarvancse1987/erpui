@@ -17,6 +17,7 @@ import { Dropdown } from "primereact/dropdown";
 import { PaymentTypeModel } from "../../models/sale/PaymentTypeModel";
 import { InputText } from "primereact/inputtext";
 import { PaymentType } from "../../models/PaymentType";
+import { useSearchParams } from "react-router-dom";
 
 interface SalesFormProps {
   isEditSidebar: boolean;
@@ -77,6 +78,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
   const [showBank, setShowBank] = useState(false);
   const [cashType, setCashType] = useState<string>("Cash");
   const [saleId, setSaleId] = useState<number>(0);
+  const [searchParams] = useSearchParams();
 
   const loadAllData = async () => {
     try {
@@ -781,6 +783,7 @@ export const SalesForm: React.FC<SalesFormProps> = ({
             onShipment={handleShipmentInfo}
             shipmentInfo={formData?.shipment}
             page="sale"
+            isAddNew={searchParams.has("add") ? true : false}
           />
         </div>
 

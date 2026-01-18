@@ -414,6 +414,7 @@ export const QuotationForm: React.FC<QuotationFormProps> = ({
             onAdjustmentsChange={handleAdjustmentsChange}
             savedAdjustments={savedAdjustments}
             page="quotation"
+            isAddNew={false}
           />
         </div>
 

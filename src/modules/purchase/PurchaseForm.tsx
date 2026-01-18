@@ -595,6 +595,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({
             onAdjustmentsChange={handleAdjustmentsChange}
             savedAdjustments={savedAdjustments}
             page="purchase"
+            isAddNew={false}
           />
         </div>
 

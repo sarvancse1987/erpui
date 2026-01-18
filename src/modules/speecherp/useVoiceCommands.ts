@@ -20,7 +20,7 @@ export function useVoiceCommands() {
     if (storage.hasModule("Sales")) {
       list.push({
         command: ["open sales", "go to sales", "open sale", "add sale"],
-        callback: () => navigate("/sales"),
+        callback: () => navigate("/sales?add"),
       });
 
       if (storage.hasModule("Quotations")) {
