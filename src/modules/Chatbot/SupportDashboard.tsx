@@ -27,7 +27,7 @@ export const SupportDashboard: React.FC = () => {
     // Initialize SignalR connection
     // ------------------------------
     useEffect(() => {
-         const user = storage.getUser();
+        const user = storage.getUser();
         const hubConnection = new signalR.HubConnectionBuilder()
             .withUrl("http://localhost:19448/chathub?role=agent")
             .withAutomaticReconnect()
