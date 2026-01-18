@@ -26,49 +26,47 @@ export const SupportDashboard: React.FC = () => {
     // ------------------------------
     // Initialize SignalR connection
     // ------------------------------
-    useEffect(() => {
-        const user = storage.getUser();
-        const hubConnection = new signalR.HubConnectionBuilder()
-            .withUrl("http://localhost:19448/chathub?role=agent")
-            .withAutomaticReconnect()
-            .build();
+useEffect(() => {
+  const hubConnection = new signalR.HubConnectionBuilder()
+    .withUrl("http://localhost:19448/chathub?role=agent")
+    .withAutomaticReconnect()
+    .build();
 
-        const startConnection = async () => {
-            try {
-                await hubConnection.start();
-                console.log("Agent connected to SignalR hub");
+  const startConnection = async () => {
+    try {
+      await hubConnection.start();
+      console.log("✅ Agent connected to SignalR hub");
 
-                debugger
-                // Join support team group (no arguments)
-                await hubConnection.invoke("JoinSession", Number(user?.userId));
-
-                // Listen for new messages from users
-                hubConnection.on("NewUserMessage", (msg: ChatMessage) => {
-                    // Add session if not exists
-                    setSessions(prev => {
-                        if (!prev.find(s => s.id === msg.sessionId)) {
-                            return [...prev, { id: msg.sessionId, userName: msg.sender === "user" ? "User" : "Unknown" }];
-                        }
-                        return prev;
-                    });
-
-                    // Add message to state
-                    setMessages(prev => [...prev, msg]);
-                });
-
-                connectionRef.current = hubConnection;
-            } catch (err) {
-                console.error("SignalR connection error:", err);
-            }
+      hubConnection.on("NewUserMessage", (msg: any) => {
+        const chatMsg: ChatMessage = {
+          id: crypto.randomUUID(),
+          sender: "user",
+          message: msg.message,
+          sessionId: msg.sessionId
         };
 
-        startConnection();
+        setSessions(prev => {
+          if (!prev.find(s => s.id === chatMsg.sessionId)) {
+            return [...prev, { id: chatMsg.sessionId, userName: msg.userName || "User" }];
+          }
+          return prev;
+        });
 
-        // Cleanup on unmount
-        return () => {
-            hubConnection.stop().catch(err => console.error("Error stopping hub connection:", err));
-        };
-    }, []);
+        setMessages(prev => [...prev, chatMsg]);
+      });
+
+      connectionRef.current = hubConnection;
+    } catch (err) {
+      console.error("SignalR connection error:", err);
+    }
+  };
+
+  startConnection();
+
+  return () => {
+    hubConnection.stop();
+  };
+}, []);
 
     // ------------------------------
     // Send agent message
